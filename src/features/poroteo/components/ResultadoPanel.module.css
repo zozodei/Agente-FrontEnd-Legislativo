@@ -1,0 +1,136 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: var(--rule-width) solid var(--rule);
+  border-top: 4px solid var(--ink);
+}
+
+.kicker {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.titular {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  line-height: 1;
+  transition: color var(--dur-base) var(--ease-out);
+}
+
+.titular[data-resultado='APROBADO'] {
+  color: var(--voto-afirmativo);
+}
+
+.titular[data-resultado='RECHAZADO'] {
+  color: var(--voto-negativo);
+}
+
+.titular[data-resultado='SIN_QUORUM'] {
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+.bajada {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.estado {
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--warning);
+  background: var(--paper-sunken);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.estado[data-definido] {
+  border-left-color: var(--ink);
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+}
+
+.counts > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+}
+
+.counts dt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-2xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.counts dt i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.counts .dotEmpty {
+  border: 1px dashed var(--ink-3);
+}
+
+.counts dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  line-height: 1;
+}
+
+@media (max-width: 420px) {
+  .counts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.bar {
+  margin-top: var(--space-5);
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding-top: var(--space-3);
+  border-top: var(--rule-width) solid var(--rule);
+}
+
+.meta dt {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+
+.meta dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.meta dd span {
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+.meta dd[data-ok] {
+  color: var(--voto-afirmativo);
+}
