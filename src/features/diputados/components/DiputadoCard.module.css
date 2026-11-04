@@ -1,0 +1,122 @@
+.card {
+  list-style: none;
+  min-width: 0;
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+  text-decoration: none;
+}
+
+.link > :first-child {
+  border-bottom: 3px solid var(--bloque);
+  transition: filter var(--dur-base) var(--ease-out);
+}
+
+.link:hover > :first-child {
+  filter: brightness(1.04);
+}
+
+.link:hover .apellido {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  flex-direction: column;
+  line-height: var(--leading-snug);
+}
+
+.apellido {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.nombre {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.distrito {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.row {
+  list-style: none;
+  border-bottom: var(--rule-width) solid var(--rule);
+}
+
+.rowLink {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr) 4.5rem;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-2) 0;
+  text-decoration: none;
+}
+
+.rowLink:hover {
+  background: var(--paper-sunken);
+}
+
+.rowName {
+  font-size: var(--text-md);
+}
+
+.rowName strong {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.rowStat {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 720px) {
+  .rowLink {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'foto nombre stat'
+      'foto bloque stat';
+    gap: 0 var(--space-3);
+  }
+
+  .rowLink > :first-child {
+    grid-area: foto;
+  }
+
+  .rowName {
+    grid-area: nombre;
+  }
+
+  .rowLink > :nth-child(3) {
+    grid-area: bloque;
+  }
+
+  .rowLink .distrito {
+    display: none;
+  }
+
+  .rowStat {
+    grid-area: stat;
+  }
+}
