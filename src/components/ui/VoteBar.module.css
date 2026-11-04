@@ -1,0 +1,74 @@
+.wrap {
+  width: 100%;
+}
+
+.bar {
+  position: relative;
+  display: flex;
+  width: 100%;
+  background: var(--paper-sunken);
+  overflow: visible;
+}
+
+.segment {
+  height: 100%;
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.segment[data-voto='INDEFINIDO'] {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--voto-indefinido) 0 3px,
+    transparent 3px 6px
+  ) !important;
+}
+
+.segment + .segment {
+  border-left: 1px solid var(--paper);
+}
+
+.marker {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 0;
+  border-left: 1.5px solid var(--ink);
+  transition: left var(--dur-slow) var(--ease-out);
+}
+
+.markerLabel {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  white-space: nowrap;
+  color: var(--ink-2);
+}
+
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.labels span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.labels i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.labels strong {
+  color: var(--ink);
+  font-family: var(--font-mono);
+}

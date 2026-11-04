@@ -1,0 +1,166 @@
+/*
+ * ─────────────────────────────────────────────────────────────────────────
+ *  Tokens de diseño · Poroteo Legislativo
+ *  Única fuente de verdad de colores, tipografía, espaciado y movimiento.
+ *  Dirección: editorial / cívica, tipo medio de datos periodístico.
+ *  - Papel cálido + tinta casi negra. Color fuerte SOLO para datos.
+ *  - Serif con carácter (Newsreader) para titulares y cifras grandes.
+ *  - Sans neutra y legible (Public Sans) para el cuerpo.
+ *  - Mono (IBM Plex Mono) para etiquetas de datos, fechas y "kickers".
+ *  Los colores de bloques/votos para JS están en src/styles/palette.ts.
+ * ─────────────────────────────────────────────────────────────────────────
+ */
+
+:root {
+  /* Tipografía */
+  --font-display: 'Newsreader Variable', 'Iowan Old Style', 'Georgia', serif;
+  --font-body: 'Public Sans Variable', 'Helvetica Neue', 'Arial', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', 'Consolas', monospace;
+
+  /* Escala tipográfica (fluida entre móvil y escritorio) */
+  --text-2xs: 0.6875rem; /* 11 */
+  --text-xs: 0.75rem; /* 12 */
+  --text-sm: 0.875rem; /* 14 */
+  --text-md: 1rem; /* 16 */
+  --text-lg: 1.125rem; /* 18 */
+  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  --text-3xl: clamp(2rem, 1.5rem + 2vw, 3rem);
+  --text-4xl: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
+  --text-display: clamp(3rem, 1.8rem + 5vw, 6.5rem);
+
+  --leading-tight: 1.05;
+  --leading-snug: 1.25;
+  --leading-body: 1.55;
+  --tracking-kicker: 0.08em;
+
+  /* Espaciado (base 4px) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+
+  /* Layout */
+  --page-max: 1240px;
+  --page-gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
+  --measure: 68ch;
+
+  /* Bordes y radios: rectos, editoriales */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-pill: 999px;
+  --rule-width: 1px;
+  --rule-strong: 2px;
+
+  /* Movimiento */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 220ms;
+  --dur-slow: 420ms;
+
+  /* ── Tema claro (default) ── */
+  --paper: #f4f1ea;
+  --paper-sunken: #ebe6da;
+  --surface: #fbfaf6;
+  --ink: #16150f;
+  --ink-2: #47443b;
+  --ink-3: #77736a;
+  --rule: #d8d2c3;
+  --rule-strong-color: #16150f;
+  --accent: #1f4b7a; /* links, foco, UI interactiva */
+  --accent-ink: #f4f1ea;
+  --highlight: #f3d65a; /* marcador amarillo para destacar */
+  --focus-ring: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent);
+  --shadow-pop: 0 1px 0 rgba(22, 21, 15, 0.04), 0 8px 24px -8px rgba(22, 21, 15, 0.22);
+
+  /* Votos (datos). Validados con el validador de paletas (CVD deutan/protan ≥ 7 con
+     etiqueta de texto siempre visible). Ausente es gris a propósito: es "no votó". */
+  --voto-afirmativo: #0b826a;
+  --voto-negativo: #cc3d3d;
+  --voto-abstencion: #d29a12;
+  --voto-ausente: #7d796f;
+  --voto-indefinido: #e2dccd;
+  --voto-presidente: #47443b;
+
+  /* Estados */
+  --ok: #0b826a;
+  --danger: #b3261e;
+  --warning: #a86b00;
+
+  /* Skeleton */
+  --skeleton-a: #e7e1d4;
+  --skeleton-b: #f0ebe1;
+
+  color-scheme: light;
+}
+
+/* ── Tema oscuro: sistema (si no se forzó claro) o forzado ── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #121210;
+    --paper-sunken: #0b0b0a;
+    --surface: #1b1b18;
+    --ink: #ece8dd;
+    --ink-2: #bdb8ab;
+    --ink-3: #8b867a;
+    --rule: #34332d;
+    --rule-strong-color: #ece8dd;
+    --accent: #8fb6e3;
+    --accent-ink: #121210;
+    --highlight: #8a7420;
+    --shadow-pop: 0 8px 28px -8px rgba(0, 0, 0, 0.7);
+    --voto-afirmativo: #2a9a80;
+    --voto-negativo: #e04f5f;
+    --voto-abstencion: #b08f18;
+    --voto-ausente: #6e6a60;
+    --voto-indefinido: #2c2b26;
+    --voto-presidente: #bdb8ab;
+    --ok: #2a9a80;
+    --danger: #e04f5f;
+    --warning: #e3b23c;
+    --skeleton-a: #22221e;
+    --skeleton-b: #2b2a25;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #121210;
+  --paper-sunken: #0b0b0a;
+  --surface: #1b1b18;
+  --ink: #ece8dd;
+  --ink-2: #bdb8ab;
+  --ink-3: #8b867a;
+  --rule: #34332d;
+  --rule-strong-color: #ece8dd;
+  --accent: #8fb6e3;
+  --accent-ink: #121210;
+  --highlight: #8a7420;
+  --shadow-pop: 0 8px 28px -8px rgba(0, 0, 0, 0.7);
+  --voto-afirmativo: #2a9a80;
+  --voto-negativo: #e04f5f;
+  --voto-abstencion: #b08f18;
+  --voto-ausente: #6e6a60;
+  --voto-indefinido: #2c2b26;
+  --voto-presidente: #bdb8ab;
+  --ok: #2a9a80;
+  --danger: #e04f5f;
+  --warning: #e3b23c;
+  --skeleton-a: #22221e;
+  --skeleton-b: #2b2a25;
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}
