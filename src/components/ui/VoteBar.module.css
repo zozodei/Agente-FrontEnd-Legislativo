@@ -5,28 +5,14 @@
 .bar {
   position: relative;
   display: flex;
-  gap: 2px;
   width: 100%;
-  border-radius: var(--radius-pill);
   background: var(--paper-sunken);
+  overflow: visible;
 }
 
 .segment {
   height: 100%;
-  min-width: 2px;
   transition: width var(--dur-slow) var(--ease-out);
-}
-
-.segment:first-child {
-  border-radius: var(--radius-pill) 0 0 var(--radius-pill);
-}
-
-.segment:last-of-type {
-  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
-}
-
-.segment:only-of-type {
-  border-radius: var(--radius-pill);
 }
 
 .segment[data-voto='INDEFINIDO'] {
@@ -37,12 +23,16 @@
   ) !important;
 }
 
+.segment + .segment {
+  border-left: 1px solid var(--paper);
+}
+
 .marker {
   position: absolute;
   top: -5px;
   bottom: -5px;
   width: 0;
-  border-left: 2px solid var(--ink);
+  border-left: 1.5px solid var(--ink);
   transition: left var(--dur-slow) var(--ease-out);
 }
 
@@ -51,6 +41,7 @@
   top: -18px;
   left: 0;
   transform: translateX(-50%);
+  font-family: var(--font-mono);
   font-size: var(--text-2xs);
   white-space: nowrap;
   color: var(--ink-2);
@@ -79,4 +70,5 @@
 
 .labels strong {
   color: var(--ink);
+  font-family: var(--font-mono);
 }

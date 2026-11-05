@@ -7,7 +7,7 @@ export default function NotFoundPage() {
   useDocumentTitle('Página no encontrada');
   return (
     <>
-      <PageHeader titulo="Esta banca está vacía." />
+      <PageHeader kicker="404" titulo="Esta banca está vacía." />
       <EmptyState
         titulo="No encontramos la página que buscabas"
         accion={

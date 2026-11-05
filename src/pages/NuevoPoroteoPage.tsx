@@ -58,6 +58,7 @@ export default function NuevoPoroteoPage() {
   return (
     <>
       <PageHeader
+        kicker="Nuevo poroteo"
         titulo="Cargá el proyecto de ley"
         bajada="Con el título alcanza para empezar. El texto o el PDF quedan guardados para la futura estimación con IA."
       />

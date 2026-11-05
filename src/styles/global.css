@@ -9,7 +9,6 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  scroll-padding-top: calc(var(--nav-h) + var(--space-4));
 }
 
 body {
@@ -17,16 +16,14 @@ body {
   min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: var(--text-md);
   line-height: var(--leading-body);
-  letter-spacing: -0.006em;
-  font-feature-settings: 'kern', 'liga', 'calt';
+  font-feature-settings: 'kern', 'liga';
+  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
   overflow-x: hidden;
-  caret-color: var(--accent);
 }
 
 h1,
@@ -34,10 +31,25 @@ h2,
 h3,
 h4 {
   margin: 0;
-  font-weight: 650;
   line-height: var(--leading-tight);
-  letter-spacing: -0.025em;
   text-wrap: balance;
+}
+
+/* Titulares grandes: Alegreya, serif caligráfica con voz propia. */
+h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Subtítulos: Encode Sans expandida, como la cartelería pública. */
+h2,
+h3,
+h4 {
+  font-family: var(--font-body);
+  font-stretch: var(--stretch-wide);
+  font-weight: 650;
+  letter-spacing: -0.01em;
 }
 
 p {
@@ -48,12 +60,12 @@ p {
 a {
   color: inherit;
   text-decoration-thickness: 1px;
-  text-underline-offset: 0.18em;
-  transition: color var(--dur-fast) var(--ease-out);
+  text-underline-offset: 0.2em;
 }
 
 a:hover {
   color: var(--accent);
+  text-decoration-color: var(--accent);
 }
 
 img {
@@ -66,7 +78,6 @@ input,
 select,
 textarea {
   font: inherit;
-  letter-spacing: inherit;
   color: inherit;
 }
 
@@ -74,47 +85,15 @@ button {
   cursor: pointer;
 }
 
-button:disabled {
-  cursor: not-allowed;
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--ink-4);
-  opacity: 1;
-}
-
 :focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
 }
 
 ::selection {
   background: var(--highlight);
   color: var(--ink);
-}
-
-/* Barras de scroll discretas en los contenedores que scrollean */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--rule) transparent;
-}
-
-kbd {
-  display: inline-grid;
-  place-items: center;
-  min-width: 1.4em;
-  height: 1.4em;
-  padding: 0 0.3em;
-  border: 1px solid var(--rule);
-  border-bottom-width: 2px;
-  border-radius: var(--radius-xs);
-  background: var(--surface);
-  font: inherit;
-  font-size: 0.78em;
-  font-weight: 600;
-  color: var(--ink-3);
 }
 
 /* Cifras tabulares en todo lo que sea dato */
@@ -126,9 +105,11 @@ table {
 /* Títulos de actas que vienen en MAYÚSCULAS desde la HCDN: se bajan de tono
    en vez de reescribirlos (convertirlos rompería siglas y nombres propios). */
 [data-acta] {
-  font-size: 0.86em !important;
+  font-family: var(--font-body) !important;
+  font-size: 0.8em !important;
+  font-stretch: 100% !important;
   font-weight: 500 !important;
-  letter-spacing: 0.01em !important;
+  letter-spacing: 0.02em;
 }
 
 .visually-hidden {
@@ -149,13 +130,11 @@ table {
   top: -100px;
   z-index: 100;
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-pill);
   background: var(--ink);
   color: var(--paper);
-  font-weight: 600;
-  text-decoration: none;
+  border-radius: var(--radius-sm);
 }
 
 .skip-link:focus {
-  top: var(--space-3);
+  top: var(--space-4);
 }

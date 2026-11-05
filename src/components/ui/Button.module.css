@@ -3,87 +3,78 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  border: 0;
+  border: var(--rule-width) solid var(--rule);
   border-radius: var(--radius-pill);
   background: transparent;
   color: var(--ink);
-  font-weight: 550;
-  letter-spacing: -0.01em;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.005em;
   text-decoration: none;
   white-space: nowrap;
   transition:
     background var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);
 }
 
-.btn:hover {
-  text-decoration: none;
-}
-
 .btn:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: translateY(1px);
 }
 
 .btn:disabled {
-  opacity: 0.4;
-}
-
-.btn svg {
-  flex: none;
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .md {
   min-height: 44px;
   padding: 0 var(--space-5);
-  font-size: var(--text-md);
+  font-size: var(--text-sm);
 }
 
 .sm {
   min-height: 32px;
   padding: 0 var(--space-3);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
 }
 
-/* Acción principal: el único azul lleno de la pantalla. */
 .primary {
+  border-color: var(--accent);
   background: var(--accent);
   color: var(--accent-ink);
 }
 
 .primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-  color: var(--accent-ink);
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
 }
 
-/* Secundaria: relleno gris suave, sin borde. */
 .secondary {
-  background: color-mix(in srgb, var(--ink) 7%, transparent);
-  color: var(--ink);
+  background: var(--surface);
 }
 
 .secondary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 11%, transparent);
-  color: var(--ink);
+  border-color: var(--ink-3);
 }
 
 .ghost {
-  color: var(--accent);
+  border-color: transparent;
 }
 
 .ghost:hover:not(:disabled) {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--paper-sunken);
 }
 
 .danger {
+  border-color: var(--danger);
   color: var(--danger);
 }
 
 .danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
-  color: var(--danger);
+  background: var(--danger);
+  color: var(--paper);
 }
 
 .spinner {

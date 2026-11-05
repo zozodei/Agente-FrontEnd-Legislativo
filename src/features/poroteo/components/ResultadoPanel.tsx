@@ -1,4 +1,3 @@
-import { CircleCheck, CircleMinus, CircleX, Info, TriangleAlert } from 'lucide-react';
 import { VoteBar } from '@/components/ui/VoteBar';
 import { VOTO_COLOR, VOTO_LABEL } from '@/styles/palette';
 import type { ResumenPoroteo, VotoPoroteo } from '@/types';
@@ -6,12 +5,6 @@ import { TIPO_MAYORIA_LABEL } from '../resultado';
 import styles from './ResultadoPanel.module.css';
 
 const ORDEN: VotoPoroteo[] = ['AFIRMATIVO', 'NEGATIVO', 'ABSTENCION', 'AUSENTE'];
-
-const ICONO = {
-  APROBADO: CircleCheck,
-  RECHAZADO: CircleX,
-  SIN_QUORUM: CircleMinus,
-} as const;
 
 const TITULAR = {
   APROBADO: 'Se aprueba',
@@ -22,7 +15,6 @@ const TITULAR = {
 /** Contador en vivo del poroteo: quórum, mayoría y si el resultado ya está definido. */
 export function ResultadoPanel({ resumen }: { resumen: ResumenPoroteo }) {
   const { conteo, quorum, mayoria, resultado, definido, escenarios, enDisputa } = resumen;
-  const Icono = ICONO[resultado];
 
   let bajada: string;
   if (!quorum.alcanzado) {
@@ -35,28 +27,20 @@ export function ResultadoPanel({ resumen }: { resumen: ResumenPoroteo }) {
 
   return (
     <section className={styles.panel} aria-live="polite" aria-label="Resultado estimado">
-      <div className={styles.head}>
-        <span className={styles.icon} data-resultado={resultado} aria-hidden>
-          <Icono size={20} strokeWidth={2} />
-        </span>
-        <div>
-          <p className={styles.titular}>{TITULAR[resultado]}</p>
-          <p className={styles.mayoria}>
-            Resultado estimado con {TIPO_MAYORIA_LABEL[resumen.tipoMayoria].toLowerCase()}
-          </p>
-        </div>
-      </div>
+      <span className={styles.kicker}>
+        Resultado estimado · {TIPO_MAYORIA_LABEL[resumen.tipoMayoria]}
+      </span>
+      <p className={styles.titular} data-resultado={resultado}>
+        {TITULAR[resultado]}
+      </p>
       <p className={styles.bajada}>{bajada}</p>
 
       <p className={styles.estado} data-definido={definido || undefined}>
-        {definido ? <Info size={15} aria-hidden /> : <TriangleAlert size={15} aria-hidden />}
-        <span>
-          {definido
-            ? enDisputa
-              ? `Definido: los ${enDisputa} votos sin definir no alcanzan para cambiarlo.`
-              : 'Todas las bancas asignadas.'
-            : `Abierto: con ${enDisputa} bancas sin definir, puede ${escenarios.mejorCaso === 'APROBADO' ? 'aprobarse' : 'no reunir quórum'} o ${escenarios.peorCaso === 'RECHAZADO' ? 'rechazarse' : 'quedar sin quórum'}.`}
-        </span>
+        {definido
+          ? enDisputa
+            ? `Definido: los ${enDisputa} votos sin definir no alcanzan para cambiarlo.`
+            : 'Todas las bancas asignadas.'
+          : `Abierto: con ${enDisputa} bancas sin definir, puede ${escenarios.mejorCaso === 'APROBADO' ? 'aprobarse' : 'no reunir quórum'} o ${escenarios.peorCaso === 'RECHAZADO' ? 'rechazarse' : 'quedar sin quórum'}.`}
       </p>
 
       <dl className={styles.counts}>

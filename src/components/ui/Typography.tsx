@@ -1,16 +1,24 @@
 import type { ReactNode } from 'react';
 import styles from './Typography.module.css';
 
-/**
- * Encabezado de sección. El título habla solo: sin etiquetas arriba.
- * `children` es una bajada opcional; `accion` va alineada a la derecha.
- */
+/** Etiqueta chica arriba de un título (sentence case, sin mayúsculas sostenidas). */
+export function Kicker({ children, tono }: { children: ReactNode; tono?: 'accent' | 'muted' }) {
+  return (
+    <span className={styles.kicker} data-tono={tono}>
+      {children}
+    </span>
+  );
+}
+
+/** Encabezado de sección: franja celeste corta + título expandido. */
 export function SectionHeader({
+  kicker,
   titulo,
   children,
   accion,
   as: Tag = 'h2',
 }: {
+  kicker?: ReactNode;
   titulo: ReactNode;
   children?: ReactNode;
   accion?: ReactNode;
@@ -19,6 +27,7 @@ export function SectionHeader({
   return (
     <header className={styles.section}>
       <div className={styles.sectionText}>
+        {kicker && <Kicker>{kicker}</Kicker>}
         <Tag className={styles.sectionTitle}>{titulo}</Tag>
         {children && <p className={styles.sectionLead}>{children}</p>}
       </div>
@@ -27,20 +36,7 @@ export function SectionHeader({
   );
 }
 
-/** Línea de datos debajo de un título (fecha, estado, archivo…). Ignora los vacíos. */
-export function Meta({ items }: { items: Array<ReactNode | null | undefined | false> }) {
-  const visibles = items.filter((i) => i !== null && i !== undefined && i !== false && i !== '');
-  if (visibles.length === 0) return null;
-  return (
-    <ul className={styles.meta}>
-      {visibles.map((item, i) => (
-        <li key={i}>{item}</li>
-      ))}
-    </ul>
-  );
-}
-
-/** Número con su etiqueta: la unidad básica de los paneles. */
+/** Número grande con su etiqueta: la unidad básica de los paneles. */
 export function Stat({
   valor,
   label,
@@ -56,28 +52,31 @@ export function Stat({
 }) {
   return (
     <div className={styles.stat} data-size={size}>
+      <span className={`${styles.statValue} num`}>{valor}</span>
       <span className={styles.statLabel}>
         {/* El color es identidad (bloque/voto): va en una marca, nunca en el texto. */}
         {color && <i className={styles.statSwatch} style={{ background: color }} aria-hidden />}
         {label}
       </span>
-      <span className={`${styles.statValue} num`}>{valor}</span>
       {detalle && <span className={styles.statDetail}>{detalle}</span>}
     </div>
   );
 }
 
 export function PageHeader({
+  kicker,
   titulo,
   bajada,
   children,
 }: {
+  kicker?: ReactNode;
   titulo: ReactNode;
   bajada?: ReactNode;
   children?: ReactNode;
 }) {
   return (
     <header className={styles.page}>
+      {kicker && <Kicker tono="accent">{kicker}</Kicker>}
       <h1 className={styles.pageTitle}>{titulo}</h1>
       {bajada && <p className={styles.pageLead}>{bajada}</p>}
       {children}

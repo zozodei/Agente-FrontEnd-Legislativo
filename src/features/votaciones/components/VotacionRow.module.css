@@ -1,42 +1,36 @@
-/* Filas pensadas para ir dentro de un panel blanco (.panelList en cada página). */
 .row {
   list-style: none;
-}
-
-.row + .row {
-  border-top: 1px solid var(--rule-soft);
+  border-bottom: var(--rule-width) solid var(--rule);
 }
 
 .link {
   display: grid;
-  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  grid-template-columns: 7.5rem 1fr auto;
   grid-template-areas:
     'date main result'
     'date bar bar';
   gap: var(--space-2) var(--space-5);
   align-items: baseline;
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-4) 0;
   text-decoration: none;
   transition: background var(--dur-fast) var(--ease-out);
 }
 
-.link:hover {
-  color: inherit;
-  background: var(--surface-hover);
-}
-
 .row[data-compacta] .link {
   grid-template-areas: 'date main result';
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-3) 0;
 }
 
 .link:hover .title {
-  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
 }
 
 .date {
   grid-area: date;
-  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   color: var(--ink-3);
 }
 
@@ -49,15 +43,14 @@
 }
 
 .title {
-  font-size: var(--text-md);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 500;
   line-height: var(--leading-snug);
-  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .etiqueta {
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   color: var(--ink-3);
 }
 
@@ -72,18 +65,12 @@
 .counts {
   display: flex;
   gap: 4px;
+  font-family: var(--font-mono);
   font-size: var(--text-sm);
-  color: var(--ink-3);
-}
-
-.counts b {
-  font-weight: 600;
-  color: var(--ink);
 }
 
 .bar {
   grid-area: bar;
-  padding-top: var(--space-1);
 }
 
 @media (max-width: 640px) {
@@ -94,7 +81,6 @@
       'date result'
       'main main'
       'bar bar';
-    padding: var(--space-4);
   }
 
   .result {

@@ -1,6 +1,5 @@
 import { Suspense, useState } from 'react';
 import { NavLink, Outlet, ScrollRestoration } from 'react-router-dom';
-import { Menu, Monitor, Moon, Sun, X } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { Skeleton } from '@/components/ui/States';
 import styles from './AppLayout.module.css';
@@ -9,21 +8,18 @@ const NAV = [
   { to: '/', label: 'Inicio', end: true },
   { to: '/diputados', label: 'Diputados' },
   { to: '/votaciones', label: 'Votaciones' },
-  { to: '/poroteos', label: 'Poroteos' },
+  { to: '/poroteos', label: 'Poroteo' },
 ];
 
 const THEME_LABEL = {
-  system: 'Tema del sistema',
-  light: 'Tema claro',
-  dark: 'Tema oscuro',
+  system: 'Tema: sistema',
+  light: 'Tema: claro',
+  dark: 'Tema: oscuro',
 } as const;
-
-const THEME_ICON = { system: Monitor, light: Sun, dark: Moon } as const;
 
 export function AppLayout() {
   const { theme, cycle } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
-  const ThemeIcon = THEME_ICON[theme];
 
   return (
     <div className={styles.shell}>
@@ -32,15 +28,32 @@ export function AppLayout() {
         Saltar al contenido
       </a>
 
-      <header className={styles.nav} data-open={menuOpen || undefined}>
-        <div className={styles.navInner}>
+      <header className={styles.masthead}>
+        <div className={styles.mastheadInner}>
           <NavLink to="/" className={styles.brand} aria-label="Poroteo Legislativo, inicio">
             <BrandMark />
-            <span className={styles.brandName}>Poroteo</span>
-            <span className={styles.brandSub}>Diputados</span>
+            <span className={styles.brandText}>
+              <span className={styles.brandName}>Poroteo</span>
+              <span className={styles.brandSub}>Cámara de Diputados</span>
+            </span>
           </NavLink>
 
-          <nav id="nav-principal" className={styles.links} aria-label="Principal">
+          <button
+            type="button"
+            className={styles.menuButton}
+            aria-expanded={menuOpen}
+            aria-controls="nav-principal"
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            {menuOpen ? 'Cerrar' : 'Menú'}
+          </button>
+
+          <nav
+            id="nav-principal"
+            className={styles.nav}
+            data-open={menuOpen || undefined}
+            aria-label="Principal"
+          >
             {NAV.map((item) => (
               <NavLink
                 key={item.to}
@@ -48,39 +61,22 @@ export function AppLayout() {
                 end={item.end}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
-                  [styles.link, isActive && styles.linkActive].filter(Boolean).join(' ')
+                  [styles.navLink, isActive && styles.navActive].filter(Boolean).join(' ')
                 }
               >
                 {item.label}
               </NavLink>
             ))}
-          </nav>
-
-          <div className={styles.tools}>
             <button
               type="button"
-              className={styles.iconButton}
+              className={styles.theme}
               onClick={cycle}
-              title={`${THEME_LABEL[theme]} (cambiar)`}
-              aria-label={`${THEME_LABEL[theme]}. Cambiar tema`}
+              title={THEME_LABEL[theme]}
             >
-              <ThemeIcon size={17} strokeWidth={1.75} aria-hidden />
+              <ThemeIcon theme={theme} />
+              <span className="visually-hidden">{THEME_LABEL[theme]}</span>
             </button>
-            <button
-              type="button"
-              className={`${styles.iconButton} ${styles.menuButton}`}
-              aria-expanded={menuOpen}
-              aria-controls="nav-principal"
-              aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
-              onClick={() => setMenuOpen((o) => !o)}
-            >
-              {menuOpen ? (
-                <X size={19} strokeWidth={1.75} aria-hidden />
-              ) : (
-                <Menu size={19} strokeWidth={1.75} aria-hidden />
-              )}
-            </button>
-          </div>
+          </nav>
         </div>
       </header>
 
@@ -92,21 +88,20 @@ export function AppLayout() {
 
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
-          <div className={styles.footerBrand}>
-            <BrandMark />
-            <p>
-              <strong>Poroteo Legislativo</strong>
-              <br />
-              Un prototipo de{' '}
+          <div>
+            <p className={styles.footerTitle}>Poroteo Legislativo</p>
+            <p className={styles.footerText}>
+              Prototipo de{' '}
               <a href="https://democraciaenred.org" target="_blank" rel="noreferrer">
                 Democracia en Red
-              </a>{' '}
-              desarrollado en el programa Hola Mundo Profesional.
+              </a>
+              , desarrollado en el programa Hola Mundo Profesional. Las estimaciones de un poroteo
+              son escenarios, no predicciones oficiales.
             </p>
           </div>
-          <div className={styles.footerCol}>
+          <div>
             <p className={styles.footerTitle}>Fuente de los datos</p>
-            <p>
+            <p className={styles.footerText}>
               Votaciones nominales de la HCDN procesadas por{' '}
               <a href="https://comovoto.dev.ar" target="_blank" rel="noreferrer">
                 ¿Cómo Votó?
@@ -118,13 +113,6 @@ export function AppLayout() {
               ). Alineamientos y agrupaciones son criterios de esa fuente.
             </p>
           </div>
-          <div className={styles.footerCol}>
-            <p className={styles.footerTitle}>Sobre los poroteos</p>
-            <p>
-              Un poroteo es un escenario armado por quien lo carga, no una predicción oficial ni una
-              posición de los legisladores.
-            </p>
-          </div>
         </div>
       </footer>
     </div>
@@ -134,22 +122,33 @@ export function AppLayout() {
 function PageFallback() {
   return (
     <div className={styles.fallback} aria-busy="true">
-      <Skeleton width="45%" height={44} />
-      <Skeleton width="60%" height={18} />
-      <Skeleton height={320} />
+      <Skeleton width="30%" height={14} />
+      <Skeleton width="70%" height={56} />
+      <Skeleton width="50%" height={18} />
     </div>
   );
 }
 
 function BrandMark() {
-  // Cinco porotos en arco (contar votos); el del centro es el sol.
+  // Cinco porotos en arco: la idea de "contar" votos.
   return (
     <svg viewBox="0 0 40 24" className={styles.brandMark} aria-hidden>
-      <circle cx="5" cy="20" r="3.4" />
-      <circle cx="10" cy="9.5" r="3.4" />
-      <circle cx="20" cy="4.5" r="3.4" className={styles.brandSun} />
-      <circle cx="30" cy="9.5" r="3.4" />
-      <circle cx="35" cy="20" r="3.4" />
+      <circle cx="5" cy="20" r="3.2" />
+      <circle cx="10" cy="9.5" r="3.2" />
+      <circle cx="20" cy="4.5" r="3.2" className={styles.brandAccent} />
+      <circle cx="30" cy="9.5" r="3.2" />
+      <circle cx="35" cy="20" r="3.2" />
+    </svg>
+  );
+}
+
+function ThemeIcon({ theme }: { theme: 'system' | 'light' | 'dark' }) {
+  return (
+    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden>
+      <circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      {theme === 'dark' && <path d="M10 3.5a6.5 6.5 0 0 0 0 13z" fill="currentColor" />}
+      {theme === 'light' && <circle cx="10" cy="10" r="3" fill="currentColor" />}
+      {theme === 'system' && <path d="M10 3.5v13" stroke="currentColor" strokeWidth="1.5" />}
     </svg>
   );
 }

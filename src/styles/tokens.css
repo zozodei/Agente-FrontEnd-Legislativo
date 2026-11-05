@@ -3,39 +3,45 @@
  *  Tokens de diseño · Poroteo Legislativo
  *  Única fuente de verdad de colores, tipografía, espaciado y movimiento.
  *
- *  Dirección: producto de datos cívicos con terminación de primer nivel.
- *  - Una sola familia (Geist) para todo: títulos, texto, datos.
- *  - Fondo gris muy claro, superficies blancas sin bordes, tinta casi negra.
- *  - Un único color de acción (azul) para links, botones y foco.
- *  - Identidad argentina en la marca: la foto del Congreso, el celeste del
- *    isotipo y el sol. Nunca en los datos.
+ *  Dirección: "Recinto". Cívica y argentina sin ser escarapela.
+ *  - Mármol frío del Palacio del Congreso como fondo, tinta azul profundo
+ *    como texto (no negro).
+ *  - Celeste y "sol" (dorado del Sol de Mayo) solo como acentos de marca:
+ *    la franja superior, el isotipo y la foto. Nunca para datos.
  *  - Color fuerte SOLO para datos (votos y bloques, ver palette.ts).
+ *  - Tipografías de foundries argentinas:
+ *      Alegreya (Huerta Tipográfica) → titulares grandes y nombres.
+ *      Encode Sans (Pablo Impallari) → todo lo demás; su eje de ancho
+ *      (font-stretch) da los subtítulos expandidos tipo cartelería pública.
+ *  Los colores de bloques/votos para JS están en src/styles/palette.ts.
  * ─────────────────────────────────────────────────────────────────────────
  */
 
 :root {
-  /* Tipografía: una familia, escala fija (razón ~1.2) */
-  --font-sans:
-    'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-    Arial, sans-serif;
-  --font-body: var(--font-sans);
-  --font-display: var(--font-sans);
-  --font-mono: var(--font-sans);
+  /* Tipografía */
+  --font-display: 'Alegreya Variable', 'Iowan Old Style', 'Georgia', serif;
+  --font-body: 'Encode Sans Variable', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
+  /* Etiquetas de datos: misma sans con cifras tabulares (sin monoespaciada). */
+  --font-mono: var(--font-body);
+  --stretch-wide: 118%;
+  --stretch-narrow: 88%;
 
-  --text-2xs: 0.6875rem; /* 11 */
-  --text-xs: 0.75rem; /* 12 */
-  --text-sm: 0.8125rem; /* 13 */
-  --text-md: 0.9375rem; /* 15 — cuerpo */
-  --text-lg: 1.0625rem; /* 17 */
-  --text-xl: 1.3125rem; /* 21 */
-  --text-2xl: 1.625rem; /* 26 */
-  --text-3xl: 2rem; /* 32 */
-  --text-4xl: 2.75rem; /* 44 */
-  --text-display: clamp(2.75rem, 1.4rem + 5vw, 5rem); /* solo la portada */
+  /* Escala tipográfica (fluida entre móvil y escritorio, razón ~1.25) */
+  --text-2xs: 0.75rem; /* 12 */
+  --text-xs: 0.8125rem; /* 13 */
+  --text-sm: 0.9375rem; /* 15 */
+  --text-md: 1rem; /* 16 */
+  --text-lg: 1.1875rem; /* 19 */
+  --text-xl: clamp(1.25rem, 1.12rem + 0.55vw, 1.5rem);
+  --text-2xl: clamp(1.45rem, 1.25rem + 0.9vw, 1.9rem);
+  --text-3xl: clamp(1.9rem, 1.5rem + 1.8vw, 2.75rem);
+  --text-4xl: clamp(2.4rem, 1.7rem + 3.2vw, 4.25rem);
+  --text-display: clamp(2.75rem, 1.6rem + 5.2vw, 6rem);
 
-  --leading-tight: 1.08;
-  --leading-snug: 1.3;
-  --leading-body: 1.5;
+  --leading-tight: 1.04;
+  --leading-snug: 1.25;
+  --leading-body: 1.55;
+  --tracking-kicker: 0.01em;
 
   /* Espaciado (base 4px) */
   --space-1: 0.25rem;
@@ -49,152 +55,126 @@
   --space-9: 6rem;
 
   /* Layout */
-  --page-max: 1200px;
-  --page-gutter: clamp(1rem, 0.4rem + 2.6vw, 2.5rem);
+  --page-max: 1240px;
+  --page-gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
   --measure: 68ch;
-  --nav-h: 56px;
 
-  /* Radios: controles 8, tarjetas 12, paneles 16; píldora solo para botones y chips */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
+  /* Radios: jerarquía clara. Paneles 10, controles 6, chips píldora. */
+  --radius-sm: 6px;
+  --radius-md: 10px;
   --radius-lg: 16px;
   --radius-pill: 999px;
   --rule-width: 1px;
   --rule-strong: 2px;
 
-  /* Movimiento: curva exponencial de salida, duraciones cortas */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Movimiento */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --dur-fast: 140ms;
+  --dur-fast: 120ms;
   --dur-base: 220ms;
-  --dur-slow: 520ms;
+  --dur-slow: 480ms;
 
   /* ── Tema claro (default) ── */
-  --paper: #f5f5f7;
-  --paper-sunken: #e8e8ed;
+  --paper: #f3f5f8; /* mármol frío */
+  --paper-sunken: #e7ecf2;
   --surface: #ffffff;
-  --surface-hover: #fafafc;
-  --ink: #1d1d1f;
-  --ink-2: #424245;
-  --ink-3: #6e6e73;
-  --ink-4: #86868b;
-  --rule: #d2d2d7;
-  --rule-soft: #e8e8ed;
-  --rule-strong-color: #1d1d1f;
-  --accent: #0a62c9; /* acción: links, botones, foco */
-  --accent-hover: #0852a8;
-  --accent-soft: #e6f0fb;
+  --ink: #13233b; /* tinta azul */
+  --ink-2: #3c4b60;
+  --ink-3: #5f6c7e;
+  --rule: #d6dde6;
+  --rule-strong-color: #13233b;
+  --accent: #1c5ea8; /* links, foco, UI interactiva */
+  --accent-soft: #e3eef9;
   --accent-ink: #ffffff;
-  --celeste: #6cace4; /* marca */
-  --sol: #f6b40e; /* marca */
-  --nav-bg: rgba(251, 251, 253, 0.78);
-  --nav-ink: #1d1d1f;
-  --nav-rule: rgba(0, 0, 0, 0.08);
-  --highlight: #cfe2f8;
-  /* Campos: blancos con sombra sobre el fondo; grises sin sombra dentro de un panel. */
-  --field-bg: var(--surface);
-  --field-shadow: var(--shadow-1);
-  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.05), 0 12px 32px rgba(0, 0, 0, 0.08);
-  --shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.08), 0 20px 48px -12px rgba(0, 0, 0, 0.18);
+  --celeste: #74acdf; /* marca: franja, isotipo */
+  --sol: #f0b323; /* marca: el sol del isotipo */
+  --band: #13233b; /* barra superior y bloques de marca */
+  --band-ink: #f3f5f8;
+  --highlight: #cfe3f6;
+  --focus-ring: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent);
+  --shadow-pop: 0 1px 2px rgba(19, 35, 59, 0.06), 0 12px 32px -12px rgba(19, 35, 59, 0.28);
 
-  /* Votos (datos). Validados para daltonismo (CVD deutan/protan ≥ 7) con la
-     etiqueta de texto siempre visible. Ausente es gris a propósito: "no votó". */
+  /* Votos (datos). Validados con el validador de paletas (CVD deutan/protan ≥ 7 con
+     etiqueta de texto siempre visible). Ausente es gris a propósito: es "no votó". */
   --voto-afirmativo: #0b826a;
   --voto-negativo: #cc3d3d;
   --voto-abstencion: #d29a12;
-  --voto-ausente: #8e8e93;
-  --voto-indefinido: #e5e5ea;
-  --voto-presidente: #424245;
+  --voto-ausente: #7d8592;
+  --voto-indefinido: #dfe4ea;
+  --voto-presidente: #3c4b60;
 
   /* Estados */
   --ok: #0b826a;
-  --danger: #c4291f;
+  --danger: #b3261e;
   --warning: #a86b00;
 
   /* Skeleton */
-  --skeleton-a: #ebebef;
-  --skeleton-b: #f5f5f7;
+  --skeleton-a: #e3e8ee;
+  --skeleton-b: #eef1f5;
 
   color-scheme: light;
 }
 
-/* ── Tema oscuro ── */
+/* ── Tema oscuro: "sesión nocturna". Sistema (si no se forzó claro) o forzado ── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --paper: #000000;
-    --paper-sunken: #2c2c2e;
-    --surface: #1c1c1e;
-    --surface-hover: #232325;
-    --ink: #f5f5f7;
-    --ink-2: #d1d1d6;
-    --ink-3: #a1a1a6;
-    --ink-4: #8e8e93;
-    --rule: #3a3a3c;
-    --rule-soft: #2c2c2e;
-    --rule-strong-color: #f5f5f7;
-    --accent: #4da3ff;
-    --accent-hover: #74b8ff;
-    --accent-soft: #0f2a47;
-    --accent-ink: #00101f;
-    --nav-bg: rgba(22, 22, 23, 0.78);
-    --nav-ink: #f5f5f7;
-    --nav-rule: rgba(255, 255, 255, 0.1);
-    --highlight: #17406b;
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.5);
-    --shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.5), 0 20px 48px -12px rgba(0, 0, 0, 0.8);
+    --paper: #0c1524;
+    --paper-sunken: #08101c;
+    --surface: #121e32;
+    --ink: #e6edf5;
+    --ink-2: #b4c1d0;
+    --ink-3: #8593a6;
+    --rule: #24344b;
+    --rule-strong-color: #e6edf5;
+    --accent: #8cc0f0;
+    --accent-soft: #16304f;
+    --accent-ink: #0c1524;
+    --band: #070e19;
+    --band-ink: #e6edf5;
+    --highlight: #1f4670;
+    --shadow-pop: 0 12px 32px -10px rgba(0, 0, 0, 0.7);
     --voto-afirmativo: #2a9a80;
     --voto-negativo: #e04f5f;
     --voto-abstencion: #b08f18;
-    --voto-ausente: #7c7c80;
-    --voto-indefinido: #3a3a3c;
-    --voto-presidente: #d1d1d6;
+    --voto-ausente: #6c7685;
+    --voto-indefinido: #26354b;
+    --voto-presidente: #b4c1d0;
     --ok: #2a9a80;
-    --danger: #ff6961;
+    --danger: #e04f5f;
     --warning: #e3b23c;
-    --skeleton-a: #1c1c1e;
-    --skeleton-b: #2c2c2e;
+    --skeleton-a: #172338;
+    --skeleton-b: #1d2b42;
     color-scheme: dark;
   }
 }
 
 :root[data-theme='dark'] {
-  --paper: #000000;
-  --paper-sunken: #2c2c2e;
-  --surface: #1c1c1e;
-  --surface-hover: #232325;
-  --ink: #f5f5f7;
-  --ink-2: #d1d1d6;
-  --ink-3: #a1a1a6;
-  --ink-4: #8e8e93;
-  --rule: #3a3a3c;
-  --rule-soft: #2c2c2e;
-  --rule-strong-color: #f5f5f7;
-  --accent: #4da3ff;
-  --accent-hover: #74b8ff;
-  --accent-soft: #0f2a47;
-  --accent-ink: #00101f;
-  --nav-bg: rgba(22, 22, 23, 0.78);
-  --nav-ink: #f5f5f7;
-  --nav-rule: rgba(255, 255, 255, 0.1);
-  --highlight: #17406b;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.5);
-  --shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.5), 0 20px 48px -12px rgba(0, 0, 0, 0.8);
+  --paper: #0c1524;
+  --paper-sunken: #08101c;
+  --surface: #121e32;
+  --ink: #e6edf5;
+  --ink-2: #b4c1d0;
+  --ink-3: #8593a6;
+  --rule: #24344b;
+  --rule-strong-color: #e6edf5;
+  --accent: #8cc0f0;
+  --accent-soft: #16304f;
+  --accent-ink: #0c1524;
+  --band: #070e19;
+  --band-ink: #e6edf5;
+  --highlight: #1f4670;
+  --shadow-pop: 0 12px 32px -10px rgba(0, 0, 0, 0.7);
   --voto-afirmativo: #2a9a80;
   --voto-negativo: #e04f5f;
   --voto-abstencion: #b08f18;
-  --voto-ausente: #7c7c80;
-  --voto-indefinido: #3a3a3c;
-  --voto-presidente: #d1d1d6;
+  --voto-ausente: #6c7685;
+  --voto-indefinido: #26354b;
+  --voto-presidente: #b4c1d0;
   --ok: #2a9a80;
-  --danger: #ff6961;
+  --danger: #e04f5f;
   --warning: #e3b23c;
-  --skeleton-a: #1c1c1e;
-  --skeleton-b: #2c2c2e;
+  --skeleton-a: #172338;
+  --skeleton-b: #1d2b42;
   color-scheme: dark;
 }
 

@@ -15,10 +15,10 @@
 
 .item {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-2);
-  padding: 6px 0;
-  border-bottom: 1px solid var(--rule-soft);
+  padding: var(--space-1) 0;
+  border-bottom: var(--rule-width) solid var(--rule);
   font-size: var(--text-sm);
   transition: opacity var(--dur-base) var(--ease-out);
 }
@@ -33,10 +33,10 @@
 
 .dot {
   flex: none;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  transform: translateY(-1px);
+  transform: translateY(1px);
 }
 
 .dot[data-vacio] {
@@ -50,6 +50,7 @@
 }
 
 .value {
+  font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: 600;
 }

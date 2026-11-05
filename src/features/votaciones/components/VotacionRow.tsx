@@ -6,7 +6,7 @@ import { formatDateShort } from '@/utils/format';
 import { isAllCaps } from '@/utils/text';
 import styles from './VotacionRow.module.css';
 
-/** Fila de una votación: fecha, título, resultado y barra de votos. */
+/** Fila editorial de una votación: fecha · título · resultado · barra. */
 export function VotacionRow({ votacion, compacta }: { votacion: Votacion; compacta?: boolean }) {
   const { conteo } = votacion;
   return (
@@ -22,9 +22,9 @@ export function VotacionRow({ votacion, compacta }: { votacion: Votacion; compac
         <span className={styles.result}>
           <ResultadoBadge resultado={votacion.resultado} />
           <span className={`${styles.counts} num`}>
-            <b aria-hidden>{conteo.afirmativos}</b>
-            <span aria-hidden>a</span>
-            <b aria-hidden>{conteo.negativos}</b>
+            <b style={{ color: 'var(--voto-afirmativo)' }}>{conteo.afirmativos}</b>
+            <span aria-hidden>–</span>
+            <b style={{ color: 'var(--voto-negativo)' }}>{conteo.negativos}</b>
             <span className="visually-hidden">
               {conteo.afirmativos} afirmativos, {conteo.negativos} negativos
             </span>

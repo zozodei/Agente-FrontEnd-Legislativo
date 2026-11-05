@@ -8,14 +8,10 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 60_000,
       refetchOnWindowFocus: false,
-      // Reintentar solo fallas pasajeras (red, 502). Los 4xx y el 503 (falta una
-      // migración) no se arreglan reintentando: mejor mostrar el error enseguida.
+      // No reintentar errores del cliente (400/404): solo fallas de red o 5xx.
       retry: (failureCount, error) =>
         failureCount < 2 &&
-        !(
-          error instanceof ApiError &&
-          ((error.status >= 400 && error.status < 500) || error.status === 503)
-        ),
+        !(error instanceof ApiError && error.status >= 400 && error.status < 500),
     },
   },
 });

@@ -2,16 +2,16 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--text-sm);
-  font-weight: 550;
+  font-size: var(--text-xs);
+  font-weight: 600;
   white-space: nowrap;
 }
 
 .voto i,
 .bloque i {
   flex: none;
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
 }
 
@@ -20,19 +20,17 @@
 }
 
 .resultado {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 9px;
+  display: inline-block;
+  padding: 2px 10px;
   border-radius: var(--radius-pill);
-  background: color-mix(in srgb, currentColor 11%, transparent);
+  background: color-mix(in srgb, currentColor 12%, transparent);
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: 650;
   white-space: nowrap;
 }
 
 .resultado[data-size='lg'] {
-  padding: 5px 12px;
+  padding: 4px 12px;
   font-size: var(--text-sm);
 }
 
@@ -53,7 +51,7 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   color: var(--ink-2);
 }
 

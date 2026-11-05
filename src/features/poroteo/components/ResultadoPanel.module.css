@@ -3,84 +3,54 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-5);
-  border-radius: var(--radius-lg);
   background: var(--surface);
-  box-shadow: var(--shadow-1);
+  border: var(--rule-width) solid var(--rule);
+  border-top: 4px solid var(--ink);
 }
 
-.head {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-/* Ícono de estado: el color va acá, el titular queda en tinta. */
-.icon {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--ink-3) 12%, transparent);
+.kicker {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-kicker);
   color: var(--ink-3);
-  transition:
-    background var(--dur-base) var(--ease-out),
-    color var(--dur-base) var(--ease-out);
-}
-
-.icon[data-resultado='APROBADO'] {
-  background: color-mix(in srgb, var(--voto-afirmativo) 14%, transparent);
-  color: var(--voto-afirmativo);
-}
-
-.icon[data-resultado='RECHAZADO'] {
-  background: color-mix(in srgb, var(--voto-negativo) 14%, transparent);
-  color: var(--voto-negativo);
 }
 
 .titular {
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  line-height: 1;
+  transition: color var(--dur-base) var(--ease-out);
 }
 
-.mayoria {
-  font-size: var(--text-sm);
+.titular[data-resultado='APROBADO'] {
+  color: var(--voto-afirmativo);
+}
+
+.titular[data-resultado='RECHAZADO'] {
+  color: var(--voto-negativo);
+}
+
+.titular[data-resultado='SIN_QUORUM'] {
   color: var(--ink-3);
+  font-style: italic;
 }
 
 .bajada {
-  margin-top: var(--space-1);
-  font-size: var(--text-md);
+  font-size: var(--text-sm);
   color: var(--ink-2);
 }
 
 .estado {
-  display: flex;
-  gap: var(--space-2);
-  align-items: flex-start;
-  margin-top: var(--space-1);
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--warning) 10%, transparent);
-  font-size: var(--text-sm);
+  border-left: 3px solid var(--warning);
+  background: var(--paper-sunken);
+  font-size: var(--text-xs);
   color: var(--ink-2);
 }
 
-.estado svg {
-  flex: none;
-  margin-top: 2px;
-  color: var(--warning);
-}
-
 .estado[data-definido] {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
-}
-
-.estado[data-definido] svg {
-  color: var(--ink-3);
+  border-left-color: var(--ink);
 }
 
 .counts {
@@ -100,15 +70,15 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: var(--text-xs);
-  color: var(--ink-3);
+  font-size: var(--text-2xs);
+  color: var(--ink-2);
   white-space: nowrap;
 }
 
 .counts dt i {
   flex: none;
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 
@@ -118,11 +88,11 @@
 
 .counts dd {
   margin: 0;
-  font-variant-numeric: tabular-nums lining-nums;
-  font-size: var(--text-xl);
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-family: var(--font-body);
+  font-stretch: var(--stretch-wide);
+  font-variant-numeric: lining-nums;
+  font-size: var(--text-2xl);
+  line-height: 1;
 }
 
 @media (max-width: 420px) {
@@ -141,11 +111,13 @@
   gap: var(--space-2);
   margin: var(--space-3) 0 0;
   padding-top: var(--space-3);
-  border-top: 1px solid var(--rule-soft);
+  border-top: var(--rule-width) solid var(--rule);
 }
 
 .meta dt {
-  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.04em;
   color: var(--ink-3);
 }
 
@@ -157,4 +129,8 @@
 .meta dd span {
   font-weight: 400;
   color: var(--ink-3);
+}
+
+.meta dd[data-ok] {
+  color: var(--voto-afirmativo);
 }
