@@ -1,11 +1,9 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import '@fontsource-variable/newsreader';
-import '@fontsource-variable/newsreader/wght-italic.css';
-import '@fontsource-variable/public-sans';
-import '@fontsource/ibm-plex-mono/400.css';
-import '@fontsource/ibm-plex-mono/500.css';
-import '@fontsource/ibm-plex-mono/600.css';
+// Tipografías de foundries argentinas (ver styles/tokens.css)
+import '@fontsource-variable/encode-sans/standard.css';
+import '@fontsource-variable/alegreya';
+import '@fontsource-variable/alegreya/wght-italic.css';
 import './styles/global.css';
 import { App } from './App';
 

@@ -14,7 +14,7 @@ Guía para cualquier agente o persona que trabaje en este repo. Leela completa a
 
 ## 2. Stack y arquitectura
 
-React 19 + Vite 6 + TypeScript strict. React Router 7 (data router), TanStack Query 5, Recharts, CSS Modules.
+React 19 + Vite 6 + TypeScript strict. React Router 7 (data router), TanStack Query 5, CSS Modules. Gráficos propios en `components/charts` (sin librería).
 
 ```
 Navegador  →  backend (/api/...)  →  Supabase
@@ -37,6 +37,9 @@ src/
     global.css        reset + base
     palette.ts        colores de datos para JS: VOTO_COLOR, bloqueStyle(), COALICION_COLOR
   components/
+    charts/           primitivas de gráficos: SegmentedBar (un todo en partes), DotScale (escala
+                      0–100 con un punto por categoría y puntos chicos por año), StackedRows (una
+                      barra fina por fila/año, con cortes), ChartTooltip/useChartTooltip
     hemiciclo/        <Hemiciclo/>, <Leyenda/>, layout.ts (geometría pura), types.ts (Banca)
     layout/           AppLayout (encabezado, nav, pie con la fuente, selector de tema)
     ui/               Avatar, Button/ButtonLink, Badges (Voto, Resultado, Bloque), Fields
@@ -46,9 +49,10 @@ src/
   features/
     dashboard/queries.ts        useResumen
     diputados/                  queries (useDiputados, useDiputado, useVotosDiputado, diputadoToBanca)
-                                components/ DiputadoCard, HistorialVotos, PerfilCharts
+                                components/ DiputadoCard, HistorialVotos, PerfilCharts (ComoVotaChart,
+                                AfinidadChart, ActividadChart, MandatoBar, Comparado)
     votaciones/                 queries (useVotaciones, useVotacion), components/ VotacionRow, VotosTabla
-    poroteo/                    queries (CRUD + mutaciones), resultado.ts (cálculo en vivo),
+    poroteo/                    queries (CRUD + mutaciones), resultado.ts (cálculo en vivo), archivo.ts (esPdf),
                                 usePoroteoEditor.ts (estado local + deshacer), components/
                                 ResultadoPanel, BloqueAcciones, ListaVotos
   pages/              una por ruta: HomePage, DiputadosPage, DiputadoPage, VotacionesPage,
@@ -103,15 +107,26 @@ La pieza visual más importante. Props principales:
 
 ## 6. Dirección visual (no negociable)
 
-**Editorial / cívica**, tipo medio de datos periodístico. **No debe parecer hecho por IA.**
+**"Recinto": cívica y argentina, sin ser escarapela.** Pensada para una ONG que comunica datos públicos. **No debe parecer hecha por IA ni un template SaaS.**
 
-- ❌ Nada de gradientes violetas, glassmorphism, tarjetas iguales con emojis, sombras gigantes, bordes redondeados grandes, estética de template SaaS. No usar Inter.
-- ✅ Papel cálido (`--paper`) + tinta (`--ink`). Reglas horizontales (`border-top: 2px solid var(--rule-strong-color)`) para separar secciones, como en un diario.
-- ✅ Tipografía: **Newsreader** (titulares, números grandes, `--font-display`), **Public Sans** (cuerpo, `--font-body`), **IBM Plex Mono** (kickers, fechas, etiquetas de datos, `--font-mono`). Cifras con `className="num"` (tabular).
-- ✅ Color fuerte **solo para datos** (votos y bloques). La UI es monocroma con `--accent` (azul) para links y foco.
-- ✅ Todo color/espaciado sale de `styles/tokens.css`. **No hardcodear hex en componentes** (excepción: `palette.ts`).
-- ✅ Modo oscuro: tokens redefinidos en `tokens.css` (sistema o forzado con `data-theme`). Probá siempre los dos.
-- ✅ Movimiento sutil: `--dur-*` y `--ease-out`; respetan `prefers-reduced-motion`.
+- ✅ **Paleta de marca** (en `tokens.css`): mármol frío del Congreso (`--paper` `#f3f5f8`), tinta azul profundo (`--ink` `#13233b`, nunca negro), azul institucional para links y botones (`--accent`), y dos acentos de marca: **celeste** (`--celeste`) y **sol** (`--sol`, dorado del Sol de Mayo). Celeste y sol solo en marca: franja superior de 3 px, isotipo, marcas de sección. **Nunca para datos.**
+- ✅ **Foto del Congreso** (`public/congreso.jpg`) a todo el ancho en la portada, con velo azul tinta para leer el texto. El panel del hemiciclo se monta sobre la foto.
+- ✅ **Tipografías de foundries argentinas:** **Alegreya** (Huerta Tipográfica, `--font-display`) para `h1`, nombres y títulos de leyes; **Encode Sans** (Pablo Impallari, `--font-body`) para todo lo demás. `h2/h3` usan Encode Sans expandida (`font-stretch: var(--stretch-wide)`), como la cartelería pública. Las cifras grandes van en Encode Sans expandida, no en serif. Cifras alineadas en tablas con `className="num"`.
+- ❌ Sin etiquetas en MAYÚSCULAS sostenidas ni monoespaciada: los kickers van en sentence case, semibold, en `--accent`. Sin "→" pegado a los links. Sin gradientes violetas, glassmorphism ni sombras gigantes.
+- ✅ Radios con jerarquía: paneles `--radius-lg` (16), tarjetas `--radius-md` (10), controles `--radius-sm` (6), botones y chips en píldora.
+- ✅ Color fuerte **solo para datos** (votos y bloques, `palette.ts`). Todo color/espaciado sale de `tokens.css`. **No hardcodear hex en componentes** (excepción: `palette.ts` y el velo/foto de la portada).
+- ✅ Modo oscuro "sesión nocturna": tokens redefinidos en `tokens.css`. Probá siempre los dos.
+- ✅ Movimiento: una sola entrada orquestada (el texto de la portada). El resto solo responde a acciones. Respeta `prefers-reduced-motion`.
+
+### Gráficos (`components/charts`)
+
+Reglas de la skill de dataviz, aplicadas:
+
+- **Elegí la forma por el dato, no por costumbre.** Muchos diputados tienen 1–2 años de datos: por eso nada de gráficos de líneas por año (quedan vacíos). Usamos formas que funcionan con 1 o con 30 años (`DotScale`, `StackedRows`).
+- Marcas finas (barras de 8–12 px, segmentada alta de 28 px), **2 px de separación** en el color de fondo entre partes, puntos con anillo de 2 px.
+- **El texto nunca lleva el color del dato:** el color va en un punto/marca al lado; el valor, en tinta.
+- Siempre leyenda o etiqueta en texto (nunca solo color) + tooltip con hover **y teclado** (`useChartTooltip().bind`) + alternativa en tabla cuando hay muchos valores.
+- Colores en orden fijo por entidad (el color sigue al voto/bloque, nunca al ranking). Paleta de coaliciones validada (CVD ΔE ≥ 19; el amarillo del PRO va siempre con etiqueta).
 - Paleta de votos validada para daltonismo (protan/deutan ΔE ≥ 7) con el voto siempre también como texto. "Ausente" es gris a propósito.
 
 Estados: toda vista con datos tiene **skeleton** (carga), **EmptyState** (vacío) y **ErrorState** con reintentar (error).
@@ -155,7 +170,7 @@ npm run build
 ## 10. Roadmap
 
 1. ✅ Poroteo manual de Diputados.
-2. **IA:** botón "Estimar con IA" en el editor → `POST /api/poroteos/:id/prediccion` (a crear en el backend). Mostrar `confianza` (opacidad o anillo en la banca), `justificacion` y `fuentes` en el tooltip/lista, y diferenciar votos `origen: 'ia'` de los corregidos a mano. Los tipos `PoroteoVoto` ya tienen esos campos.
+2. **IA:** botón "Estimar con IA" en el editor (la confianza se puede mostrar con `DotScale` o la opacidad de la banca; la base de gráficos ya está) → `POST /api/poroteos/:id/prediccion` (a crear en el backend). Mostrar `confianza` (opacidad o anillo en la banca), `justificacion` y `fuentes` en el tooltip/lista, y diferenciar votos `origen: 'ia'` de los corregidos a mano. Los tipos `PoroteoVoto` ya tienen esos campos.
 3. **Sugerir desde historial:** precargar el poroteo con cómo votó cada diputado en leyes similares (`cv_buscar_leyes` + `cv_historial_diputados` del backend).
 4. **Senado:** `<Hemiciclo/>` ya soporta cualquier N (72 bancas = 5 filas). Falta selector de cámara, quórum 37 y datos.
 5. **Auth para organizaciones** + correcciones con trazabilidad.

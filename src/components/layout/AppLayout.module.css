@@ -8,9 +8,21 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: color-mix(in srgb, var(--paper) 92%, transparent);
-  backdrop-filter: saturate(1.2) blur(6px);
-  border-bottom: var(--rule-width) solid var(--rule-strong-color);
+  background: var(--band);
+  color: var(--band-ink);
+}
+
+/* Franja celeste-blanca-celeste de 3px: el guiño a la bandera, nada más. */
+.masthead::before {
+  content: '';
+  display: block;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--celeste) 0 33.33%,
+    #ffffff 33.33% 66.66%,
+    var(--celeste) 66.66% 100%
+  );
 }
 
 .mastheadInner,
@@ -28,7 +40,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  min-height: 60px;
+  min-height: 64px;
 }
 
 .brand {
@@ -39,12 +51,12 @@
 }
 
 .brandMark {
-  width: 34px;
-  fill: var(--ink);
+  width: 38px;
+  fill: var(--celeste);
 }
 
 .brandAccent {
-  fill: var(--voto-afirmativo);
+  fill: var(--sol);
 }
 
 .brandText {
@@ -55,18 +67,16 @@
 
 .brandName {
   font-family: var(--font-display);
-  font-size: 1.45rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .brandSub {
-  margin-top: 3px;
-  font-family: var(--font-mono);
+  margin-top: 2px;
   font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-kicker);
-  text-transform: uppercase;
-  color: var(--ink-3);
+  font-weight: 500;
+  color: color-mix(in srgb, var(--band-ink) 70%, transparent);
 }
 
 .nav {
@@ -79,18 +89,18 @@
   position: relative;
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
-  font-weight: 500;
+  font-weight: 550;
   text-decoration: none;
-  color: var(--ink-2);
+  color: color-mix(in srgb, var(--band-ink) 72%, transparent);
   transition: color var(--dur-fast) var(--ease-out);
 }
 
 .navLink:hover {
-  color: var(--ink);
+  color: var(--band-ink);
 }
 
 .navActive {
-  color: var(--ink);
+  color: var(--band-ink);
 }
 
 .navActive::after {
@@ -98,9 +108,10 @@
   position: absolute;
   left: var(--space-3);
   right: var(--space-3);
-  bottom: -11px;
+  bottom: -12px;
   height: 3px;
-  background: var(--ink);
+  border-radius: 3px 3px 0 0;
+  background: var(--celeste);
 }
 
 .theme {
@@ -109,26 +120,26 @@
   width: 36px;
   height: 36px;
   margin-left: var(--space-2);
-  border: var(--rule-width) solid var(--rule);
+  border: var(--rule-width) solid color-mix(in srgb, var(--band-ink) 30%, transparent);
   border-radius: 50%;
   background: transparent;
+  color: var(--band-ink);
 }
 
 .theme:hover {
-  border-color: var(--ink);
+  border-color: var(--band-ink);
 }
 
 .menuButton {
   display: none;
   min-height: 36px;
   padding: 0 var(--space-3);
-  border: var(--rule-width) solid var(--ink);
-  border-radius: var(--radius-sm);
+  border: var(--rule-width) solid color-mix(in srgb, var(--band-ink) 40%, transparent);
+  border-radius: var(--radius-pill);
   background: transparent;
-  font-family: var(--font-mono);
+  color: var(--band-ink);
   font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-kicker);
+  font-weight: 600;
 }
 
 @media (max-width: 760px) {
@@ -145,8 +156,7 @@
     align-items: stretch;
     gap: 0;
     padding: var(--space-2) var(--page-gutter) var(--space-4);
-    background: var(--paper);
-    border-bottom: var(--rule-width) solid var(--rule-strong-color);
+    background: var(--band);
     display: none;
   }
 
@@ -156,7 +166,7 @@
 
   .navLink {
     padding: var(--space-3) 0;
-    border-bottom: var(--rule-width) solid var(--rule);
+    border-bottom: var(--rule-width) solid color-mix(in srgb, var(--band-ink) 14%, transparent);
     font-family: var(--font-display);
     font-size: var(--text-xl);
   }
@@ -183,8 +193,12 @@
 }
 
 .footer {
-  border-top: var(--rule-strong) solid var(--rule-strong-color);
-  background: var(--paper-sunken);
+  background: var(--band);
+  color: var(--band-ink);
+}
+
+.footer a {
+  color: inherit;
 }
 
 .footerInner {
@@ -197,14 +211,13 @@
 
 .footerTitle {
   margin-bottom: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-kicker);
-  text-transform: uppercase;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  font-stretch: var(--stretch-wide);
 }
 
 .footerText {
   max-width: 58ch;
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: color-mix(in srgb, var(--band-ink) 75%, transparent);
 }

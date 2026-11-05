@@ -2,7 +2,17 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  max-width: 860px;
+  max-width: 880px;
+  padding: var(--space-6);
+  border: var(--rule-width) solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+@media (max-width: 640px) {
+  .form {
+    padding: var(--space-5) var(--space-4);
+  }
 }
 
 .field {
@@ -24,18 +34,16 @@
 }
 
 .label {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-kicker);
-  text-transform: uppercase;
-  color: var(--ink-2);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--ink);
 }
 
 .titleInput {
   width: 100%;
   padding: var(--space-2) 0;
   border: 0;
-  border-bottom: var(--rule-strong) solid var(--ink);
+  border-bottom: var(--rule-strong) solid var(--rule);
   background: transparent;
   font-family: var(--font-display);
   font-size: var(--text-3xl);
@@ -61,7 +69,7 @@
   padding: var(--space-3);
   border: var(--rule-width) solid var(--rule);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--paper);
   font-size: var(--text-md);
   line-height: var(--leading-body);
   resize: vertical;
@@ -100,7 +108,8 @@
   min-height: 160px;
   padding: var(--space-4);
   border: 1.5px dashed var(--ink-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  background: var(--surface);
   text-align: center;
   cursor: pointer;
   transition:
@@ -109,9 +118,10 @@
 }
 
 .drop:hover,
-.drop:focus-within {
-  background: var(--paper-sunken);
-  border-color: var(--ink);
+.drop:focus-within,
+.drop[data-dragging] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 
 .drop[data-has-file] {
@@ -120,8 +130,8 @@
 }
 
 .drop strong {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
+  font-size: var(--text-md);
+  font-weight: 650;
   word-break: break-word;
 }
 

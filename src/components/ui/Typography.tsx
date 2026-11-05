@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import styles from './Typography.module.css';
 
-/** Etiqueta chica en mayúsculas mono, arriba de un título ("kicker" periodístico). */
+/** Etiqueta chica arriba de un título (sentence case, sin mayúsculas sostenidas). */
 export function Kicker({ children, tono }: { children: ReactNode; tono?: 'accent' | 'muted' }) {
   return (
     <span className={styles.kicker} data-tono={tono}>
@@ -10,7 +10,7 @@ export function Kicker({ children, tono }: { children: ReactNode; tono?: 'accent
   );
 }
 
-/** Encabezado de sección con regla superior gruesa, estilo diario. */
+/** Encabezado de sección: franja celeste corta + título expandido. */
 export function SectionHeader({
   kicker,
   titulo,
@@ -52,10 +52,12 @@ export function Stat({
 }) {
   return (
     <div className={styles.stat} data-size={size}>
-      <span className={`${styles.statValue} num`} style={color ? { color } : undefined}>
-        {valor}
+      <span className={`${styles.statValue} num`}>{valor}</span>
+      <span className={styles.statLabel}>
+        {/* El color es identidad (bloque/voto): va en una marca, nunca en el texto. */}
+        {color && <i className={styles.statSwatch} style={{ background: color }} aria-hidden />}
+        {label}
       </span>
-      <span className={styles.statLabel}>{label}</span>
       {detalle && <span className={styles.statDetail}>{detalle}</span>}
     </div>
   );

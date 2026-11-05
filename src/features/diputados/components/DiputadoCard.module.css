@@ -54,7 +54,6 @@
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--ink-3);
 }
 

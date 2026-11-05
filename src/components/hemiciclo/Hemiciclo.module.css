@@ -125,7 +125,6 @@
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: 600;
-  text-transform: uppercase;
   letter-spacing: var(--tracking-kicker);
 }
 

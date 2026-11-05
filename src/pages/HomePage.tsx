@@ -13,11 +13,15 @@ import { formatDate, formatNumber, formatPct } from '@/utils/format';
 import { normalize, titleCase } from '@/utils/text';
 import styles from './HomePage.module.css';
 
+/** Bloques que se listan junto al hemiciclo antes de "ver todos". */
+const BLOQUES_VISIBLES = 8;
+
 export default function HomePage() {
   useDocumentTitle(null);
   const diputados = useDiputados();
   const resumen = useResumen();
   const [bloqueActivo, setBloqueActivo] = useState<string | null>(null);
+  const [todosLosBloques, setTodosLosBloques] = useState(false);
 
   const bancas = useMemo(() => (diputados.data ?? []).map(diputadoToBanca), [diputados.data]);
   const resaltadas = useMemo(() => {
@@ -45,26 +49,39 @@ export default function HomePage() {
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
+      <section className={styles.hero} aria-labelledby="hero-title">
+        <img
+          className={styles.heroImg}
+          src="/congreso.jpg"
+          alt="Cúpula de bronce del Palacio del Congreso de la Nación Argentina contra el cielo"
+          fetchPriority="high"
+        />
         <div className={styles.heroText}>
-          <Kicker tono="accent">Cámara de Diputados de la Nación</Kicker>
-          <h1 className={styles.title}>
-            La Cámara, <em>banca por banca.</em>
+          <Kicker>Cámara de Diputados de la Nación</Kicker>
+          <h1 id="hero-title" className={styles.title}>
+            Cómo vota la Cámara, banca por banca
           </h1>
           <p className={styles.lead}>
-            257 diputados, 21 bloques y más de treinta años de votaciones nominales. Explorá cómo se
-            compone la Cámara, cómo votó cada uno y armá tu propio poroteo para anticipar el
+            257 diputados, 21 bloques y más de treinta años de votaciones nominales. Mirá cómo se
+            compone el recinto, cómo votó cada uno y armá tu propio poroteo para anticipar el
             resultado de un proyecto de ley.
           </p>
           <div className={styles.actions}>
             <ButtonLink to="/poroteos/nuevo" variant="primary">
               Hacer un poroteo
             </ButtonLink>
-            <ButtonLink to="/diputados">Ver diputados</ButtonLink>
+            <ButtonLink to="/diputados" className={styles.heroSecondary}>
+              Ver diputados
+            </ButtonLink>
           </div>
         </div>
+      </section>
 
+      <section className={styles.recinto} aria-labelledby="recinto-title">
         <figure className={styles.figure}>
+          <h2 id="recinto-title" className={styles.recintoTitle}>
+            El recinto hoy
+          </h2>
           {diputados.isError ? (
             <ErrorState error={diputados.error} onRetry={() => diputados.refetch()} />
           ) : diputados.isPending ? (
@@ -78,27 +95,45 @@ export default function HomePage() {
               centro={
                 <div className={styles.centro}>
                   <span className={`${styles.centroNum} num`}>{bancas.length}</span>
-                  <span className={styles.centroLabel}>bancas · quórum 129</span>
+                  <span className={styles.centroLabel}>bancas, quórum con 129</span>
                 </div>
               }
             />
           )}
           <figcaption className={styles.caption}>
-            Composición actual por bloque. Pasá el mouse por una banca para ver quién la ocupa; hacé
-            click para ir a su perfil.
+            Pasá el mouse por una banca para ver quién la ocupa; hacé click para ir a su perfil.
           </figcaption>
         </figure>
-      </section>
-
-      <section className={styles.section}>
-        <SectionHeader kicker="Composición" titulo="Bloques en la Cámara" />
-        {resumen.isPending ? (
-          <Skeleton height={160} />
-        ) : resumen.isError ? (
-          <ErrorState error={resumen.error} onRetry={() => resumen.refetch()} />
-        ) : (
-          <Leyenda items={leyenda} onItemHover={setBloqueActivo} activo={bloqueActivo} />
-        )}
+        <div className={styles.bloques}>
+          <h3 className={styles.bloquesTitle}>Bloques</h3>
+          {resumen.isPending ? (
+            <Skeleton height={240} />
+          ) : resumen.isError ? (
+            <ErrorState error={resumen.error} onRetry={() => resumen.refetch()} />
+          ) : (
+            <>
+              <Leyenda
+                items={todosLosBloques ? leyenda : leyenda.slice(0, BLOQUES_VISIBLES)}
+                onItemHover={setBloqueActivo}
+                activo={bloqueActivo}
+              />
+              {leyenda.length > BLOQUES_VISIBLES && (
+                <button
+                  type="button"
+                  className={styles.verMas}
+                  aria-expanded={todosLosBloques}
+                  onClick={() => setTodosLosBloques((v) => !v)}
+                >
+                  {todosLosBloques
+                    ? 'Mostrar solo los más grandes'
+                    : `Ver los ${leyenda.length} bloques (${leyenda.length - BLOQUES_VISIBLES} más, ${leyenda
+                        .slice(BLOQUES_VISIBLES)
+                        .reduce((acc, b) => acc + Number(b.value ?? 0), 0)} bancas)`}
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </section>
 
       <section className={styles.section}>
@@ -129,7 +164,7 @@ export default function HomePage() {
                 size="xl"
                 valor={formatNumber(r.votaciones.total)}
                 label="Votaciones nominales"
-                detalle={`${formatNumber(r.votaciones.aprobadas)} aprobadas · ${formatNumber(r.votaciones.rechazadas)} rechazadas`}
+                detalle={`${formatNumber(r.votaciones.aprobadas)} aprobadas, ${formatNumber(r.votaciones.rechazadas)} rechazadas`}
               />
               <Stat
                 size="xl"
@@ -153,7 +188,7 @@ export default function HomePage() {
         <SectionHeader
           kicker="Recientes"
           titulo="Últimas votaciones en general"
-          accion={<Link to="/votaciones">Ver todas →</Link>}
+          accion={<Link to="/votaciones">Ver todas las votaciones</Link>}
         />
         {r ? (
           <ul className={styles.list}>

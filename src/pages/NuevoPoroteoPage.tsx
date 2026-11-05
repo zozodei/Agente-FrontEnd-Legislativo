@@ -4,6 +4,7 @@ import { errorMessage } from '@/api/client';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Segmented } from '@/components/ui/Fields';
 import { PageHeader } from '@/components/ui/Typography';
+import { esPdf } from '@/features/poroteo/archivo';
 import { useCrearPoroteo } from '@/features/poroteo/queries';
 import { TIPO_MAYORIA_LABEL } from '@/features/poroteo/resultado';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -24,6 +25,7 @@ export default function NuevoPoroteoPage() {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [tipoMayoria, setTipoMayoria] = useState<TipoMayoria>('simple');
   const [fileError, setFileError] = useState<string | null>(null);
+  const [arrastrando, setArrastrando] = useState(false);
   const crear = useCrearPoroteo();
 
   const tituloError =
@@ -32,7 +34,7 @@ export default function NuevoPoroteoPage() {
   const onFile = (file: File | null) => {
     setFileError(null);
     if (!file) return setArchivo(null);
-    if (file.type !== 'application/pdf') return setFileError('Solo se aceptan archivos PDF.');
+    if (!esPdf(file)) return setFileError('Solo se aceptan archivos PDF.');
     if (file.size > MAX_PDF_MB * 1024 * 1024)
       return setFileError(`El PDF supera los ${MAX_PDF_MB} MB.`);
     setArchivo(file);
@@ -136,12 +138,29 @@ export default function NuevoPoroteoPage() {
               />
             </div>
             <div className={styles.field}>
-              <label className={styles.drop} data-has-file={archivo ? true : undefined}>
+              <label
+                className={styles.drop}
+                data-has-file={archivo ? true : undefined}
+                data-dragging={arrastrando || undefined}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setArrastrando(true);
+                }}
+                onDragLeave={() => setArrastrando(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setArrastrando(false);
+                  onFile(e.dataTransfer.files?.[0] ?? null);
+                }}
+              >
                 <input
                   type="file"
-                  accept="application/pdf"
+                  accept="application/pdf,.pdf"
                   className="visually-hidden"
-                  onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+                  onChange={(e) => {
+                    onFile(e.target.files?.[0] ?? null);
+                    e.target.value = ''; // permite volver a elegir el mismo archivo
+                  }}
                 />
                 {archivo ? (
                   <>
@@ -151,7 +170,7 @@ export default function NuevoPoroteoPage() {
                 ) : (
                   <>
                     <strong>Subir PDF</strong>
-                    <span>Hasta {MAX_PDF_MB} MB</span>
+                    <span>Arrastralo acá o hacé click. Hasta {MAX_PDF_MB} MB</span>
                   </>
                 )}
               </label>

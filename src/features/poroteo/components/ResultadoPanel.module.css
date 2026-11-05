@@ -12,7 +12,6 @@
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-kicker);
-  text-transform: uppercase;
   color: var(--ink-3);
 }
 
@@ -89,7 +88,9 @@
 
 .counts dd {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
+  font-stretch: var(--stretch-wide);
+  font-variant-numeric: lining-nums;
   font-size: var(--text-2xl);
   line-height: 1;
 }
@@ -116,7 +117,6 @@
 .meta dt {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
-  text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--ink-3);
 }

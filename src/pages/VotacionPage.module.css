@@ -50,7 +50,6 @@
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--ink-3);
-  text-transform: uppercase;
 }
 
 .result {
@@ -102,7 +101,9 @@
 }
 
 .centro {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
+  font-stretch: var(--stretch-wide);
+  font-variant-numeric: lining-nums;
   font-size: var(--text-4xl);
   line-height: 1;
 }
@@ -207,6 +208,5 @@
 
 .keywords span {
   font-family: var(--font-mono);
-  text-transform: uppercase;
   letter-spacing: var(--tracking-kicker);
 }

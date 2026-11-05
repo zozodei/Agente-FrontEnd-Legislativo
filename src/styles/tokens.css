@@ -2,37 +2,46 @@
  * ─────────────────────────────────────────────────────────────────────────
  *  Tokens de diseño · Poroteo Legislativo
  *  Única fuente de verdad de colores, tipografía, espaciado y movimiento.
- *  Dirección: editorial / cívica, tipo medio de datos periodístico.
- *  - Papel cálido + tinta casi negra. Color fuerte SOLO para datos.
- *  - Serif con carácter (Newsreader) para titulares y cifras grandes.
- *  - Sans neutra y legible (Public Sans) para el cuerpo.
- *  - Mono (IBM Plex Mono) para etiquetas de datos, fechas y "kickers".
+ *
+ *  Dirección: "Recinto". Cívica y argentina sin ser escarapela.
+ *  - Mármol frío del Palacio del Congreso como fondo, tinta azul profundo
+ *    como texto (no negro).
+ *  - Celeste y "sol" (dorado del Sol de Mayo) solo como acentos de marca:
+ *    la franja superior, el isotipo y la foto. Nunca para datos.
+ *  - Color fuerte SOLO para datos (votos y bloques, ver palette.ts).
+ *  - Tipografías de foundries argentinas:
+ *      Alegreya (Huerta Tipográfica) → titulares grandes y nombres.
+ *      Encode Sans (Pablo Impallari) → todo lo demás; su eje de ancho
+ *      (font-stretch) da los subtítulos expandidos tipo cartelería pública.
  *  Los colores de bloques/votos para JS están en src/styles/palette.ts.
  * ─────────────────────────────────────────────────────────────────────────
  */
 
 :root {
   /* Tipografía */
-  --font-display: 'Newsreader Variable', 'Iowan Old Style', 'Georgia', serif;
-  --font-body: 'Public Sans Variable', 'Helvetica Neue', 'Arial', sans-serif;
-  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', 'Consolas', monospace;
+  --font-display: 'Alegreya Variable', 'Iowan Old Style', 'Georgia', serif;
+  --font-body: 'Encode Sans Variable', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
+  /* Etiquetas de datos: misma sans con cifras tabulares (sin monoespaciada). */
+  --font-mono: var(--font-body);
+  --stretch-wide: 118%;
+  --stretch-narrow: 88%;
 
-  /* Escala tipográfica (fluida entre móvil y escritorio) */
-  --text-2xs: 0.6875rem; /* 11 */
-  --text-xs: 0.75rem; /* 12 */
-  --text-sm: 0.875rem; /* 14 */
+  /* Escala tipográfica (fluida entre móvil y escritorio, razón ~1.25) */
+  --text-2xs: 0.75rem; /* 12 */
+  --text-xs: 0.8125rem; /* 13 */
+  --text-sm: 0.9375rem; /* 15 */
   --text-md: 1rem; /* 16 */
-  --text-lg: 1.125rem; /* 18 */
-  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
-  --text-2xl: clamp(1.5rem, 1.25rem + 1vw, 2rem);
-  --text-3xl: clamp(2rem, 1.5rem + 2vw, 3rem);
-  --text-4xl: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
-  --text-display: clamp(3rem, 1.8rem + 5vw, 6.5rem);
+  --text-lg: 1.1875rem; /* 19 */
+  --text-xl: clamp(1.25rem, 1.12rem + 0.55vw, 1.5rem);
+  --text-2xl: clamp(1.45rem, 1.25rem + 0.9vw, 1.9rem);
+  --text-3xl: clamp(1.9rem, 1.5rem + 1.8vw, 2.75rem);
+  --text-4xl: clamp(2.4rem, 1.7rem + 3.2vw, 4.25rem);
+  --text-display: clamp(2.75rem, 1.6rem + 5.2vw, 6rem);
 
-  --leading-tight: 1.05;
+  --leading-tight: 1.04;
   --leading-snug: 1.25;
   --leading-body: 1.55;
-  --tracking-kicker: 0.08em;
+  --tracking-kicker: 0.01em;
 
   /* Espaciado (base 4px) */
   --space-1: 0.25rem;
@@ -50,9 +59,10 @@
   --page-gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
   --measure: 68ch;
 
-  /* Bordes y radios: rectos, editoriales */
-  --radius-sm: 2px;
-  --radius-md: 4px;
+  /* Radios: jerarquía clara. Paneles 10, controles 6, chips píldora. */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
   --radius-pill: 999px;
   --rule-width: 1px;
   --rule-strong: 2px;
@@ -62,31 +72,36 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-fast: 120ms;
   --dur-base: 220ms;
-  --dur-slow: 420ms;
+  --dur-slow: 480ms;
 
   /* ── Tema claro (default) ── */
-  --paper: #f4f1ea;
-  --paper-sunken: #ebe6da;
-  --surface: #fbfaf6;
-  --ink: #16150f;
-  --ink-2: #47443b;
-  --ink-3: #77736a;
-  --rule: #d8d2c3;
-  --rule-strong-color: #16150f;
-  --accent: #1f4b7a; /* links, foco, UI interactiva */
-  --accent-ink: #f4f1ea;
-  --highlight: #f3d65a; /* marcador amarillo para destacar */
+  --paper: #f3f5f8; /* mármol frío */
+  --paper-sunken: #e7ecf2;
+  --surface: #ffffff;
+  --ink: #13233b; /* tinta azul */
+  --ink-2: #3c4b60;
+  --ink-3: #5f6c7e;
+  --rule: #d6dde6;
+  --rule-strong-color: #13233b;
+  --accent: #1c5ea8; /* links, foco, UI interactiva */
+  --accent-soft: #e3eef9;
+  --accent-ink: #ffffff;
+  --celeste: #74acdf; /* marca: franja, isotipo */
+  --sol: #f0b323; /* marca: el sol del isotipo */
+  --band: #13233b; /* barra superior y bloques de marca */
+  --band-ink: #f3f5f8;
+  --highlight: #cfe3f6;
   --focus-ring: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent);
-  --shadow-pop: 0 1px 0 rgba(22, 21, 15, 0.04), 0 8px 24px -8px rgba(22, 21, 15, 0.22);
+  --shadow-pop: 0 1px 2px rgba(19, 35, 59, 0.06), 0 12px 32px -12px rgba(19, 35, 59, 0.28);
 
   /* Votos (datos). Validados con el validador de paletas (CVD deutan/protan ≥ 7 con
      etiqueta de texto siempre visible). Ausente es gris a propósito: es "no votó". */
   --voto-afirmativo: #0b826a;
   --voto-negativo: #cc3d3d;
   --voto-abstencion: #d29a12;
-  --voto-ausente: #7d796f;
-  --voto-indefinido: #e2dccd;
-  --voto-presidente: #47443b;
+  --voto-ausente: #7d8592;
+  --voto-indefinido: #dfe4ea;
+  --voto-presidente: #3c4b60;
 
   /* Estados */
   --ok: #0b826a;
@@ -94,66 +109,72 @@
   --warning: #a86b00;
 
   /* Skeleton */
-  --skeleton-a: #e7e1d4;
-  --skeleton-b: #f0ebe1;
+  --skeleton-a: #e3e8ee;
+  --skeleton-b: #eef1f5;
 
   color-scheme: light;
 }
 
-/* ── Tema oscuro: sistema (si no se forzó claro) o forzado ── */
+/* ── Tema oscuro: "sesión nocturna". Sistema (si no se forzó claro) o forzado ── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --paper: #121210;
-    --paper-sunken: #0b0b0a;
-    --surface: #1b1b18;
-    --ink: #ece8dd;
-    --ink-2: #bdb8ab;
-    --ink-3: #8b867a;
-    --rule: #34332d;
-    --rule-strong-color: #ece8dd;
-    --accent: #8fb6e3;
-    --accent-ink: #121210;
-    --highlight: #8a7420;
-    --shadow-pop: 0 8px 28px -8px rgba(0, 0, 0, 0.7);
+    --paper: #0c1524;
+    --paper-sunken: #08101c;
+    --surface: #121e32;
+    --ink: #e6edf5;
+    --ink-2: #b4c1d0;
+    --ink-3: #8593a6;
+    --rule: #24344b;
+    --rule-strong-color: #e6edf5;
+    --accent: #8cc0f0;
+    --accent-soft: #16304f;
+    --accent-ink: #0c1524;
+    --band: #070e19;
+    --band-ink: #e6edf5;
+    --highlight: #1f4670;
+    --shadow-pop: 0 12px 32px -10px rgba(0, 0, 0, 0.7);
     --voto-afirmativo: #2a9a80;
     --voto-negativo: #e04f5f;
     --voto-abstencion: #b08f18;
-    --voto-ausente: #6e6a60;
-    --voto-indefinido: #2c2b26;
-    --voto-presidente: #bdb8ab;
+    --voto-ausente: #6c7685;
+    --voto-indefinido: #26354b;
+    --voto-presidente: #b4c1d0;
     --ok: #2a9a80;
     --danger: #e04f5f;
     --warning: #e3b23c;
-    --skeleton-a: #22221e;
-    --skeleton-b: #2b2a25;
+    --skeleton-a: #172338;
+    --skeleton-b: #1d2b42;
     color-scheme: dark;
   }
 }
 
 :root[data-theme='dark'] {
-  --paper: #121210;
-  --paper-sunken: #0b0b0a;
-  --surface: #1b1b18;
-  --ink: #ece8dd;
-  --ink-2: #bdb8ab;
-  --ink-3: #8b867a;
-  --rule: #34332d;
-  --rule-strong-color: #ece8dd;
-  --accent: #8fb6e3;
-  --accent-ink: #121210;
-  --highlight: #8a7420;
-  --shadow-pop: 0 8px 28px -8px rgba(0, 0, 0, 0.7);
+  --paper: #0c1524;
+  --paper-sunken: #08101c;
+  --surface: #121e32;
+  --ink: #e6edf5;
+  --ink-2: #b4c1d0;
+  --ink-3: #8593a6;
+  --rule: #24344b;
+  --rule-strong-color: #e6edf5;
+  --accent: #8cc0f0;
+  --accent-soft: #16304f;
+  --accent-ink: #0c1524;
+  --band: #070e19;
+  --band-ink: #e6edf5;
+  --highlight: #1f4670;
+  --shadow-pop: 0 12px 32px -10px rgba(0, 0, 0, 0.7);
   --voto-afirmativo: #2a9a80;
   --voto-negativo: #e04f5f;
   --voto-abstencion: #b08f18;
-  --voto-ausente: #6e6a60;
-  --voto-indefinido: #2c2b26;
-  --voto-presidente: #bdb8ab;
+  --voto-ausente: #6c7685;
+  --voto-indefinido: #26354b;
+  --voto-presidente: #b4c1d0;
   --ok: #2a9a80;
   --danger: #e04f5f;
   --warning: #e3b23c;
-  --skeleton-a: #22221e;
-  --skeleton-b: #2b2a25;
+  --skeleton-a: #172338;
+  --skeleton-b: #1d2b42;
   color-scheme: dark;
 }
 

@@ -2,15 +2,21 @@ import { Link, useParams } from 'react-router-dom';
 import { Avatar } from '@/components/ui/Avatar';
 import { BloqueChip } from '@/components/ui/Badges';
 import { ErrorState, Skeleton } from '@/components/ui/States';
-import { Kicker, SectionHeader, Stat } from '@/components/ui/Typography';
-import { VoteBar } from '@/components/ui/VoteBar';
+import { Kicker, SectionHeader } from '@/components/ui/Typography';
+import { useResumen } from '@/features/dashboard/queries';
 import { HistorialVotos } from '@/features/diputados/components/HistorialVotos';
-import { AlineamientoChart, VotosPorAnioChart } from '@/features/diputados/components/PerfilCharts';
+import {
+  ActividadChart,
+  AfinidadChart,
+  Comparado,
+  ComoVotaChart,
+  MandatoBar,
+} from '@/features/diputados/components/PerfilCharts';
 import { useDiputado } from '@/features/diputados/queries';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { bloqueStyle, COALICION_COLOR, COALICION_LABEL } from '@/styles/palette';
+import { bloqueStyle } from '@/styles/palette';
 import type { DiputadoPerfil } from '@/types';
-import { formatDate, formatNumber, formatPct } from '@/utils/format';
+import { formatNumber, formatPct } from '@/utils/format';
 import { titleCase } from '@/utils/text';
 import styles from './DiputadoPage.module.css';
 
@@ -31,157 +37,120 @@ export default function DiputadoPage() {
   return <Perfil d={data} />;
 }
 
-function aniosRestantes(fin: string): string {
-  const days = (new Date(fin).getTime() - Date.now()) / 86_400_000;
-  if (days <= 0) return 'mandato cumplido';
-  if (days < 365) return `termina en ${Math.ceil(days / 30)} meses`;
-  const years = Math.round(days / 365);
-  return `termina en ${years} ${years === 1 ? 'año' : 'años'}`;
-}
-
 function Perfil({ d }: { d: DiputadoPerfil }) {
+  const resumen = useResumen();
   const e = d.estadisticas;
   const color = bloqueStyle(d.bloque).color;
   const anios = Object.keys(e.porAnio).sort();
-  const alin = (['pj', 'pro', 'lla', 'ucr'] as const).filter((k) => d.alineamiento[k] !== null);
+  const desde = d.mandatos[0]?.desde;
 
   return (
     <article className={styles.page}>
       <nav className={styles.crumbs} aria-label="Ruta">
-        <Link to="/diputados">Diputados</Link> <span aria-hidden>/</span> {d.apellido}
+        <Link to="/diputados">Diputados</Link> <span aria-hidden>/</span>{' '}
+        <span aria-current="page">
+          {d.nombre} {d.apellido}
+        </span>
       </nav>
 
       <header className={styles.header} style={{ '--bloque': color } as React.CSSProperties}>
         <div className={styles.photo}>
           <Avatar src={d.fotoUrl} nombre={`${d.nombre} ${d.apellido}`} shape="portrait" />
         </div>
+
         <div className={styles.headerText}>
           <Kicker tono="accent">Diputado/a por {titleCase(d.distrito)}</Kicker>
           <h1 className={styles.name}>
-            {d.nombre} <strong>{d.apellido}</strong>
+            <span className={styles.nombre}>{d.nombre}</span> {d.apellido}
           </h1>
-          <div className={styles.bloque}>
+          <div className={styles.meta}>
             <BloqueChip bloque={d.bloque} />
-          </div>
-          <dl className={styles.facts}>
-            <div>
-              <dt>Mandato</dt>
-              <dd>
-                {formatDate(d.iniciaMandato)} — {formatDate(d.finalizaMandato)}
-                <span className={styles.factNote}>{aniosRestantes(d.finalizaMandato)}</span>
-              </dd>
-            </div>
-            {d.mandatos.length > 0 && (
-              <div>
-                <dt>En la Cámara desde</dt>
-                <dd>
-                  {d.mandatos[0].desde ?? '—'}
-                  <span className={styles.factNote}>
-                    {d.mandatos.length} {d.mandatos.length === 1 ? 'período' : 'períodos'}{' '}
-                    registrados
-                  </span>
-                </dd>
-              </div>
+            {desde && (
+              <span className={styles.metaItem}>
+                En la Cámara desde {desde}
+                {d.mandatos.length > 1 ? `, ${d.mandatos.length} períodos` : ''}
+              </span>
             )}
-          </dl>
+          </div>
+          <MandatoBar inicio={d.iniciaMandato} fin={d.finalizaMandato} />
+        </div>
 
-          <div className={styles.stats}>
-            <Stat
-              valor={formatPct(d.presentismo)}
-              label="Presentismo"
-              detalle="en votaciones nominales"
-            />
-            <Stat
-              valor={formatNumber(e.total)}
-              label="Votaciones"
-              detalle="registradas desde que asumió"
-            />
-            <Stat
-              valor={formatPct(e.alineacionBloque?.porcentaje)}
-              label="Votó con su bloque"
-              detalle={
-                e.alineacionBloque
-                  ? `${formatNumber(e.alineacionBloque.coincidencias)} de ${formatNumber(e.alineacionBloque.votaciones)} votaciones`
-                  : 'sin datos suficientes'
-              }
+        <dl className={styles.kpis}>
+          <div className={styles.kpi}>
+            <dt>Presentismo</dt>
+            <dd className="num">{formatPct(d.presentismo)}</dd>
+            <Comparado
+              valor={d.presentismo}
+              promedio={resumen.data?.camara.presentismoPromedio}
+              label="Presentismo comparado con el promedio de la Cámara"
             />
           </div>
-        </div>
+          <div className={styles.kpi}>
+            <dt>Votaciones registradas</dt>
+            <dd className="num">{formatNumber(e.total)}</dd>
+            <span className={styles.kpiNote}>
+              {anios.length > 0
+                ? anios.length === 1
+                  ? `todas en ${anios[0]}`
+                  : `entre ${anios[0]} y ${anios.at(-1)}`
+                : 'sin votaciones todavía'}
+            </span>
+          </div>
+          <div className={styles.kpi}>
+            <dt>Votó con su bloque</dt>
+            <dd className="num">{formatPct(e.alineacionBloque?.porcentaje)}</dd>
+            <span className={styles.kpiNote}>
+              {e.alineacionBloque
+                ? `${formatNumber(e.alineacionBloque.coincidencias)} de ${formatNumber(e.alineacionBloque.votaciones)} votaciones`
+                : 'Sin datos suficientes'}
+            </span>
+          </div>
+        </dl>
       </header>
 
       <section className={styles.section}>
-        <SectionHeader kicker="Comportamiento" titulo="Cómo vota" />
-        <VoteBar
-          height={14}
-          showLabels
-          segments={[
-            { voto: 'AFIRMATIVO', value: e.conteo.afirmativo },
-            { voto: 'NEGATIVO', value: e.conteo.negativo },
-            { voto: 'ABSTENCION', value: e.conteo.abstencion },
-            { voto: 'AUSENTE', value: e.conteo.ausente },
-          ]}
-        />
-        <p className={styles.note}>
-          {formatPct(e.porcentaje.afirmativo)} afirmativo · {formatPct(e.porcentaje.negativo)}{' '}
-          negativo · {formatPct(e.porcentaje.abstencion)} abstención ·{' '}
-          {formatPct(e.porcentaje.ausente)} ausente.
-        </p>
+        <SectionHeader titulo="Cómo vota" />
+        <ComoVotaChart e={e} />
       </section>
 
       <div className={styles.two}>
-        <section className={styles.section}>
-          <SectionHeader kicker="Afinidad" titulo="Alineamiento con las coaliciones" as="h2" />
-          {alin.length > 0 && (
-            <ul className={styles.alin}>
-              {alin.map((k) => (
-                <li key={k}>
-                  <span className={styles.alinLabel}>{COALICION_LABEL[k]}</span>
-                  <span className={styles.alinTrack}>
-                    <span
-                      className={styles.alinBar}
-                      style={{
-                        width: `${d.alineamiento[k]}%`,
-                        background: COALICION_COLOR[k.toUpperCase()],
-                      }}
-                    />
-                  </span>
-                  <span className={`${styles.alinValue} num`}>{formatPct(d.alineamiento[k])}</span>
-                </li>
-              ))}
-            </ul>
+        <div className={styles.column}>
+          <section className={styles.section}>
+            <SectionHeader titulo="Afinidad con los grandes espacios" as="h2" />
+            <AfinidadChart actual={d.alineamiento} anual={d.alineamientoAnual} />
+          </section>
+
+          {d.mandatos.length > 0 && (
+            <section className={styles.section}>
+              <SectionHeader titulo="Trayectoria en la Cámara" as="h2" />
+              <ol className={styles.timeline}>
+                {[...d.mandatos].reverse().map((m, i) => (
+                  <li key={`${m.desde}-${i}`}>
+                    <span className={`${styles.timelineYears} num`}>
+                      {m.desde}
+                      {m.hasta && m.hasta !== m.desde ? `–${m.hasta}` : ''}
+                    </span>
+                    <span className={styles.timelineBody}>
+                      <BloqueChip bloque={m.bloque} />
+                      {m.alianza && (
+                        <span className={styles.factNote}>Electo/a por {m.alianza}</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </section>
           )}
-          <AlineamientoChart data={d.alineamientoAnual} />
-        </section>
+        </div>
 
         <section className={styles.section}>
-          <SectionHeader kicker="Actividad" titulo="Votaciones por año" as="h2" />
-          <VotosPorAnioChart data={e.porAnio} />
+          <SectionHeader titulo="Actividad por año" as="h2" />
+          <ActividadChart porAnio={e.porAnio} />
         </section>
       </div>
 
-      {d.mandatos.length > 0 && (
-        <section className={styles.section}>
-          <SectionHeader kicker="Trayectoria" titulo="Mandatos" />
-          <ol className={styles.timeline}>
-            {[...d.mandatos].reverse().map((m, i) => (
-              <li key={`${m.desde}-${i}`}>
-                <span className={`${styles.timelineYears} num`}>
-                  {m.desde}
-                  {m.hasta && m.hasta !== m.desde ? `–${m.hasta}` : ''}
-                </span>
-                <span className={styles.timelineBody}>
-                  <BloqueChip bloque={m.bloque} />
-                  {m.alianza && <span className={styles.factNote}>Electo/a por {m.alianza}</span>}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-
       <section className={styles.section}>
         <SectionHeader
-          kicker="Historial"
           titulo="Cómo votó, ley por ley"
           children="Las votaciones “en general” son las que mejor reflejan la postura sobre una ley; las “en particular” son por artículo."
         />
