@@ -9,7 +9,7 @@ Permite explorar la Cámara de Diputados (composición, diputados, votaciones hi
 ## Stack
 
 - React 19 + Vite 6 + TypeScript (strict)
-- React Router 7 · TanStack Query 5 · gráficos propios (components/charts)
+- React Router 7 · TanStack Query 5 · Recharts
 - CSS Modules + tokens de diseño en variables CSS (modo claro / oscuro)
 - Tipografía self-hosted con Fontsource: Geist. Íconos: lucide-react
 - Vitest + Testing Library · ESLint 9 + Prettier
