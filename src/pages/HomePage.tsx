@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 import { Hemiciclo, Leyenda } from '@/components/hemiciclo';
 import { ButtonLink } from '@/components/ui/Button';
 import { ErrorState, Skeleton } from '@/components/ui/States';
-import { Kicker, SectionHeader, Stat } from '@/components/ui/Typography';
+import { SectionHeader, Stat } from '@/components/ui/Typography';
 import { useResumen } from '@/features/dashboard/queries';
 import { diputadoToBanca, useDiputados } from '@/features/diputados/queries';
 import { VotacionRow } from '@/features/votaciones/components/VotacionRow';
@@ -43,6 +44,8 @@ export default function HomePage() {
         })),
     [resumen.data],
   );
+  const restantes = leyenda.slice(BLOQUES_VISIBLES);
+  const bancasRestantes = restantes.reduce((acc, b) => acc + Number(b.value ?? 0), 0);
 
   const r = resumen.data;
   const primera = r?.camara.primeraMinoria;
@@ -57,21 +60,20 @@ export default function HomePage() {
           fetchPriority="high"
         />
         <div className={styles.heroText}>
-          <Kicker>Cámara de Diputados de la Nación</Kicker>
           <h1 id="hero-title" className={styles.title}>
-            Cómo vota la Cámara, banca por banca
+            Cómo vota la Cámara, banca por banca.
           </h1>
           <p className={styles.lead}>
-            257 diputados, 21 bloques y más de treinta años de votaciones nominales. Mirá cómo se
-            compone el recinto, cómo votó cada uno y armá tu propio poroteo para anticipar el
-            resultado de un proyecto de ley.
+            Los 257 diputados y más de treinta años de votaciones nominales en un solo lugar. Mirá
+            cómo se compone el recinto, cómo votó cada uno y estimá si un proyecto de ley tiene los
+            votos para salir.
           </p>
           <div className={styles.actions}>
             <ButtonLink to="/poroteos/nuevo" variant="primary">
               Hacer un poroteo
             </ButtonLink>
             <ButtonLink to="/diputados" className={styles.heroSecondary}>
-              Ver diputados
+              Ver los diputados
             </ButtonLink>
           </div>
         </div>
@@ -79,9 +81,14 @@ export default function HomePage() {
 
       <section className={styles.recinto} aria-labelledby="recinto-title">
         <figure className={styles.figure}>
-          <h2 id="recinto-title" className={styles.recintoTitle}>
-            El recinto hoy
-          </h2>
+          <div className={styles.recintoHead}>
+            <h2 id="recinto-title" className={styles.recintoTitle}>
+              El recinto hoy
+            </h2>
+            <p className={styles.caption}>
+              Pasá el mouse por una banca para ver quién la ocupa. Click para abrir su perfil.
+            </p>
+          </div>
           {diputados.isError ? (
             <ErrorState error={diputados.error} onRetry={() => diputados.refetch()} />
           ) : diputados.isPending ? (
@@ -100,14 +107,12 @@ export default function HomePage() {
               }
             />
           )}
-          <figcaption className={styles.caption}>
-            Pasá el mouse por una banca para ver quién la ocupa; hacé click para ir a su perfil.
-          </figcaption>
         </figure>
+
         <div className={styles.bloques}>
-          <h3 className={styles.bloquesTitle}>Bloques</h3>
+          <h3 className={styles.bloquesTitle}>Bloques por cantidad de bancas</h3>
           {resumen.isPending ? (
-            <Skeleton height={240} />
+            <Skeleton height={260} />
           ) : resumen.isError ? (
             <ErrorState error={resumen.error} onRetry={() => resumen.refetch()} />
           ) : (
@@ -117,7 +122,7 @@ export default function HomePage() {
                 onItemHover={setBloqueActivo}
                 activo={bloqueActivo}
               />
-              {leyenda.length > BLOQUES_VISIBLES && (
+              {restantes.length > 0 && (
                 <button
                   type="button"
                   className={styles.verMas}
@@ -126,9 +131,7 @@ export default function HomePage() {
                 >
                   {todosLosBloques
                     ? 'Mostrar solo los más grandes'
-                    : `Ver los ${leyenda.length} bloques (${leyenda.length - BLOQUES_VISIBLES} más, ${leyenda
-                        .slice(BLOQUES_VISIBLES)
-                        .reduce((acc, b) => acc + Number(b.value ?? 0), 0)} bancas)`}
+                    : `Ver ${restantes.length} bloques más (${bancasRestantes} bancas)`}
                 </button>
               )}
             </>
@@ -136,59 +139,60 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className={styles.section}>
-        <SectionHeader kicker="En números" titulo="La Cámara hoy" />
-        <div className={styles.stats}>
-          {r ? (
-            <>
-              <Stat
-                size="xl"
-                valor={primera?.bancas ?? '—'}
-                label="Primera minoría"
-                detalle={primera ? titleCase(primera.nombre) : undefined}
-                color={primera ? bloqueStyle(primera.nombre).color : undefined}
-              />
-              <Stat
-                size="xl"
-                valor={r.camara.bloques}
-                label="Bloques"
-                detalle="con al menos una banca"
-              />
-              <Stat
-                size="xl"
-                valor={formatPct(r.camara.presentismoPromedio)}
-                label="Presentismo promedio"
-                detalle="histórico de los diputados actuales"
-              />
-              <Stat
-                size="xl"
-                valor={formatNumber(r.votaciones.total)}
-                label="Votaciones nominales"
-                detalle={`${formatNumber(r.votaciones.aprobadas)} aprobadas, ${formatNumber(r.votaciones.rechazadas)} rechazadas`}
-              />
-              <Stat
-                size="xl"
-                valor={formatNumber(r.votaciones.anioActual.total)}
-                label={`Votaciones en ${r.votaciones.anioActual.anio}`}
-              />
-              <Stat
-                size="xl"
-                valor={formatNumber(r.camara.mandatosQueVencen['2027'] ?? 0)}
-                label="Mandatos que vencen en 2027"
-                detalle="la mitad de la Cámara se renueva"
-              />
-            </>
-          ) : resumen.isError ? null : (
-            Array.from({ length: 6 }, (_, i) => <Skeleton key={i} height={90} />)
-          )}
-        </div>
+      <section className={styles.section} aria-labelledby="hoy-title">
+        <SectionHeader titulo={<span id="hoy-title">La Cámara en datos</span>} />
+        {r ? (
+          <dl className={styles.specs}>
+            <Spec
+              label="Primera minoría"
+              valor={`${primera?.bancas ?? '—'} bancas`}
+              detalle={
+                primera
+                  ? `${titleCase(primera.nombre)}, el ${formatPct((primera.bancas / r.camara.bancas) * 100)} del recinto`
+                  : undefined
+              }
+              color={primera ? bloqueStyle(primera.nombre).color : undefined}
+            />
+            <Spec
+              label="Bloques con representación"
+              valor={r.camara.bloques}
+              detalle="Con al menos una banca"
+            />
+            <Spec
+              label="Quórum"
+              valor={`${r.camara.quorum} de ${r.camara.bancas}`}
+              detalle="Diputados presentes para sesionar"
+            />
+            <Spec
+              label="Presentismo promedio"
+              valor={formatPct(r.camara.presentismoPromedio)}
+              detalle="Histórico de los diputados actuales"
+            />
+            <Spec
+              label="Votaciones nominales"
+              valor={formatNumber(r.votaciones.total)}
+              detalle={`${formatNumber(r.votaciones.aprobadas)} aprobadas y ${formatNumber(r.votaciones.rechazadas)} rechazadas desde 1993; ${formatNumber(r.votaciones.anioActual.total)} en ${r.votaciones.anioActual.anio}`}
+            />
+            <Spec
+              label="Se renuevan en 2027"
+              valor={`${formatNumber(r.camara.mandatosQueVencen['2027'] ?? 0)} bancas`}
+              detalle="La mitad de la Cámara, cada dos años"
+            />
+          </dl>
+        ) : resumen.isError ? null : (
+          <Skeleton height={220} radius={16} />
+        )}
       </section>
 
-      <section className={styles.section}>
+      <section className={styles.section} aria-labelledby="ultimas-title">
         <SectionHeader
-          kicker="Recientes"
-          titulo="Últimas votaciones en general"
-          accion={<Link to="/votaciones">Ver todas las votaciones</Link>}
+          titulo={<span id="ultimas-title">Últimas votaciones en general</span>}
+          accion={
+            <Link to="/votaciones">
+              Ver todas
+              <ChevronRight size={15} aria-hidden />
+            </Link>
+          }
         />
         {r ? (
           <ul className={styles.list}>
@@ -197,12 +201,23 @@ export default function HomePage() {
             ))}
           </ul>
         ) : resumen.isError ? null : (
-          <div className={styles.listSkeleton}>
-            {Array.from({ length: 4 }, (_, i) => (
-              <Skeleton key={i} height={64} />
-            ))}
-          </div>
+          <Skeleton height={320} radius={16} />
         )}
+      </section>
+
+      <section className={styles.cta} aria-labelledby="cta-title">
+        <div>
+          <h2 id="cta-title" className={styles.ctaTitle}>
+            ¿Sale o no sale?
+          </h2>
+          <p className={styles.ctaText}>
+            Cargá un proyecto, asigná el voto de cada banca y mirá en vivo si alcanza el quórum y la
+            mayoría que necesita.
+          </p>
+        </div>
+        <ButtonLink to="/poroteos/nuevo" variant="primary">
+          Empezar un poroteo
+        </ButtonLink>
       </section>
 
       {r?.fuente && (
@@ -214,6 +229,14 @@ export default function HomePage() {
           ({r.fuente.autor}), actualizados al {formatDate(r.fuente.actualizado)}.
         </p>
       )}
+    </div>
+  );
+}
+
+function Spec(props: { label: string; valor: React.ReactNode; detalle?: string; color?: string }) {
+  return (
+    <div className={styles.spec}>
+      <Stat size="lg" {...props} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { Search } from 'lucide-react';
 import styles from './Fields.module.css';
 
 export function SearchInput({
@@ -11,10 +12,7 @@ export function SearchInput({
       <label htmlFor={id} className="visually-hidden">
         {label}
       </label>
-      <svg viewBox="0 0 20 20" aria-hidden className={styles.searchIcon}>
-        <circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-        <path d="M13 13l4.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      </svg>
+      <Search size={17} strokeWidth={2} aria-hidden className={styles.searchIcon} />
       <input id={id} type="search" autoComplete="off" className={styles.input} {...rest} />
     </div>
   );

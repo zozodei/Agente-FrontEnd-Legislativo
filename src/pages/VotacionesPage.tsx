@@ -45,7 +45,6 @@ export default function VotacionesPage() {
   return (
     <>
       <PageHeader
-        kicker="Archivo"
         titulo="Leyes votadas"
         bajada="Todas las votaciones nominales de la Cámara de Diputados desde 1993. Por defecto se muestran las votaciones en general, que reflejan la postura sobre cada ley."
       />

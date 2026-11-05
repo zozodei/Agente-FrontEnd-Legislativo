@@ -4,16 +4,13 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding-top: var(--space-4);
-  margin-top: var(--space-4);
-  border-top: var(--rule-width) solid var(--rule);
+  margin-top: var(--space-5);
 }
 
 .info,
 .page {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--ink-2);
+  font-size: var(--text-sm);
+  color: var(--ink-3);
 }
 
 .buttons {

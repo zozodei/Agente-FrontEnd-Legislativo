@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useBlocker, useNavigate, useParams } from 'react-router-dom';
+import { Check, CircleAlert, Eraser, Trash2, Undo2, UserX } from 'lucide-react';
 import { errorMessage } from '@/api/client';
 import { Hemiciclo, type Banca } from '@/components/hemiciclo';
 import { Button } from '@/components/ui/Button';
 import { Segmented, SelectField } from '@/components/ui/Fields';
 import { ErrorState, Skeleton } from '@/components/ui/States';
-import { Kicker, SectionHeader } from '@/components/ui/Typography';
+import { Meta, SectionHeader } from '@/components/ui/Typography';
 import { diputadoToBanca, useDiputados } from '@/features/diputados/queries';
 import { BloqueAcciones } from '@/features/poroteo/components/BloqueAcciones';
 import { ListaVotos } from '@/features/poroteo/components/ListaVotos';
@@ -41,7 +42,7 @@ export default function PoroteoPage() {
           }}
           titulo="No pudimos abrir el poroteo"
         />
-        <Link to="/poroteos">← Volver a los poroteos</Link>
+        <Link to="/poroteos">Volver a los poroteos</Link>
       </div>
     );
   }
@@ -152,17 +153,19 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
   return (
     <div className={styles.page}>
       <nav className={styles.crumbs} aria-label="Ruta">
-        <Link to="/poroteos">Poroteos</Link> <span aria-hidden>/</span>{' '}
-        {poroteo.estado === 'final' ? 'final' : 'borrador'}
+        <Link to="/poroteos">Poroteos</Link> <span aria-hidden>/</span> {poroteo.titulo}
       </nav>
 
       <header className={styles.header}>
         <div className={styles.headerText}>
-          <Kicker tono="accent">
-            Poroteo manual · editado {formatRelative(poroteo.updatedAt)}
-            {poroteo.archivoNombre ? ` · ${poroteo.archivoNombre}` : ''}
-          </Kicker>
           <h1 className={styles.title}>{poroteo.titulo}</h1>
+          <Meta
+            items={[
+              poroteo.estado === 'final' ? 'Versión final' : 'Borrador',
+              `Editado ${formatRelative(poroteo.updatedAt)}`,
+              poroteo.archivoNombre,
+            ]}
+          />
           {poroteo.descripcion && <p className={styles.desc}>{poroteo.descripcion}</p>}
         </div>
         <div className={styles.headerActions}>
@@ -177,74 +180,78 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
               </option>
             ))}
           </SelectField>
-          <Button variant="danger" size="sm" onClick={onEliminar} loading={eliminar.isPending}>
-            Borrar
+          <Button variant="danger" onClick={onEliminar} loading={eliminar.isPending}>
+            <Trash2 size={16} aria-hidden />
+            Borrar poroteo
           </Button>
         </div>
       </header>
 
       <div className={styles.layout}>
         <div className={styles.main}>
-          <div className={styles.toolbar}>
-            <div className={styles.pincel}>
-              <span className={styles.toolLabel}>Pincel</span>
+          <div className={styles.canvas}>
+            <div className={styles.toolbar}>
+              <div className={styles.pincel}>
+                <span className={styles.toolLabel}>Pincel</span>
+                <Segmented
+                  label="Voto a asignar al hacer click"
+                  value={pincel}
+                  onChange={setPincel}
+                  options={PINCELES.map((p, i) => ({
+                    value: p,
+                    label: (
+                      <>
+                        {p === 'BORRAR' ? 'Borrar' : VOTO_LABEL[p]}
+                        <kbd className={styles.kbd}>{i + 1}</kbd>
+                      </>
+                    ),
+                    color: p === 'BORRAR' ? undefined : VOTO_COLOR[p],
+                  }))}
+                />
+              </div>
               <Segmented
-                label="Voto a asignar al hacer click"
-                value={pincel}
-                onChange={setPincel}
-                options={PINCELES.map((p, i) => ({
-                  value: p,
-                  label: (
-                    <>
-                      {p === 'BORRAR' ? 'Borrar' : VOTO_LABEL[p]}
-                      <kbd className={styles.kbd}>{i + 1}</kbd>
-                    </>
-                  ),
-                  color: p === 'BORRAR' ? undefined : VOTO_COLOR[p],
-                }))}
+                size="sm"
+                label="Vista"
+                value={vista}
+                onChange={setVista}
+                options={[
+                  { value: 'hemiciclo', label: 'Hemiciclo' },
+                  { value: 'lista', label: 'Lista' },
+                ]}
               />
             </div>
-            <Segmented
-              size="sm"
-              label="Vista"
-              value={vista}
-              onChange={setVista}
-              options={[
-                { value: 'hemiciclo', label: 'Hemiciclo' },
-                { value: 'lista', label: 'Lista' },
-              ]}
-            />
+
+            {vista === 'hemiciclo' ? (
+              <div className={styles.hemi}>
+                <Hemiciclo
+                  bancas={bancas}
+                  modo="poroteo"
+                  ariaLabel={`Hemiciclo del poroteo. ${resumen.conteo.AFIRMATIVO} afirmativos, ${resumen.conteo.NEGATIVO} negativos, ${resumen.enDisputa} sin definir. Usá la vista de lista para asignar votos con el teclado.`}
+                  onBancaClick={(b) => pintar(b, true)}
+                  onBancaPaint={(b) => pintar(b, false)}
+                  centro={
+                    <div className={styles.centro}>
+                      <span className="num">
+                        {resumen.conteo.AFIRMATIVO}
+                        <span className={styles.sep}>a</span>
+                        {resumen.conteo.NEGATIVO}
+                      </span>
+                      <span className={styles.centroLabel}>afirmativos a negativos</span>
+                    </div>
+                  }
+                />
+                <p className={styles.hint}>
+                  Elegí un pincel y hacé click en las bancas (con el mouse podés arrastrar para
+                  pintar varias). Click de nuevo sobre una banca con el mismo voto la limpia.
+                </p>
+              </div>
+            ) : (
+              <ListaVotos diputados={diputados} votos={votos} onAsignar={asignar} />
+            )}
           </div>
 
-          {vista === 'hemiciclo' ? (
-            <div className={styles.hemi}>
-              <Hemiciclo
-                bancas={bancas}
-                modo="poroteo"
-                ariaLabel={`Hemiciclo del poroteo. ${resumen.conteo.AFIRMATIVO} afirmativos, ${resumen.conteo.NEGATIVO} negativos, ${resumen.enDisputa} sin definir. Usá la vista de lista para asignar votos con el teclado.`}
-                onBancaClick={(b) => pintar(b, true)}
-                onBancaPaint={(b) => pintar(b, false)}
-                centro={
-                  <div className={styles.centro}>
-                    <span className="num">
-                      <b style={{ color: 'var(--voto-afirmativo)' }}>{resumen.conteo.AFIRMATIVO}</b>
-                      <span className={styles.sep}>–</span>
-                      <b style={{ color: 'var(--voto-negativo)' }}>{resumen.conteo.NEGATIVO}</b>
-                    </span>
-                  </div>
-                }
-              />
-              <p className={styles.hint}>
-                Elegí un pincel y hacé click en las bancas (con el mouse podés arrastrar para pintar
-                varias). Click de nuevo sobre una banca con el mismo voto la limpia.
-              </p>
-            </div>
-          ) : (
-            <ListaVotos diputados={diputados} votos={votos} onAsignar={asignar} />
-          )}
-
-          <section className={styles.section}>
-            <SectionHeader as="h2" kicker="Acción rápida" titulo="Por bloque">
+          <section className={styles.canvas}>
+            <SectionHeader as="h2" titulo="Asignar por bloque">
               Asigná un voto a todo un bloque y después ajustá a los diputados que se aparten.
             </SectionHeader>
             <BloqueAcciones diputados={diputados} votos={votos} onAsignar={asignar} />
@@ -264,36 +271,51 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
               >
                 {dirty ? 'Guardar cambios' : 'Guardado'}
               </Button>
-              <span className={styles.saveState} role="status">
-                {guardar.isError
-                  ? errorMessage(guardar.error)
-                  : dirty
-                    ? 'Hay cambios sin guardar'
-                    : guardar.isSuccess
-                      ? 'Cambios guardados'
-                      : 'Sin cambios'}
+              <span
+                className={styles.saveState}
+                role="status"
+                data-dirty={(dirty && !guardar.isError) || undefined}
+                data-error={guardar.isError || undefined}
+              >
+                {guardar.isError ? (
+                  <>
+                    <CircleAlert size={14} aria-hidden />
+                    {errorMessage(guardar.error)}
+                  </>
+                ) : dirty ? (
+                  'Tenés cambios sin guardar (Ctrl+S)'
+                ) : (
+                  <>
+                    <Check size={14} aria-hidden />
+                    {guardar.isSuccess ? 'Cambios guardados' : 'Todo guardado'}
+                  </>
+                )}
               </span>
-            </div>
-            <div className={styles.quick}>
-              <Button size="sm" variant="ghost" onClick={deshacer} disabled={!puedeDeshacer}>
-                ↶ Deshacer
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={completarAusentes}
-                disabled={resumen.conteo.sinAsignar === 0}
-              >
-                Sin asignar → Ausente
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => window.confirm('¿Limpiar todos los votos asignados?') && limpiar()}
-                disabled={votos.size === 0}
-              >
-                Limpiar todo
-              </Button>
+              <div className={styles.quick}>
+                <Button size="sm" variant="ghost" onClick={deshacer} disabled={!puedeDeshacer}>
+                  <Undo2 size={15} aria-hidden />
+                  Deshacer
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={completarAusentes}
+                  disabled={resumen.conteo.sinAsignar === 0}
+                  title="Marca como ausentes a los diputados sin voto asignado"
+                >
+                  <UserX size={15} aria-hidden />
+                  Resto ausente
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => window.confirm('¿Limpiar todos los votos asignados?') && limpiar()}
+                  disabled={votos.size === 0}
+                >
+                  <Eraser size={15} aria-hidden />
+                  Limpiar
+                </Button>
+              </div>
             </div>
             {actualizar.isError && <p className={styles.error}>{errorMessage(actualizar.error)}</p>}
           </div>

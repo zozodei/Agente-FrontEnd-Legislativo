@@ -1,21 +1,5 @@
-/* Etiqueta chica arriba de un título. Sentence case, en el azul de acento. */
-.kicker {
-  display: inline-block;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: var(--tracking-kicker);
-  color: var(--ink-2);
-}
+/* ── Encabezado de sección ─────────────────────────────────────────────── */
 
-.kicker[data-tono='accent'] {
-  color: var(--accent);
-}
-
-.kicker[data-tono='muted'] {
-  color: var(--ink-3);
-}
-
-/* Encabezado de sección: una franja celeste corta marca el comienzo. */
 .section {
   display: flex;
   align-items: flex-end;
@@ -25,43 +9,34 @@
 }
 
 .sectionText {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
   min-width: 0;
-  padding-top: var(--space-4);
-}
-
-.sectionText::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 36px;
-  height: 4px;
-  border-radius: var(--radius-pill);
-  background: var(--celeste);
 }
 
 .sectionTitle {
   font-size: var(--text-2xl);
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 
 .sectionLead {
   max-width: var(--measure);
-  margin-top: var(--space-1);
-  font-size: var(--text-sm);
-  color: var(--ink-2);
+  font-size: var(--text-md);
+  color: var(--ink-3);
 }
 
 .sectionAction {
   flex: none;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .sectionAction a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--accent);
   text-decoration: none;
 }
@@ -77,24 +52,66 @@
   }
 }
 
+/* ── Línea de datos ───────────────────────────────────────────────────── */
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+}
+
+.meta li:not(:last-child)::after {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  margin: 0 var(--space-3);
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: middle;
+  opacity: 0.6;
+}
+
+/* ── Stat ──────────────────────────────────────────────────────────────── */
+
 .stat {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
   min-width: 0;
 }
 
+.statLabel {
+  display: flex;
+  align-items: center;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.statSwatch {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+}
+
 .statValue {
-  font-family: var(--font-body);
-  font-stretch: var(--stretch-wide);
+  font-weight: 650;
   font-variant-numeric: lining-nums;
-  font-weight: 600;
-  line-height: 1;
   letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--ink);
 }
 
 .stat[data-size='md'] .statValue {
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
 }
 
 .stat[data-size='lg'] .statValue {
@@ -105,40 +122,30 @@
   font-size: var(--text-4xl);
 }
 
-.statSwatch {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 6px;
-  border-radius: 50%;
-}
-
-.statLabel {
-  margin-top: var(--space-2);
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-
 .statDetail {
   font-size: var(--text-xs);
   color: var(--ink-3);
 }
 
+/* ── Encabezado de página ─────────────────────────────────────────────── */
+
 .page {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-7) 0 var(--space-6);
+  padding: var(--space-8) 0 var(--space-6);
 }
 
 .pageTitle {
+  max-width: 22ch;
   font-size: var(--text-4xl);
-  font-weight: 500;
-  max-width: 20ch;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
 }
 
 .pageLead {
   max-width: 60ch;
   font-size: var(--text-lg);
-  color: var(--ink-2);
+  color: var(--ink-3);
 }

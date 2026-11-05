@@ -1,3 +1,5 @@
+/* ── Tarjeta (grilla) ──────────────────────────────────────────────────── */
+
 .card {
   list-style: none;
   min-width: 0;
@@ -6,31 +8,48 @@
 .link {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
   height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
   text-decoration: none;
+  transition:
+    box-shadow var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
 }
 
+.link:hover {
+  color: inherit;
+  box-shadow: var(--shadow-2);
+  transform: translateY(-2px);
+}
+
+.link:active {
+  transform: translateY(0);
+}
+
+/* La foto lleva abajo una línea del color del bloque: identidad, no adorno. */
 .link > :first-child {
-  border-bottom: 3px solid var(--bloque);
-  transition: filter var(--dur-base) var(--ease-out);
+  border-radius: 0;
+  box-shadow: inset 0 -3px 0 var(--bloque);
 }
 
-.link:hover > :first-child {
-  filter: brightness(1.04);
+.link > :first-child img {
+  transition: transform var(--dur-slow) var(--ease-out);
 }
 
-.link:hover .apellido {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.15em;
+.link:hover > :first-child img {
+  transform: scale(1.03);
 }
 
 .body {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 6px;
   min-width: 0;
+  padding: var(--space-3) var(--space-3) var(--space-4);
 }
 
 .name {
@@ -40,63 +59,70 @@
 }
 
 .apellido {
-  font-family: var(--font-display);
   font-size: var(--text-lg);
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 .nombre {
   font-size: var(--text-sm);
-  color: var(--ink-2);
-}
-
-.distrito {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  letter-spacing: 0.04em;
   color: var(--ink-3);
 }
 
+.distrito {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+/* ── Fila (lista) ──────────────────────────────────────────────────────── */
+
 .row {
   list-style: none;
-  border-bottom: var(--rule-width) solid var(--rule);
+}
+
+.row + .row {
+  border-top: 1px solid var(--rule-soft);
 }
 
 .rowLink {
   display: grid;
-  grid-template-columns: 44px minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr) 4.5rem;
+  grid-template-columns: 40px minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr) 6rem;
   gap: var(--space-4);
   align-items: center;
-  padding: var(--space-2) 0;
+  padding: var(--space-2) var(--space-4);
   text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out);
 }
 
 .rowLink:hover {
-  background: var(--paper-sunken);
+  color: inherit;
+  background: var(--surface-hover);
 }
 
 .rowName {
   font-size: var(--text-md);
+  color: var(--ink-2);
 }
 
 .rowName strong {
-  font-family: var(--font-display);
   font-weight: 600;
+  color: var(--ink);
 }
 
 .rowStat {
   text-align: right;
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
+  font-weight: 550;
 }
 
 @media (max-width: 720px) {
   .rowLink {
-    grid-template-columns: 44px minmax(0, 1fr) auto;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
     grid-template-areas:
       'foto nombre stat'
       'foto bloque stat';
     gap: 0 var(--space-3);
+    padding: var(--space-3);
   }
 
   .rowLink > :first-child {

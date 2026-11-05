@@ -16,12 +16,20 @@
 .list {
   margin: 0;
   padding: 0;
+  max-height: 560px;
+  overflow-y: auto;
   list-style: none;
-  border-top: var(--rule-strong) solid var(--rule-strong-color);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  overscroll-behavior: contain;
 }
 
 .row {
-  border-bottom: var(--rule-width) solid var(--rule);
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.row:last-child {
+  border-bottom: 0;
 }
 
 .rowInner {
@@ -29,21 +37,24 @@
   grid-template-columns: 36px minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr) 7.5rem;
   gap: var(--space-3);
   align-items: center;
-  padding: var(--space-2) 0;
+  padding: var(--space-2) var(--space-2);
+  border-radius: var(--radius-sm);
   text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out);
 }
 
 a.rowInner:hover {
-  background: var(--paper-sunken);
+  color: inherit;
+  background: var(--surface-hover);
 }
 
 .name {
-  font-weight: 500;
-  font-size: var(--text-sm);
+  font-weight: 600;
+  font-size: var(--text-md);
 }
 
 .prov {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   color: var(--ink-3);
 }
 

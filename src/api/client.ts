@@ -76,7 +76,8 @@ export function errorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.code === 'NETWORK_ERROR')
       return 'No pudimos conectarnos con el servidor. ¿Está levantado el backend?';
-    if (error.code === 'SERVICE_UNAVAILABLE') return error.message;
+    if (error.code === 'SERVICE_UNAVAILABLE')
+      return 'Esta función todavía no está habilitada en la base de datos. Falta aplicar las migraciones de Supabase (ver el CLAUDE.md del backend).';
     if (error.code === 'RATE_LIMITED')
       return 'Hiciste muchas consultas seguidas. Esperá un momento.';
     if (error.status === 404) return 'No encontramos lo que buscabas.';

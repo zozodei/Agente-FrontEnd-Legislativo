@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { PageMeta } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Button } from './Button';
@@ -19,18 +20,26 @@ export function Pagination({
         {formatNumber(from)}–{formatNumber(to)} de {formatNumber(meta.total)}
       </span>
       <div className={styles.buttons}>
-        <Button size="sm" disabled={meta.page <= 1} onClick={() => onChange(meta.page - 1)}>
-          ← Anterior
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={meta.page <= 1}
+          onClick={() => onChange(meta.page - 1)}
+        >
+          <ChevronLeft size={16} aria-hidden />
+          Anterior
         </Button>
         <span className={`${styles.page} num`}>
-          {meta.page} / {meta.totalPages}
+          Página {meta.page} de {meta.totalPages}
         </span>
         <Button
           size="sm"
+          variant="secondary"
           disabled={meta.page >= meta.totalPages}
           onClick={() => onChange(meta.page + 1)}
         >
-          Siguiente →
+          Siguiente
+          <ChevronRight size={16} aria-hidden />
         </Button>
       </div>
     </nav>

@@ -4,9 +4,9 @@
   gap: var(--space-6);
   max-width: 880px;
   padding: var(--space-6);
-  border: var(--rule-width) solid var(--rule);
   border-radius: var(--radius-lg);
   background: var(--surface);
+  box-shadow: var(--shadow-1);
 }
 
 @media (max-width: 640px) {
@@ -43,16 +43,18 @@
   width: 100%;
   padding: var(--space-2) 0;
   border: 0;
-  border-bottom: var(--rule-strong) solid var(--rule);
+  border-bottom: 2px solid var(--rule);
+  border-radius: 0;
   background: transparent;
-  font-family: var(--font-display);
   font-size: var(--text-3xl);
+  font-weight: 650;
+  letter-spacing: -0.03em;
   line-height: 1.15;
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 
 .titleInput::placeholder {
-  color: var(--ink-3);
-  font-style: italic;
+  color: var(--ink-4);
 }
 
 .titleInput:focus-visible {
@@ -67,12 +69,22 @@
 .textarea {
   width: 100%;
   padding: var(--space-3);
-  border: var(--rule-width) solid var(--rule);
-  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
   background: var(--paper);
   font-size: var(--text-md);
   line-height: var(--leading-body);
   resize: vertical;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.textarea:hover {
+  border-color: var(--rule);
+}
+
+.textarea:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
 }
 
 .hint {
@@ -146,4 +158,10 @@
   gap: var(--space-3);
   padding-top: var(--space-4);
   border-top: var(--rule-width) solid var(--rule);
+}
+
+/* Dentro de un panel blanco, los campos van en gris sin sombra. */
+.form {
+  --field-bg: var(--paper);
+  --field-shadow: none;
 }

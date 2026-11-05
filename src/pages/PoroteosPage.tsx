@@ -24,7 +24,6 @@ export default function PoroteosPage() {
   return (
     <>
       <PageHeader
-        kicker="Poroteo manual"
         titulo="¿Sale o no sale?"
         bajada="Cargá un proyecto de ley y estimá, banca por banca, cómo votaría cada diputado. El contador te dice en vivo si hay quórum y si el proyecto se aprueba."
       >
@@ -82,30 +81,42 @@ export default function PoroteosPage() {
               return (
                 <li key={p.id} className={styles.card}>
                   <Link to={`/poroteos/${p.id}`} className={styles.cardLink}>
-                    <span className={styles.cardMeta}>
-                      <span>{TIPO_MAYORIA_LABEL[p.tipoMayoria]}</span>
-                      <span>Editado {formatRelative(p.updatedAt)}</span>
+                    <span className={styles.cardTop}>
+                      <ResultadoBadge resultado={p.resumen.resultado} />
+                      {!p.resumen.definido && (
+                        <span className={styles.abierto}>Todavía abierto</span>
+                      )}
                     </span>
                     <span className={styles.cardTitle}>{p.titulo}</span>
                     {p.descripcion && <span className={styles.cardDesc}>{p.descripcion}</span>}
-                    <span className={styles.cardResult}>
-                      <ResultadoBadge resultado={p.resumen.resultado} />
-                      {!p.resumen.definido && <span className={styles.abierto}>abierto</span>}
+                    <span className={styles.cardMeta}>
+                      {TIPO_MAYORIA_LABEL[p.tipoMayoria]}, editado {formatRelative(p.updatedAt)}
+                    </span>
+                    <span className={styles.cardFoot}>
+                      <VoteBar
+                        height={8}
+                        total={257}
+                        segments={[
+                          { voto: 'AFIRMATIVO', value: c.AFIRMATIVO },
+                          { voto: 'NEGATIVO', value: c.NEGATIVO },
+                          { voto: 'ABSTENCION', value: c.ABSTENCION },
+                          { voto: 'AUSENTE', value: c.AUSENTE },
+                        ]}
+                      />
                       <span className={`${styles.cardCounts} num`}>
-                        {c.AFIRMATIVO} a favor · {c.NEGATIVO} en contra · {p.resumen.enDisputa} sin
-                        definir
+                        <span>
+                          <i style={{ background: 'var(--voto-afirmativo)' }} aria-hidden />
+                          <b>{c.AFIRMATIVO}</b> a favor
+                        </span>
+                        <span>
+                          <i style={{ background: 'var(--voto-negativo)' }} aria-hidden />
+                          <b>{c.NEGATIVO}</b> en contra
+                        </span>
+                        <span>
+                          <b>{p.resumen.enDisputa}</b> sin definir
+                        </span>
                       </span>
                     </span>
-                    <VoteBar
-                      height={6}
-                      total={257}
-                      segments={[
-                        { voto: 'AFIRMATIVO', value: c.AFIRMATIVO },
-                        { voto: 'NEGATIVO', value: c.NEGATIVO },
-                        { voto: 'ABSTENCION', value: c.ABSTENCION },
-                        { voto: 'AUSENTE', value: c.AUSENTE },
-                      ]}
-                    />
                   </Link>
                 </li>
               );

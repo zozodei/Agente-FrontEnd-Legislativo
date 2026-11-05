@@ -56,7 +56,6 @@ export default function DiputadosPage() {
   return (
     <>
       <PageHeader
-        kicker="Directorio"
         titulo="Los 257 diputados"
         bajada="Buscá por nombre o filtrá por bloque y provincia. Cada perfil reúne su historial de votaciones y estadísticas."
       />

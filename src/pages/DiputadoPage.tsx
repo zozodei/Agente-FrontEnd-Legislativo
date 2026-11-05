@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Avatar } from '@/components/ui/Avatar';
 import { BloqueChip } from '@/components/ui/Badges';
 import { ErrorState, Skeleton } from '@/components/ui/States';
-import { Kicker, SectionHeader } from '@/components/ui/Typography';
+import { SectionHeader } from '@/components/ui/Typography';
 import { useResumen } from '@/features/dashboard/queries';
 import { HistorialVotos } from '@/features/diputados/components/HistorialVotos';
 import {
@@ -59,12 +59,12 @@ function Perfil({ d }: { d: DiputadoPerfil }) {
         </div>
 
         <div className={styles.headerText}>
-          <Kicker tono="accent">Diputado/a por {titleCase(d.distrito)}</Kicker>
           <h1 className={styles.name}>
             <span className={styles.nombre}>{d.nombre}</span> {d.apellido}
           </h1>
           <div className={styles.meta}>
             <BloqueChip bloque={d.bloque} />
+            <span className={styles.metaItem}>Diputado/a por {titleCase(d.distrito)}</span>
             {desde && (
               <span className={styles.metaItem}>
                 En la Cámara desde {desde}

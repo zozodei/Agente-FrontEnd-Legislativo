@@ -44,7 +44,7 @@ src/
     layout/           AppLayout (encabezado, nav, pie con la fuente, selector de tema)
     ui/               Avatar, Button/ButtonLink, Badges (Voto, Resultado, Bloque), Fields
                       (SearchInput, SelectField, Checkbox, Segmented), Pagination, States
-                      (Skeleton, EmptyState, ErrorState), Typography (Kicker, SectionHeader,
+                      (Skeleton, EmptyState, ErrorState), Typography (SectionHeader, Meta,
                       Stat, PageHeader), VoteBar
   features/
     dashboard/queries.ts        useResumen
@@ -107,16 +107,19 @@ La pieza visual más importante. Props principales:
 
 ## 6. Dirección visual (no negociable)
 
-**"Recinto": cívica y argentina, sin ser escarapela.** Pensada para una ONG que comunica datos públicos. **No debe parecer hecha por IA ni un template SaaS.**
+**Producto de datos cívicos con terminación de primer nivel** (referencia: apps de Apple). Es una herramienta de trabajo: la interfaz se tiene que poder leer de un vistazo y desaparecer detrás de la tarea. La identidad argentina vive en la marca, no en los datos.
 
-- ✅ **Paleta de marca** (en `tokens.css`): mármol frío del Congreso (`--paper` `#f3f5f8`), tinta azul profundo (`--ink` `#13233b`, nunca negro), azul institucional para links y botones (`--accent`), y dos acentos de marca: **celeste** (`--celeste`) y **sol** (`--sol`, dorado del Sol de Mayo). Celeste y sol solo en marca: franja superior de 3 px, isotipo, marcas de sección. **Nunca para datos.**
-- ✅ **Foto del Congreso** (`public/congreso.jpg`) a todo el ancho en la portada, con velo azul tinta para leer el texto. El panel del hemiciclo se monta sobre la foto.
-- ✅ **Tipografías de foundries argentinas:** **Alegreya** (Huerta Tipográfica, `--font-display`) para `h1`, nombres y títulos de leyes; **Encode Sans** (Pablo Impallari, `--font-body`) para todo lo demás. `h2/h3` usan Encode Sans expandida (`font-stretch: var(--stretch-wide)`), como la cartelería pública. Las cifras grandes van en Encode Sans expandida, no en serif. Cifras alineadas en tablas con `className="num"`.
-- ❌ Sin etiquetas en MAYÚSCULAS sostenidas ni monoespaciada: los kickers van en sentence case, semibold, en `--accent`. Sin "→" pegado a los links. Sin gradientes violetas, glassmorphism ni sombras gigantes.
-- ✅ Radios con jerarquía: paneles `--radius-lg` (16), tarjetas `--radius-md` (10), controles `--radius-sm` (6), botones y chips en píldora.
-- ✅ Color fuerte **solo para datos** (votos y bloques, `palette.ts`). Todo color/espaciado sale de `tokens.css`. **No hardcodear hex en componentes** (excepción: `palette.ts` y el velo/foto de la portada).
-- ✅ Modo oscuro "sesión nocturna": tokens redefinidos en `tokens.css`. Probá siempre los dos.
-- ✅ Movimiento: una sola entrada orquestada (el texto de la portada). El resto solo responde a acciones. Respeta `prefers-reduced-motion`.
+**Sistema** (todo sale de `styles/tokens.css`; **no hardcodear hex en componentes**, salvo `palette.ts` y el velo de la foto de la portada):
+
+- **Tipografía:** una sola familia, **Geist** (`--font-sans`), para títulos, texto y datos. Escala fija en rem (11 · 12 · 13 · 15 cuerpo · 17 · 21 · 26 · 32 · 44); solo el titular de la portada es fluido (`--text-display`). Títulos en 650–700 con tracking negativo (−0.025 a −0.04em). Cifras alineadas con `className="num"`.
+- **Color:** fondo `--paper` (#f5f5f7), superficies `--surface` blancas, tinta `--ink` (#1d1d1f) y grises `--ink-2/3/4`. **Un solo color de acción**, `--accent` (azul), para links, botón primario y foco. `--celeste` y `--sol` solo en el isotipo. Color fuerte **solo para datos** (votos y bloques, `palette.ts`), y **nunca en el texto**: el color va en un punto o marca al lado.
+- **Superficies:** paneles blancos con `--radius-lg` (16) y `--shadow-1`, **sin bordes**. Elevación: o borde o sombra, nunca los dos. Tarjetas `--radius-md` (12), controles 8, botones y chips en píldora. Dentro de un panel los campos usan `--field-bg`/`--field-shadow` (se redefinen en el panel: gris sin sombra).
+- **Componentes:** botones `primary` (azul lleno, uno por pantalla), `secondary` (gris suave), `ghost` (texto azul), `danger`. Íconos **solo de `lucide-react`** (trazo 1.75–2), nunca emojis ni flechas de texto (→, ↗). Control segmentado estilo iOS. Barra de navegación translúcida (`backdrop-filter`) y fija.
+- **Prohibido:** etiquetas chiquitas arriba de los títulos ("kickers"/eyebrows), MAYÚSCULAS sostenidas, monoespaciada como adorno, bordes de color a un costado de tarjetas o avisos (>1px), gradientes en texto, tarjetas iguales con ícono + título + texto como estructura de página.
+- **Estados:** todo control tiene hover, foco visible (`--focus-ring`), deshabilitado y carga. Toda vista con datos tiene skeleton, `EmptyState` (dice qué hacer) y `ErrorState` (dice qué pasó y cómo seguir).
+- **Movimiento:** 140–220 ms con `--ease-out` (exponencial). Un solo momento coreografiado: la foto de la portada. Respeta `prefers-reduced-motion`.
+- **Modo oscuro:** negro puro de fondo con superficies `#1c1c1e`. Se prueba siempre junto con el claro.
+- **Foto del Congreso** (`public/congreso.jpg`) a todo el ancho en la portada, pasando por debajo de la barra translúcida y fundiéndose con el fondo; el panel del hemiciclo se monta encima.
 
 ### Gráficos (`components/charts`)
 
