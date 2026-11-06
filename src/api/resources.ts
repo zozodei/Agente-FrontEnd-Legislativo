@@ -1,19 +1,43 @@
 import { request } from './client';
 import type {
+  AuthResponse,
   BloqueResumen,
   Diputado,
   DiputadoPerfil,
   Paginated,
   Poroteo,
   PoroteoDetalle,
+  RegistroResponse,
   Resumen,
   TipoMayoria,
+  Usuario,
   Votacion,
   VotacionDetalle,
   VotoHistorial,
   VotoPoroteo,
   VotoReal,
 } from '@/types';
+
+/* ── Autenticación ─────────────────────────────────────────────────────── */
+
+export interface RegistroInput {
+  email: string;
+  password: string;
+  nombre: string;
+}
+
+export const authApi = {
+  registrar: (input: RegistroInput) =>
+    request<{ data: RegistroResponse }>('/auth/registro', {
+      method: 'POST',
+      body: input,
+      anonimo: true,
+    }),
+  login: (input: { email: string; password: string }) =>
+    request<{ data: AuthResponse }>('/auth/login', { method: 'POST', body: input, anonimo: true }),
+  logout: () => request<void>('/auth/logout', { method: 'POST' }),
+  me: (signal?: AbortSignal) => request<{ data: Usuario }>('/auth/me', { signal }),
+};
 
 /* ── Diputados ─────────────────────────────────────────────────────────── */
 

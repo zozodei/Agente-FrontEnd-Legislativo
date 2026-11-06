@@ -260,3 +260,32 @@ export interface PoroteoDetalle extends Poroteo {
   textoProyecto: string | null;
   votos: PoroteoVoto[];
 }
+
+/* ── Autenticación ─────────────────────────────────────────────────────── */
+
+export interface Usuario {
+  id: string; // uuid
+  email: string;
+  nombre: string | null;
+  createdAt?: string; // ISO; no viene en /auth/me
+}
+
+export interface Sesion {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number; // segundos (~3600)
+  expiresAt: number; // timestamp Unix en SEGUNDOS (no ms)
+  tokenType: 'bearer';
+}
+
+export interface AuthResponse {
+  usuario: Usuario;
+  sesion: Sesion;
+}
+
+export interface RegistroResponse {
+  usuario: Usuario;
+  /** null si el backend exige confirmar el email antes de entrar. */
+  sesion: Sesion | null;
+  requiereConfirmacion: boolean;
+}

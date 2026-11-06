@@ -77,3 +77,57 @@
 .action {
   margin-top: var(--space-3);
 }
+
+/* Spinner: cinco porotos que se encienden en secuencia (como la marca). */
+.spinnerWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 40vh;
+}
+
+.spinner {
+  display: flex;
+  gap: 6px;
+}
+
+.spinner i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rule);
+  animation: poroto 1.1s var(--ease-in-out) infinite;
+}
+
+.spinner i:nth-child(3) {
+  --poroto-on: var(--sol);
+}
+
+@keyframes poroto {
+  0%,
+  100% {
+    background: var(--rule);
+    transform: translateY(0);
+  }
+  40% {
+    background: var(--poroto-on, var(--celeste));
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner i {
+    animation: none;
+    background: var(--celeste);
+  }
+}
+
+.spinnerLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}

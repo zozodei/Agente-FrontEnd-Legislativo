@@ -13,6 +13,11 @@
   border-bottom: var(--rule-width) solid var(--rule-strong-color);
 }
 
+.franja {
+  height: 4px;
+  background: var(--franja);
+}
+
 .mastheadInner,
 .footerInner,
 .main {
@@ -40,11 +45,7 @@
 
 .brandMark {
   width: 34px;
-  fill: var(--ink);
-}
-
-.brandAccent {
-  fill: var(--voto-afirmativo);
+  color: var(--ink);
 }
 
 .brandText {
@@ -54,10 +55,7 @@
 }
 
 .brandName {
-  font-family: var(--font-display);
-  font-size: 1.45rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: 1.5rem;
 }
 
 .brandSub {
@@ -101,6 +99,13 @@
   bottom: -11px;
   height: 3px;
   background: var(--ink);
+}
+
+.navSep {
+  width: 1px;
+  height: 22px;
+  margin: 0 var(--space-2);
+  background: var(--rule);
 }
 
 .theme {
@@ -165,6 +170,10 @@
     display: none;
   }
 
+  .navSep {
+    display: none;
+  }
+
   .theme {
     margin: var(--space-3) 0 0;
   }
@@ -175,6 +184,12 @@
   padding-bottom: var(--space-9);
 }
 
+/* Páginas a todo el ancho (portada, login): manejan su propio contenedor. */
+.main[data-bleed] {
+  max-width: none;
+  padding: 0;
+}
+
 .fallback {
   display: flex;
   flex-direction: column;
@@ -183,28 +198,61 @@
 }
 
 .footer {
-  border-top: var(--rule-strong) solid var(--rule-strong-color);
-  background: var(--paper-sunken);
+  /* Sobre fondo noche, el "IA" de la marca va en celeste claro. */
+  --celeste-ink: var(--celeste);
+  background: var(--noche);
+  color: var(--noche-ink);
+}
+
+.footer a {
+  color: var(--noche-ink);
+  text-decoration-color: var(--celeste);
 }
 
 .footerInner {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  grid-template-columns: 1.2fr 1fr 1.4fr;
   gap: var(--space-6);
-  padding-top: var(--space-6);
+  padding-top: var(--space-7);
   padding-bottom: var(--space-7);
+}
+
+@media (max-width: 860px) {
+  .footerInner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.footerBrand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.footerLogo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+}
+
+.footerLogo .brandMark {
+  color: var(--noche-ink);
 }
 
 .footerTitle {
   margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: var(--rule-width) solid var(--noche-rule);
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-kicker);
   text-transform: uppercase;
+  color: var(--celeste);
 }
 
 .footerText {
   max-width: 58ch;
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: var(--noche-ink-2);
 }

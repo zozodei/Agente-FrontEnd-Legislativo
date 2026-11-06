@@ -1,4 +1,4 @@
-# CLAUDE.md · Frontend del Poroteo Legislativo
+# CLAUDE.md · Frontend de demoIA (Poroteo Legislativo)
 
 Guía para cualquier agente o persona que trabaje en este repo. Leela completa antes de tocar código. **Mantenela actualizada** en el mismo PR en que cambies rutas, componentes centrales, tokens o convenciones.
 
@@ -8,6 +8,7 @@ Guía para cualquier agente o persona que trabaje en este repo. Leela completa a
 
 - **Quiénes:** equipo de estudiantes del programa _Hola Mundo Profesional_ (HMP), haciendo una práctica en la ONG **Democracia en Red**.
 - **Objetivo final:** subir un proyecto de ley y que una IA haga el **poroteo**: estimar qué votaría cada legislador del Congreso de la Nación Argentina y cuál sería el resultado.
+- **Nombre del producto:** **demoIA** (democracia + IA). Wordmark en `components/layout/Brand.tsx`.
 - **Etapa actual:** prototipo de **poroteo manual** (sin IA), **solo Cámara de Diputados** (257 bancas, quórum 129). Sirve para validar estética, funcionalidad y experiencia con la ONG.
 - **Este repo no es descartable:** se usa hasta el final (IA + Senado).
 - **Backend:** repo `Agente-BackEnd-Legislativo` (Node + Express). Su `CLAUDE.md` documenta la base de datos y la API completa.
@@ -20,6 +21,7 @@ React 19 + Vite 6 + TypeScript strict. React Router 7 (data router), TanStack Qu
 Navegador  →  backend (/api/...)  →  Supabase
                     ↑
        Las fotos son la excepción: se cargan directo con su foto_url pública (Storage).
+       La foto de portada se carga de Wikimedia Commons (ver LandingPage.tsx, con crédito).
 ```
 
 ```
@@ -28,8 +30,10 @@ src/
   App.tsx             QueryClient (staleTime 60s, sin reintentos en 4xx)
   router.tsx          rutas; cada página es lazy()
   api/
-    client.ts         request<T>() + ApiError + errorMessage(). ÚNICO lugar que hace fetch.
-    resources.ts      diputadosApi, votacionesApi, statsApi, poroteosApi, catalogosApi
+    client.ts         request<T>() + ApiError + errorMessage() + fieldErrors(). ÚNICO lugar que
+                      hace fetch. Agrega el Bearer token y maneja el refresh (ver §5 bis).
+    session.ts        sesión en localStorage (poroteo.sesion / poroteo.usuario), LOGOUT_EVENT
+    resources.ts      authApi, diputadosApi, votacionesApi, statsApi, poroteosApi, catalogosApi
     queryKeys.ts      claves de TanStack Query centralizadas
   types/index.ts      tipos = DTOs del backend (camelCase). Si cambia la API, cambiá esto.
   styles/
@@ -38,12 +42,17 @@ src/
     palette.ts        colores de datos para JS: VOTO_COLOR, bloqueStyle(), COALICION_COLOR
   components/
     hemiciclo/        <Hemiciclo/>, <Leyenda/>, layout.ts (geometría pura), types.ts (Banca)
-    layout/           AppLayout (encabezado, nav, pie con la fuente, selector de tema)
-    ui/               Avatar, Button/ButtonLink, Badges (Voto, Resultado, Bloque), Fields
-                      (SearchInput, SelectField, Checkbox, Segmented), Pagination, States
-                      (Skeleton, EmptyState, ErrorState), Typography (Kicker, SectionHeader,
+    layout/           AppLayout (franja, encabezado, nav, pie noche, tema; recibe `cuenta` como
+                      slot), Brand (BrandMark + Wordmark "demoIA")
+    ui/               Avatar, Button/ButtonLink (variantes inverse/outlineInverse para fondo
+                      noche), Badges (Voto, Resultado, Bloque), Fields (SearchInput, TextField,
+                      SelectField, Checkbox, Segmented), Pagination, States (Skeleton, Spinner,
+                      EmptyState, ErrorState con `mensaje`), Typography (Kicker, SectionHeader,
                       Stat, PageHeader), VoteBar
   features/
+    auth/                       AuthProvider + context + useAuth, RutaProtegida, validacion.ts
+                                (validaciones, mensajes de error, destinoSeguro), components/
+                                AuthShell, CuentaMenu (zona de sesión del encabezado)
     dashboard/queries.ts        useResumen
     diputados/                  queries (useDiputados, useDiputado, useVotosDiputado, diputadoToBanca)
                                 components/ DiputadoCard, HistorialVotos, PerfilCharts
@@ -51,26 +60,32 @@ src/
     poroteo/                    queries (CRUD + mutaciones), resultado.ts (cálculo en vivo),
                                 usePoroteoEditor.ts (estado local + deshacer), components/
                                 ResultadoPanel, BloqueAcciones, ListaVotos
-  pages/              una por ruta: HomePage, DiputadosPage, DiputadoPage, VotacionesPage,
-                      VotacionPage, PoroteosPage, NuevoPoroteoPage, PoroteoPage, NotFoundPage
+  pages/              una por ruta: LandingPage, CamaraPage, DiputadosPage, DiputadoPage,
+                      VotacionesPage, VotacionPage, LoginPage, RegistroPage, PoroteosPage,
+                      NuevoPoroteoPage, PoroteoPage, NotFoundPage
   hooks/              useTheme, useDebouncedValue, useDocumentTitle, useSearchParamState
   utils/              format.ts (números/fechas es-AR), text.ts (normalize, titleCase, nombreLegible)
 ```
 
-**Regla de dependencias:** `pages → features → components/ui, api, hooks, utils`. Los componentes de `components/` no importan de `features/` ni de `pages/`.
+**Regla de dependencias:** `pages → features → components/ui, api, hooks, utils`. Los componentes de `components/` no importan de `features/` ni de `pages/` (por eso `AppLayout` recibe la zona de cuenta como prop `cuenta` desde `router.tsx`).
 
 ## 3. Rutas
 
-| Ruta              | Página           | Datos                                                                                       |
-| ----------------- | ---------------- | ------------------------------------------------------------------------------------------- |
-| `/`               | HomePage         | `useDiputados` (hemiciclo) + `useResumen`                                                   |
-| `/diputados`      | DiputadosPage    | `useDiputados` (los 257, filtrado en memoria; filtros en la URL)                            |
-| `/diputados/:id`  | DiputadoPage     | `useDiputado` + `useVotosDiputado` (paginado en servidor)                                   |
-| `/votaciones`     | VotacionesPage   | `useVotaciones` (paginado y filtrado en servidor; filtros en la URL)                        |
-| `/votaciones/:id` | VotacionPage     | `useVotacion`                                                                               |
-| `/poroteos`       | PoroteosPage     | `usePoroteos`                                                                               |
-| `/poroteos/nuevo` | NuevoPoroteoPage | `useCrearPoroteo` (JSON o multipart con PDF). Acepta `location.state.titulo` para precargar |
-| `/poroteos/:id`   | PoroteoPage      | `usePoroteo` + `useDiputados`; guarda con `useGuardarVotos` (modo `replace`)                |
+| Ruta                 | Página           | Datos                                                                                                             |
+| -------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `/`                  | LandingPage      | Portada a todo el ancho (`handle.bleed`). `useDiputados` + `useResumen`                                           |
+| `/camara`            | CamaraPage       | `useDiputados` (hemiciclo) + `useResumen`                                                                         |
+| `/login`             | LoginPage        | `useAuth().login`. Respeta `?redirect=` (solo rutas internas: `destinoSeguro`)                                    |
+| `/registro`          | RegistroPage     | `useAuth().registrar`. Si `requiereConfirmacion` → pantalla "revisá tu email"                                     |
+| `/diputados`         | DiputadosPage    | `useDiputados` (los 257, filtrado en memoria; filtros en la URL)                                                  |
+| `/diputados/:id`     | DiputadoPage     | `useDiputado` + `useVotosDiputado` (paginado en servidor)                                                         |
+| `/votaciones`        | VotacionesPage   | `useVotaciones` (paginado y filtrado en servidor; filtros en la URL)                                              |
+| `/votaciones/:id`    | VotacionPage     | `useVotacion`                                                                                                     |
+| `/poroteos` 🔒       | PoroteosPage     | `usePoroteos` ("Mis poroteos": cada usuario ve solo los suyos)                                                    |
+| `/poroteos/nuevo` 🔒 | NuevoPoroteoPage | `useCrearPoroteo` (JSON o multipart con PDF). Acepta `location.state.titulo` para precargar                       |
+| `/poroteos/:id` 🔒   | PoroteoPage      | `usePoroteo` + `useDiputados`; guarda con `useGuardarVotos` (modo `replace`). 404 = "No existe o no tenés acceso" |
+
+🔒 = dentro de `<RutaProtegida/>`: sin sesión → `/login?redirect=<ruta>` (reenvía `location.state` como `state.desde`).
 
 ## 4. El hemiciclo (`components/hemiciclo`)
 
@@ -101,6 +116,19 @@ La pieza visual más importante. Props principales:
 - Reglas: quórum 129 presentes (afirm + neg + abst). `simple`: afirm > neg. `absoluta`: afirm ≥ 129. `dos_tercios`: afirm ≥ ⌈2/3 presentes⌉. Mejor/peor caso con los votos en disputa → `definido`.
 - UX: pincel (teclas 1–5), click/arrastre en bancas, acciones por bloque, "Sin asignar → Ausente", deshacer (Ctrl+Z), guardar (Ctrl+S), aviso al salir con cambios sin guardar (`useBlocker` + `beforeunload`).
 
+## 5 bis. Autenticación
+
+- Endpoints del backend: `POST /auth/registro`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`. **Todo `/poroteos` exige token**; diputados, votaciones, bloques, distritos y stats son públicos. En poroteos, `404` también significa "es de otra persona".
+- Sesión en `localStorage` (`poroteo.sesion`) + copia del usuario (`poroteo.usuario`, para no perder la sesión si el backend no responde al arrancar). `expiresAt` viene en **segundos**.
+- `request()` en `api/client.ts`:
+  - agrega `Authorization: Bearer` si hay sesión (opción `anonimo: true` para login/registro: ni token ni refresh, ahí un 401 es "credenciales incorrectas");
+  - si quedan < 60 s, renueva antes de mandar;
+  - ante 401 con token: si otra request ya renovó, reintenta con el token nuevo; si no, `refrescarSesion()`. **Una sola promesa de refresh en vuelo** (cada refreshToken sirve una vez);
+  - refresh rechazado → `limpiarSesion()` + evento `auth:logout` en `window`. Sin red → no cierra la sesión.
+- `AuthProvider` (en `App.tsx`, dentro del QueryClientProvider): estado `'cargando' | 'autenticado' | 'anonimo'`; verifica con `/auth/me` al arrancar; escucha `auth:logout` y `storage` (otras pestañas). Al entrar/salir borra de la caché las queries de `poroteos` (son privadas).
+- Mensajes de error de cuenta: `authErrorMessage()`; errores por campo (`BAD_REQUEST`): `fieldErrors()` (`body.email` → `email`).
+- Nunca loguear tokens, nunca mandarlos en la URL, nunca guardar la contraseña.
+
 ## 6. Dirección visual (no negociable)
 
 **Editorial / cívica**, tipo medio de datos periodístico. **No debe parecer hecho por IA.**
@@ -108,7 +136,9 @@ La pieza visual más importante. Props principales:
 - ❌ Nada de gradientes violetas, glassmorphism, tarjetas iguales con emojis, sombras gigantes, bordes redondeados grandes, estética de template SaaS. No usar Inter.
 - ✅ Papel cálido (`--paper`) + tinta (`--ink`). Reglas horizontales (`border-top: 2px solid var(--rule-strong-color)`) para separar secciones, como en un diario.
 - ✅ Tipografía: **Newsreader** (titulares, números grandes, `--font-display`), **Public Sans** (cuerpo, `--font-body`), **IBM Plex Mono** (kickers, fechas, etiquetas de datos, `--font-mono`). Cifras con `className="num"` (tabular).
-- ✅ Color fuerte **solo para datos** (votos y bloques). La UI es monocroma con `--accent` (azul) para links y foco.
+- ✅ Color fuerte **solo para datos** (votos y bloques). La UI es monocroma con `--accent` (azul patrio) para links y foco.
+- ✅ **Identidad patria** (marca, nunca datos): `--celeste`, `--sol` (sol de mayo), `--noche` (azul noche) y `--franja` (celeste-blanco-celeste). Se usan en: la franja del encabezado y del pie, el pie noche, la portada, el panel de login/registro, el trazo celeste + sol arriba de cada `PageHeader` y el "IA" del wordmark. Sobre fondo noche, redefinir `--celeste-ink: var(--celeste)` y usar los botones `inverse` / `outlineInverse`.
+- ✅ Lo "tecnológico" se expresa con mono, retícula fina (líneas celeste al 7–10 %) y el cursor de la tarjeta de ejemplo: **sin** neón, glow ni gradientes violetas.
 - ✅ Todo color/espaciado sale de `styles/tokens.css`. **No hardcodear hex en componentes** (excepción: `palette.ts`).
 - ✅ Modo oscuro: tokens redefinidos en `tokens.css` (sistema o forzado con `data-theme`). Probá siempre los dos.
 - ✅ Movimiento sutil: `--dur-*` y `--ease-out`; respetan `prefers-reduced-motion`.
