@@ -20,6 +20,52 @@ export function SearchInput({
   );
 }
 
+/** Campo de texto con etiqueta, ayuda y error accesibles (aria-describedby). */
+export function TextField({
+  label,
+  error,
+  hint,
+  aside,
+  ...rest
+}: InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  error?: string | null;
+  hint?: ReactNode;
+  /** Algo a la derecha de la etiqueta (ej. "Mostrar"). */
+  aside?: ReactNode;
+}) {
+  const id = useId();
+  const describedBy = [error && `${id}-error`, hint && `${id}-hint`].filter(Boolean).join(' ');
+  return (
+    <div className={styles.textField}>
+      <div className={styles.textFieldHead}>
+        <label htmlFor={id} className={styles.textLabel}>
+          {label}
+        </label>
+        {aside}
+      </div>
+      <input
+        id={id}
+        className={styles.textInput}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy || undefined}
+        {...rest}
+      />
+      {error ? (
+        <span id={`${id}-error`} className={styles.textError}>
+          {error}
+        </span>
+      ) : (
+        hint && (
+          <span id={`${id}-hint`} className={styles.textHint}>
+            {hint}
+          </span>
+        )
+      )}
+    </div>
+  );
+}
+
 export function SelectField({
   label,
   children,

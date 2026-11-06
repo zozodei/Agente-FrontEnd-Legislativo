@@ -49,21 +49,38 @@ export function ErrorState({
   error,
   onRetry,
   titulo = 'Algo salió mal',
+  mensaje,
 }: {
   error: unknown;
   onRetry?: () => void;
   titulo?: string;
+  /** Reemplaza el mensaje automático (ej. "No existe o no tenés acceso"). */
+  mensaje?: string;
 }) {
   return (
     <div className={styles.error} role="alert">
       <span className={styles.kicker}>Error</span>
       <h3 className={styles.title}>{titulo}</h3>
-      <p className={styles.text}>{errorMessage(error)}</p>
+      <p className={styles.text}>{mensaje ?? errorMessage(error)}</p>
       {onRetry && (
         <div className={styles.action}>
           <Button onClick={onRetry}>Reintentar</Button>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Carga de pantalla completa (ej. verificando la sesión). */
+export function Spinner({ label = 'Cargando…' }: { label?: string }) {
+  return (
+    <div className={styles.spinnerWrap} role="status" aria-live="polite">
+      <span className={styles.spinner} aria-hidden>
+        {Array.from({ length: 5 }, (_, i) => (
+          <i key={i} style={{ animationDelay: `${i * 110}ms` }} />
+        ))}
+      </span>
+      <span className={styles.spinnerLabel}>{label}</span>
     </div>
   );
 }
