@@ -63,7 +63,9 @@ export function computeLayout(n: number, requestedRows = rowsFor(n)): HemicicloL
 
   const rowGap = rows === 1 ? 0.2 : (1 - INNER_RATIO) / (rows - 1);
   const outerArc = Math.PI / Math.max(1, perRow[rows - 1] - 1);
-  const seatRadius = Math.min(rowGap, outerArc) * 0.42;
+  // 0.47 del paso mínimo: bancas bien visibles dejando todavía un pequeño
+  // aire entre filas vecinas (el diámetro queda < rowGap, sin superponerse).
+  const seatRadius = Math.min(rowGap, outerArc) * 0.47;
 
   return { seats, seatRadius, rows };
 }

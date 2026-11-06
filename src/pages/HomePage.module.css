@@ -6,8 +6,9 @@
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: var(--space-7);
+  /* El hemiciclo necesita más lugar: 8/12 del ancho en vez de 7/12. */
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  gap: var(--space-6);
   align-items: center;
   padding-top: var(--space-7);
 }
@@ -57,7 +58,8 @@
 
 .hemiSkeleton {
   width: 100%;
-  aspect-ratio: 2 / 1.04;
+  /* Mismo aspecto que el SVG (208 / ~111) para no saltar al cargar. */
+  aspect-ratio: 208 / 111;
   height: auto !important;
   border-radius: 999px 999px 0 0 !important;
 }
@@ -66,20 +68,33 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .centroNum {
   font-family: var(--font-display);
   font-size: var(--text-4xl);
-  line-height: 1;
+  /* 9cqw = 9% del ancho del hemiciclo: "257" ocupa ~15cqw y entra en el
+     hueco interior (30%), a cualquier tamaño de pantalla. */
+  font-size: clamp(1.5rem, 9cqw, 6rem);
+  line-height: 0.95;
+  white-space: nowrap;
 }
 
 .centroLabel {
   margin-top: var(--space-1);
+  margin-top: 0.4cqw;
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
+  /* Escala con el hemiciclo: en escritorio ~12-18px, en móvil se achica
+     en vez de desbordar sobre las bancas. */
+  font-size: clamp(0.45rem, 1.55cqw, 1.125rem);
+  line-height: 1.3;
   letter-spacing: var(--tracking-kicker);
   text-transform: uppercase;
+  text-align: center;
+  text-wrap: balance;
   color: var(--ink-3);
 }
 

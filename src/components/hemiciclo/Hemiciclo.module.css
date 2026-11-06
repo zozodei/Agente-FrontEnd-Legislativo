@@ -1,8 +1,13 @@
 .wrap {
   position: relative;
   width: 100%;
-  max-width: 880px;
+  /* Sin tope chico: el hemiciclo usa todo el ancho que le da su contenedor
+     (página completa en Votación, columna en Poroteo/Home). 1240px = --page-max. */
+  max-width: 1240px;
   margin: 0 auto;
+  /* Las fuentes del centro se miden en cqw (1% del ancho de este contenedor),
+     así el texto interior escala con el gráfico y siempre entra. */
+  container-type: inline-size;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -50,9 +55,17 @@
 .centro {
   position: absolute;
   left: 50%;
-  bottom: 0;
+
+  bottom: 6%;
   transform: translateX(-50%);
-  width: 56%;
+
+  width: 30%;
+  max-width: 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: visible;
   text-align: center;
   pointer-events: none;
 }

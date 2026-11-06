@@ -14,7 +14,8 @@
 
 .hemiSkeleton {
   width: 100%;
-  aspect-ratio: 2 / 1.04;
+  /* Mismo aspecto que el SVG (208 / ~111) para no saltar al cargar. */
+  aspect-ratio: 208 / 111;
   height: auto !important;
   border-radius: 999px 999px 0 0 !important;
 }
@@ -102,13 +103,25 @@
 }
 
 .centro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.1em;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   font-family: var(--font-display);
-  font-size: var(--text-4xl);
-  line-height: 1;
+  font-size: clamp(2.25rem, 7vw, 6rem);
+  /* cqw (ancho del hemiciclo, no de la ventana): "257–257" mide ~23cqw y
+     entra en el hueco interior del 30% tanto en móvil como en escritorio.
+     Con vw, en pantallas angostas el número se comía las bancas. */
+  font-size: clamp(1.75rem, 6.8cqw, 6rem);
+  line-height: 0.85;
+  white-space: nowrap;
 }
 
 .centroSep {
-  margin: 0 0.15em;
+  margin: 0 0.08em;
   color: var(--ink-3);
 }
 
