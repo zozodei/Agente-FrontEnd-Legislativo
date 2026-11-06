@@ -334,13 +334,14 @@
 
 .escenarioConteo {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-2);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-1);
   margin: var(--space-3) 0 0;
 }
 
 .escenarioConteo dt {
   font-size: var(--text-2xs);
+  white-space: nowrap;
   color: var(--noche-ink-2);
 }
 
@@ -356,7 +357,7 @@
   display: inline-block;
   width: 7px;
   height: 7px;
-  margin-right: 5px;
+  margin-right: 4px;
   border-radius: 50%;
 }
 
@@ -592,14 +593,16 @@
 }
 
 .centroNum {
-  font-family: var(--font-display);
+  font-family: var(--font-redonda);
+  font-weight: 800;
   font-size: var(--text-4xl);
   line-height: 1;
 }
 
 .centroLabel {
   margin-top: var(--space-1);
-  font-family: var(--font-mono);
+  font-family: var(--font-redonda);
+  font-weight: 700;
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-kicker);
   text-transform: uppercase;

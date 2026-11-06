@@ -10,7 +10,13 @@ import { usePoroteos, useCrearPoroteo } from '@/features/poroteo/queries';
 import { AuthProvider } from './AuthProvider';
 import { useAuth } from './useAuth';
 
-const a: Usuario = { id: 'a', email: 'a@example.org', nombre: 'A', rol: 'usuario' };
+const a: Usuario = {
+  avatarUrl: null,
+  id: 'a',
+  email: 'a@example.org',
+  nombre: 'A',
+  rol: 'usuario',
+};
 const b: Usuario = { ...a, id: 'b', email: 'b@example.org', nombre: 'B' };
 const session = (id: string): Sesion => ({
   accessToken: id,

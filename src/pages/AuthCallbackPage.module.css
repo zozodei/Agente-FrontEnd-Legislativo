@@ -1,0 +1,27 @@
+.centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-height: 50vh;
+  padding: var(--space-7) var(--space-4);
+  text-align: center;
+}
+
+.alerta {
+  max-width: 52ch;
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+  font-size: var(--text-sm);
+  text-align: left;
+}
+
+.acciones {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+}

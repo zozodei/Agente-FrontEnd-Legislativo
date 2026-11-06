@@ -51,8 +51,9 @@ src/
                       Stat, PageHeader), VoteBar
   features/
     auth/                       AuthProvider + context + useAuth, RutaProtegida, validacion.ts
-                                (validaciones, mensajes de error, destinoSeguro), components/
-                                AuthShell, CuentaMenu (zona de sesión del encabezado)
+                                (validaciones, mensajes de error, destinoSeguro), google.ts
+                                (parseo del callback de Google), components/ AuthShell,
+                                CuentaMenu (zona de sesión del encabezado), GoogleButton
     dashboard/queries.ts        useResumen
     diputados/                  queries (useDiputados, useDiputado, useVotosDiputado, diputadoToBanca)
                                 components/ DiputadoCard, HistorialVotos, PerfilCharts
@@ -61,8 +62,8 @@ src/
                                 usePoroteoEditor.ts (estado local + deshacer), components/
                                 ResultadoPanel, BloqueAcciones, ListaVotos
   pages/              una por ruta: LandingPage, CamaraPage, DiputadosPage, DiputadoPage,
-                      VotacionesPage, VotacionPage, LoginPage, RegistroPage, PoroteosPage,
-                      NuevoPoroteoPage, PoroteoPage, NotFoundPage
+                      VotacionesPage, VotacionPage, LoginPage, RegistroPage, AuthCallbackPage,
+                      PoroteosPage, NuevoPoroteoPage, PoroteoPage, NotFoundPage
   hooks/              useTheme, useDebouncedValue, useDocumentTitle, useSearchParamState
   utils/              format.ts (números/fechas es-AR), text.ts (normalize, titleCase, nombreLegible)
 ```
@@ -71,19 +72,20 @@ src/
 
 ## 3. Rutas
 
-| Ruta                 | Página           | Datos                                                                                                             |
-| -------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `/`                  | LandingPage      | Portada a todo el ancho (`handle.bleed`). `useDiputados` + `useResumen`                                           |
-| `/camara`            | CamaraPage       | `useDiputados` (hemiciclo) + `useResumen`                                                                         |
-| `/login`             | LoginPage        | `useAuth().login`. Respeta `?redirect=` (solo rutas internas: `destinoSeguro`)                                    |
-| `/registro`          | RegistroPage     | `useAuth().registrar`. Si `requiereConfirmacion` → pantalla "revisá tu email"                                     |
-| `/diputados`         | DiputadosPage    | `useDiputados` (los 257, filtrado en memoria; filtros en la URL)                                                  |
-| `/diputados/:id`     | DiputadoPage     | `useDiputado` + `useVotosDiputado` (paginado en servidor)                                                         |
-| `/votaciones`        | VotacionesPage   | `useVotaciones` (paginado y filtrado en servidor; filtros en la URL)                                              |
-| `/votaciones/:id`    | VotacionPage     | `useVotacion`                                                                                                     |
-| `/poroteos` 🔒       | PoroteosPage     | `usePoroteos` ("Mis poroteos": cada usuario ve solo los suyos)                                                    |
-| `/poroteos/nuevo` 🔒 | NuevoPoroteoPage | `useCrearPoroteo` (JSON o multipart con PDF). Acepta `location.state.titulo` para precargar                       |
-| `/poroteos/:id` 🔒   | PoroteoPage      | `usePoroteo` + `useDiputados`; guarda con `useGuardarVotos` (modo `replace`). 404 = "No existe o no tenés acceso" |
+| Ruta                 | Página           | Datos                                                                                                              |
+| -------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `/`                  | LandingPage      | Portada a todo el ancho (`handle.bleed`). `useDiputados` + `useResumen`                                            |
+| `/camara`            | CamaraPage       | `useDiputados` (hemiciclo) + `useResumen`                                                                          |
+| `/login`             | LoginPage        | `useAuth().login` + botón de Google (`iniciarGoogle`). Respeta `?redirect=` (solo rutas internas: `destinoSeguro`) |
+| `/registro`          | RegistroPage     | `useAuth().registrar` + botón de Google. Si `requiereConfirmacion` → pantalla "revisá tu email"                    |
+| `/auth/callback`     | AuthCallbackPage | Vuelta de Google: parsea el hash, guarda la sesión, valida con `/auth/me` y redirige (pública, `bleed`)            |
+| `/diputados`         | DiputadosPage    | `useDiputados` (los 257, filtrado en memoria; filtros en la URL)                                                   |
+| `/diputados/:id`     | DiputadoPage     | `useDiputado` + `useVotosDiputado` (paginado en servidor)                                                          |
+| `/votaciones`        | VotacionesPage   | `useVotaciones` (paginado y filtrado en servidor; filtros en la URL)                                               |
+| `/votaciones/:id`    | VotacionPage     | `useVotacion`                                                                                                      |
+| `/poroteos` 🔒       | PoroteosPage     | `usePoroteos` ("Mis poroteos": cada usuario ve solo los suyos)                                                     |
+| `/poroteos/nuevo` 🔒 | NuevoPoroteoPage | `useCrearPoroteo` (JSON o multipart con PDF). Acepta `location.state.titulo` para precargar                        |
+| `/poroteos/:id` 🔒   | PoroteoPage      | `usePoroteo` + `useDiputados`; guarda con `useGuardarVotos` (modo `replace`). 404 = "No existe o no tenés acceso"  |
 
 🔒 = dentro de `<RutaProtegida/>`: sin sesión → `/login?redirect=<ruta>` (reenvía `location.state` como `state.desde`).
 
@@ -118,7 +120,8 @@ La pieza visual más importante. Props principales:
 
 ## 5 bis. Autenticación
 
-- Endpoints del backend: `POST /auth/registro`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`. **Todo `/poroteos` exige token**; diputados, votaciones, bloques, distritos y stats son públicos. En poroteos, `404` también significa "es de otra persona".
+- Endpoints del backend: `POST /auth/registro`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`, `GET /auth/google`, `POST /auth/google/id-token`. **Todo `/poroteos` exige token**; diputados, votaciones, bloques, distritos y stats son públicos. En poroteos, `404` también significa "es de otra persona".
+- **Google (redirect):** `GoogleButton` (Login/Registro) → `useAuth().iniciarGoogle(destino)` pide `GET /auth/google?redirectTo=<origen>/auth/callback` y devuelve la URL; el botón navega con `window.location.href`. El destino post-login viaja en `sessionStorage` (`auth.google.redirect`), no en la URL. `/auth/callback` (pública) parsea el hash con `parseCallbackGoogle()` (`features/auth/google.ts`), limpia el hash de la URL con `history.replaceState`, guarda la sesión con `entrarConTokens()` (valida con `/auth/me`) y redirige al destino o a `/`. Errores de Google (`error`/`error_description`, en hash o query) se muestran con `mensajeErrorGoogle()`. `loginGoogleConIdToken()` queda listo para One Tap. Sin Supabase en el front, nunca.
 - Sesión en `localStorage` (`poroteo.sesion`) + copia del usuario (`poroteo.usuario`, solo presentación; nunca habilita rutas ni roles). `expiresAt` viene en **segundos**.
 - `request()` en `api/client.ts`:
   - agrega `Authorization: Bearer` si hay sesión (opción `anonimo: true` para login/registro: ni token ni refresh, ahí un 401 es "credenciales incorrectas");

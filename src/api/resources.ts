@@ -37,6 +37,16 @@ export const authApi = {
     request<{ data: AuthResponse }>('/auth/login', { method: 'POST', body: input, anonimo: true }),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
   me: (signal?: AbortSignal) => request<{ data: Usuario }>('/auth/me', { signal }),
+  /** URL de Google para el redirect (`window.location.href = url`). */
+  googleUrl: (redirectTo: string) =>
+    request<{ data: { url: string } }>('/auth/google', { query: { redirectTo }, anonimo: true }),
+  /** One Tap (opcional): canjea el idToken de Google por la sesión del backend. */
+  googleIdToken: (idToken: string, nonce?: string) =>
+    request<{ data: AuthResponse }>('/auth/google/id-token', {
+      method: 'POST',
+      body: { idToken, nonce },
+      anonimo: true,
+    }),
 };
 
 /* ── Diputados ─────────────────────────────────────────────────────────── */

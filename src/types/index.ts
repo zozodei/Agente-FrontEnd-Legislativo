@@ -270,6 +270,8 @@ export interface Usuario {
   id: string; // uuid
   email: string;
   nombre: string | null;
+  /** Foto de Google; null en cuentas con email/password. */
+  avatarUrl: string | null;
   createdAt?: string; // ISO; no viene en /auth/me
 }
 

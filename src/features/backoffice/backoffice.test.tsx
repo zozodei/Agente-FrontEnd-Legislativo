@@ -26,6 +26,7 @@ const sesion: Sesion = {
 };
 const admin: Usuario = {
   id: 'admin-id',
+  avatarUrl: null,
   email: 'zoe@acquistapace.com.ar',
   nombre: 'Zoe',
   rol: 'superadmin',

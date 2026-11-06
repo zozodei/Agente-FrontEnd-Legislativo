@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Avatar } from '@/components/ui/Avatar';
 import { useAuth } from '../useAuth';
 import styles from './CuentaMenu.module.css';
 
@@ -48,9 +49,13 @@ export function CuentaMenu({ onNavigate }: { onNavigate?: () => void }) {
         </Link>
       )}
       <span className={styles.usuario} title={usuario?.email}>
-        <span className={styles.inicial} aria-hidden>
-          {nombre.charAt(0).toUpperCase()}
-        </span>
+        {usuario?.avatarUrl ? (
+          <Avatar src={usuario.avatarUrl} nombre={nombre} size={28} />
+        ) : (
+          <span className={styles.inicial} aria-hidden>
+            {nombre.charAt(0).toUpperCase()}
+          </span>
+        )}
         <span className={styles.nombre}>{nombre}</span>
       </span>
       <button type="button" className={styles.salir} onClick={onSalir} disabled={saliendo}>
