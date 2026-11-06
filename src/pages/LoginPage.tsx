@@ -6,6 +6,7 @@ import { TextField } from '@/components/ui/Fields';
 import { Spinner } from '@/components/ui/States';
 import { AuthShell } from '@/features/auth/components/AuthShell';
 import formStyles from '@/features/auth/components/AuthForm.module.css';
+import { GoogleButton, SeparadorO } from '@/features/auth/components/GoogleButton';
 import { useAuth } from '@/features/auth/useAuth';
 import { authErrorMessage, destinoSeguro, validarEmail } from '@/features/auth/validacion';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -71,6 +72,8 @@ export default function LoginPage() {
         </>
       }
     >
+      <GoogleButton destino={destino} texto="Continuar con Google" />
+      <SeparadorO />
       <form className={formStyles.form} onSubmit={onSubmit} noValidate>
         {error !== null && Object.keys(servidor).length === 0 ? (
           <p className={formStyles.alerta} role="alert">

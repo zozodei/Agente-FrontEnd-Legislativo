@@ -36,6 +36,19 @@ export const authApi = {
   login: (input: { email: string; password: string }) =>
     request<{ data: AuthResponse }>('/auth/login', { method: 'POST', body: input, anonimo: true }),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
+  /** Login con Google, paso 1: URL de autorización + verifier PKCE (guardarlo hasta volver). */
+  googleInicio: () =>
+    request<{ data: { url: string; codeVerifier: string } }>('/auth/google', {
+      method: 'POST',
+      anonimo: true,
+    }),
+  /** Paso 2: el código que trajo Google + el verifier → sesión. */
+  googleCallback: (input: { code: string; codeVerifier: string }) =>
+    request<{ data: AuthResponse }>('/auth/google/callback', {
+      method: 'POST',
+      body: input,
+      anonimo: true,
+    }),
   me: (signal?: AbortSignal) => request<{ data: Usuario }>('/auth/me', { signal }),
 };
 

@@ -77,6 +77,7 @@ src/
 | `/camara`            | CamaraPage       | `useDiputados` (hemiciclo) + `useResumen`                                                                         |
 | `/login`             | LoginPage        | `useAuth().login`. Respeta `?redirect=` (solo rutas internas: `destinoSeguro`)                                    |
 | `/registro`          | RegistroPage     | `useAuth().registrar`. Si `requiereConfirmacion` → pantalla "revisá tu email"                                     |
+| `/auth/callback`     | AuthCallbackPage | Vuelta del login con Google: canjea `?code` por la sesión y redirige al destino guardado                          |
 | `/diputados`         | DiputadosPage    | `useDiputados` (los 257, filtrado en memoria; filtros en la URL)                                                  |
 | `/diputados/:id`     | DiputadoPage     | `useDiputado` + `useVotosDiputado` (paginado en servidor)                                                         |
 | `/votaciones`        | VotacionesPage   | `useVotaciones` (paginado y filtrado en servidor; filtros en la URL)                                              |
@@ -127,6 +128,8 @@ La pieza visual más importante. Props principales:
   - refresh rechazado → `limpiarSesion()` + evento `auth:logout` en `window`. Sin red → no cierra la sesión.
 - `AuthProvider` (en `App.tsx`, dentro del QueryClientProvider): estado `'cargando' | 'autenticado' | 'anonimo'`; verifica con `/auth/me` al arrancar; escucha `auth:logout` y `storage` (otras pestañas). Al entrar/salir borra de la caché las queries de `poroteos` (son privadas).
 - Mensajes de error de cuenta: `authErrorMessage()`; errores por campo (`BAD_REQUEST`): `fieldErrors()` (`body.email` → `email`).
+- **Login con Google** (`features/auth/google.ts`, `components/GoogleButton`, `pages/AuthCallbackPage`): `POST /auth/google` → se guarda `{ codeVerifier, destino }` en **sessionStorage** (`poroteo.oauth`, vence a los 15 min y se lee una sola vez) → `window.location.assign(url)`. Supabase vuelve a `/auth/callback?code=…` (o `?error=…`); la página canjea con `useAuth().loginConGoogle(code, codeVerifier)` y navega al destino. El canje se memoiza por código (StrictMode monta el efecto dos veces y el código sirve una sola vez). Errores manejados: `GOOGLE_DISABLED`, `OAUTH_FAILED`, cancelación (`access_denied`) y verifier ausente. La configuración de Google Cloud y Supabase está en el README del backend.
+- El logo "G" usa los colores oficiales `GOOGLE_G` de `palette.ts` (guía de marca de Google: no se alteran).
 - Nunca loguear tokens, nunca mandarlos en la URL, nunca guardar la contraseña.
 
 ## 6. Dirección visual (no negociable)

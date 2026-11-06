@@ -72,6 +72,7 @@ Todo lo que empieza con `VITE_` queda visible en el navegador: **nunca** poner c
 - El backend expone `/api/auth/{registro,login,refresh,logout,me}`; el front nunca habla con Supabase.
 - La sesión (`accessToken`, `refreshToken`, `expiresAt`) se guarda en `localStorage` (`poroteo.sesion`).
 - `src/api/client.ts` agrega `Authorization: Bearer …` a cada request, renueva el token antes de que venza y, ante un `401`, hace **un solo** refresh compartido por todas las requests que fallaron juntas. Si el refresh falla, limpia la sesión y emite `auth:logout`.
+- **Google:** botón "Continuar con Google" en `/login` y `/registro` (flujo PKCE a través del backend; vuelve a `/auth/callback`). La configuración de Google Cloud y Supabase está en el README del backend.
 - `AuthProvider` / `useAuth()` (`src/features/auth`) exponen `{ usuario, estado, login, registrar, logout }` y sincronizan la sesión entre pestañas.
 
 ## Estructura

@@ -113,3 +113,11 @@ export const COALICION_LABEL: Record<string, string> = {
   lla: 'La Libertad Avanza',
   ucr: 'UCR',
 };
+
+/** Colores oficiales del logo "G" de Google (guía de marca: no se alteran). */
+export const GOOGLE_G = {
+  azul: '#4285F4',
+  verde: '#34A853',
+  amarillo: '#FBBC05',
+  rojo: '#EA4335',
+} as const;

@@ -8,6 +8,8 @@ export interface AuthValue {
   usuario: Usuario | null;
   estado: EstadoAuth;
   login: (email: string, password: string) => Promise<Usuario>;
+  /** Termina el login con Google (código de /auth/callback + verifier guardado). */
+  loginConGoogle: (code: string, codeVerifier: string) => Promise<Usuario>;
   /** Si el backend pide confirmar el email, no inicia sesión: la respuesta lo indica. */
   registrar: (input: RegistroInput) => Promise<RegistroResponse>;
   logout: () => Promise<void>;

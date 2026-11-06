@@ -41,6 +41,10 @@ export function authErrorMessage(error: unknown): string {
         return 'Demasiados intentos. Esperá unos minutos y probá de nuevo.';
       case 'FORBIDDEN':
         return error.message || 'Esta operación no está permitida.';
+      case 'GOOGLE_DISABLED':
+        return 'El inicio con Google todavía no está habilitado. Entrá con email y contraseña.';
+      case 'OAUTH_FAILED':
+        return 'No se pudo completar el inicio con Google. Probá de nuevo.';
       case 'BAD_REQUEST':
         return 'Revisá los datos marcados.';
     }

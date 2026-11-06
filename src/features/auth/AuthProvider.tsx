@@ -102,6 +102,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [entrar, olvidarDatosPrivados],
   );
 
+  const loginConGoogle = useCallback<AuthValue['loginConGoogle']>(
+    async (code, codeVerifier) => {
+      const { data } = await authApi.googleCallback({ code, codeVerifier });
+      olvidarDatosPrivados();
+      setSesion(data.sesion);
+      entrar(data.usuario);
+      return data.usuario;
+    },
+    [entrar, olvidarDatosPrivados],
+  );
+
   const registrar = useCallback<AuthValue['registrar']>(
     async (input: RegistroInput) => {
       const { data } = await authApi.registrar(input);
@@ -125,8 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [quedarAnonimo]);
 
   const value = useMemo<AuthValue>(
-    () => ({ usuario, estado, login, registrar, logout }),
-    [usuario, estado, login, registrar, logout],
+    () => ({ usuario, estado, login, loginConGoogle, registrar, logout }),
+    [usuario, estado, login, loginConGoogle, registrar, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
