@@ -15,6 +15,7 @@ const VotacionesPage = lazy(() => import('@/pages/VotacionesPage'));
 const VotacionPage = lazy(() => import('@/pages/VotacionPage'));
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegistroPage = lazy(() => import('@/pages/RegistroPage'));
+const AuthCallbackPage = lazy(() => import('@/pages/AuthCallbackPage'));
 const PoroteosPage = lazy(() => import('@/pages/PoroteosPage'));
 const NuevoPoroteoPage = lazy(() => import('@/pages/NuevoPoroteoPage'));
 const PoroteoPage = lazy(() => import('@/pages/PoroteoPage'));
@@ -38,6 +39,11 @@ export const router = createBrowserRouter([
       { path: 'votaciones', element: <VotacionesPage /> },
       { path: 'votaciones/:id', element: <VotacionPage /> },
       { path: 'login', element: <LoginPage />, handle: { bleed: true } satisfies RouteHandle },
+      {
+        path: 'auth/callback',
+        element: <AuthCallbackPage />,
+        handle: { bleed: true } satisfies RouteHandle,
+      },
       {
         path: 'registro',
         element: <RegistroPage />,

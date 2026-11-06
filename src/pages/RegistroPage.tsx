@@ -5,6 +5,7 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/Fields';
 import { Spinner } from '@/components/ui/States';
 import { AuthShell } from '@/features/auth/components/AuthShell';
+import { GoogleButton } from '@/features/auth/components/GoogleButton';
 import formStyles from '@/features/auth/components/AuthForm.module.css';
 import { useAuth } from '@/features/auth/useAuth';
 import {
@@ -111,6 +112,10 @@ export default function RegistroPage() {
         </>
       }
     >
+      <GoogleButton destino={destino} />
+      <div className={formStyles.divisor} aria-hidden>
+        o con email
+      </div>
       <form className={formStyles.form} onSubmit={onSubmit} noValidate>
         {error !== null && Object.keys(servidor).length === 0 ? (
           <p className={formStyles.alerta} role="alert">

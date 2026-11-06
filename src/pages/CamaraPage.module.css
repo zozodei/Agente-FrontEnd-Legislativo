@@ -73,11 +73,12 @@
 }
 
 .centroNum {
-  font-family: var(--font-display);
+  font-family: var(--font-redonda);
+  font-weight: 800;
   font-size: var(--text-4xl);
-  /* 9cqw = 9% del ancho del hemiciclo: "257" ocupa ~15cqw y entra en el
-     hueco interior (30%), a cualquier tamaño de pantalla. */
-  font-size: clamp(1.5rem, 9cqw, 6rem);
+  /* 8.5cqw = 8.5% del ancho del hemiciclo: "257" en Nunito (dígitos más
+     anchos que la serif) ocupa ~15cqw y entra en el hueco interior (30%). */
+  font-size: clamp(1.5rem, 8.5cqw, 6rem);
   line-height: 0.95;
   white-space: nowrap;
 }
@@ -85,7 +86,8 @@
 .centroLabel {
   margin-top: var(--space-1);
   margin-top: 0.4cqw;
-  font-family: var(--font-mono);
+  font-family: var(--font-redonda);
+  font-weight: 700;
   font-size: var(--text-2xs);
   /* Escala con el hemiciclo: en escritorio ~12-18px, en móvil se achica
      en vez de desbordar sobre las bancas. */

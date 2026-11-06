@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ApiError } from '@/api/client';
+import { ApiError, refrescarSesion } from '@/api/client';
 import { queryKeys } from '@/api/queryKeys';
 import { authApi, type RegistroInput } from '@/api/resources';
 import {
@@ -14,6 +14,7 @@ import {
 } from '@/api/session';
 import type { Usuario } from '@/types';
 import { AuthContext, type AuthValue, type EstadoAuth } from './context';
+import { guardarDestinoGoogle, urlCallbackGoogle } from './google';
 
 /**
  * Estado de la sesión para toda la app.
@@ -124,9 +125,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     quedarAnonimo();
   }, [quedarAnonimo]);
 
+  /* ── Google ──────────────────────────────────────────────────────────── */
+
+  const iniciarGoogle = useCallback(async (destino?: string) => {
+    if (destino) guardarDestinoGoogle(destino);
+    const { data } = await authApi.googleUrl(urlCallbackGoogle());
+    if (!data.url) {
+      throw new ApiError(502, 'BAD_GATEWAY', 'El servidor no devolvió la URL de Google.');
+    }
+    return data.url;
+  }, []);
+
+  const loginGoogleConIdToken = useCallback<AuthValue['loginGoogleConIdToken']>(
+    async (idToken, nonce) => {
+      const { data } = await authApi.googleIdToken(idToken, nonce);
+      olvidarDatosPrivados();
+      setSesion(data.sesion);
+      entrar(data.usuario);
+      return data.usuario;
+    },
+    [entrar, olvidarDatosPrivados],
+  );
+
+  const entrarConTokens = useCallback<AuthValue['entrarConTokens']>(
+    async (sesion) => {
+      olvidarDatosPrivados();
+      setSesion(sesion);
+      try {
+        const { data } = await authApi.me();
+        entrar(data);
+        return data;
+      } catch (err) {
+        // La sesión no valida (token revocado o backend caído con 401): no queda nada guardado.
+        limpiarSesion();
+        setUsuario(null);
+        setEstado('anonimo');
+        throw err;
+      }
+    },
+    [entrar, olvidarDatosPrivados],
+  );
+
+  const refrescar = useCallback(async () => {
+    try {
+      return (await refrescarSesion()) !== null;
+    } catch {
+      // Sin red: la sesión guardada sigue valiendo hasta que el cliente la renueve.
+      return getSesion() !== null;
+    }
+  }, []);
+
   const value = useMemo<AuthValue>(
-    () => ({ usuario, estado, login, registrar, logout }),
-    [usuario, estado, login, registrar, logout],
+    () => ({
+      usuario,
+      estado,
+      login,
+      registrar,
+      logout,
+      cerrarSesion: logout,
+      iniciarGoogle,
+      loginGoogleConIdToken,
+      entrarConTokens,
+      refrescar,
+    }),
+    [
+      usuario,
+      estado,
+      login,
+      registrar,
+      logout,
+      iniciarGoogle,
+      loginGoogleConIdToken,
+      entrarConTokens,
+      refrescar,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

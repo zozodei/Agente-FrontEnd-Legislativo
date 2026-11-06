@@ -110,12 +110,13 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-redonda);
+  font-weight: 800;
   font-size: clamp(2.25rem, 7vw, 6rem);
-  /* cqw (ancho del hemiciclo, no de la ventana): "257–257" mide ~23cqw y
-     entra en el hueco interior del 30% tanto en móvil como en escritorio.
-     Con vw, en pantallas angostas el número se comía las bancas. */
-  font-size: clamp(1.75rem, 6.8cqw, 6rem);
+  /* cqw (ancho del hemiciclo, no de la ventana): "257–257" en Nunito
+     (dígitos más anchos que la serif) mide ~25cqw y entra en el hueco
+     interior del 30% tanto en móvil como en escritorio. */
+  font-size: clamp(1.75rem, 6.2cqw, 6rem);
   line-height: 0.85;
   white-space: nowrap;
 }

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getSesion, SESION_KEY, setSesion } from '@/api/session';
+import AuthCallbackPage from '@/pages/AuthCallbackPage';
 import type { Sesion } from '@/types';
 import { AuthProvider } from './AuthProvider';
 import { RutaProtegida } from './RutaProtegida';
@@ -72,6 +73,43 @@ describe('useAuth', () => {
     expect(localStorage.getItem(SESION_KEY)).toBeNull();
   });
 
+  it('iniciarGoogle pide la URL al backend y la devuelve (sin navegar)', async () => {
+    fetchMock.mockResolvedValue(json(200, { data: { url: 'https://accounts.google.com/x' } }));
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    const url = await act(() => result.current.iniciarGoogle('/poroteos/nuevo'));
+    expect(url).toBe('https://accounts.google.com/x');
+    const [llamadaUrl, llamadaInit] = fetchMock.mock.calls[0];
+    expect(llamadaUrl).toMatch(/\/api\/auth\/google\?redirectTo=/);
+    expect(sessionStorage.getItem('auth.google.redirect')).toBe('/poroteos/nuevo');
+    // Google es anónimo: sin Bearer aunque haya sesión guardada.
+    expect(new Headers(llamadaInit?.headers).get('Authorization')).toBeNull();
+  });
+
+  it('entrarConTokens guarda la sesión y valida con /auth/me', async () => {
+    fetchMock.mockResolvedValue(json(200, { data: usuario }));
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(() => result.current.entrarConTokens(sesion));
+    expect(result.current.estado).toBe('autenticado');
+    expect(getSesion()?.accessToken).toBe('access-1');
+    expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/auth\/me$/);
+  });
+
+  it('entrarConTokens con /me 401 no deja sesión guardada', async () => {
+    fetchMock.mockResolvedValue(json(401, { error: { code: 'SESSION_EXPIRED', message: 'x' } }));
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    let error: unknown = null;
+    await act(async () => {
+      try {
+        await result.current.entrarConTokens(sesion);
+      } catch (err) {
+        error = err;
+      }
+    });
+    expect(error).toBeInstanceOf(Error);
+    expect(localStorage.getItem(SESION_KEY)).toBeNull();
+    expect(result.current.estado).toBe('anonimo');
+  });
+
   it('logout limpia el storage aunque el backend falle', async () => {
     setSesion(sesion);
     fetchMock.mockImplementation(async (url: string) =>
@@ -105,6 +143,52 @@ describe('RutaProtegida', () => {
     expect(await screen.findByText('login')).toBeInTheDocument();
     expect(screen.queryByText('privado')).not.toBeInTheDocument();
     expect(screen.getByTestId('redirect')).toHaveTextContent('/poroteos?q=ley');
+  });
+});
+
+describe('AuthCallbackPage', () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  function renderCallback(entrada: string) {
+    return render(
+      <MemoryRouter initialEntries={[entrada]}>
+        <Routes>
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/" element={<p>inicio</p>} />
+        </Routes>
+      </MemoryRouter>,
+      { wrapper },
+    );
+  }
+
+  it('con tokens en el hash valida con /me y redirige a /', async () => {
+    // Response fresca por llamada (como un fetch real): jsdom dispara el evento
+    // `storage` en la misma pestaña y el provider verifica la sesión nueva.
+    fetchMock.mockImplementation(async () => json(200, { data: usuario }));
+    renderCallback('/auth/callback#access_token=tok-a&refresh_token=tok-r&expires_in=3600');
+    expect(await screen.findByText('inicio')).toBeInTheDocument();
+    expect(getSesion()?.accessToken).toBe('tok-a');
+    expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/auth\/me$/);
+  });
+
+  it('con error=access_denied muestra el error visible y no llama a /me', async () => {
+    renderCallback('/auth/callback#error=access_denied');
+    expect(
+      await screen.findByText('Cancelaste el inicio de sesión con Google.'),
+    ).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('sin tokens muestra error visible', async () => {
+    renderCallback('/auth/callback');
+    expect(await screen.findByText(/No se recibieron los datos/)).toBeInTheDocument();
   });
 });
 
