@@ -1,0 +1,45 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.alerta {
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+  font-size: var(--text-sm);
+}
+
+.submit {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.ok {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-top: 3px solid var(--celeste);
+  background: var(--surface);
+}
+
+.okTitulo {
+  font-size: var(--text-2xl);
+}
+
+.ok p {
+  color: var(--ink-2);
+}

@@ -39,6 +39,12 @@
   font-size: var(--text-xs);
 }
 
+.lg {
+  min-height: 50px;
+  padding: 0 var(--space-5);
+  font-size: var(--text-md);
+}
+
 .primary {
   background: var(--ink);
   color: var(--paper);
@@ -70,6 +76,28 @@
 .danger:hover:not(:disabled) {
   background: var(--danger);
   color: var(--paper);
+}
+
+.inverse {
+  border-color: var(--noche-ink);
+  background: var(--noche-ink);
+  color: var(--noche);
+}
+
+.inverse:hover:not(:disabled) {
+  border-color: var(--sol);
+  background: var(--sol);
+  color: var(--noche);
+}
+
+.outlineInverse {
+  border-color: color-mix(in srgb, var(--noche-ink) 55%, transparent);
+  color: var(--noche-ink);
+}
+
+.outlineInverse:hover:not(:disabled) {
+  border-color: var(--noche-ink);
+  background: color-mix(in srgb, var(--noche-ink) 10%, transparent);
 }
 
 .spinner {

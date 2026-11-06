@@ -1,12 +1,15 @@
 /*
  * ─────────────────────────────────────────────────────────────────────────
- *  Tokens de diseño · Poroteo Legislativo
+ *  Tokens de diseño · demoIA (Poroteo Legislativo)
  *  Única fuente de verdad de colores, tipografía, espaciado y movimiento.
- *  Dirección: editorial / cívica, tipo medio de datos periodístico.
+ *  Dirección: editorial / cívica, tipo medio de datos periodístico,
+ *  con identidad patria: celeste, blanco, sol de mayo y azul noche.
  *  - Papel cálido + tinta casi negra. Color fuerte SOLO para datos.
  *  - Serif con carácter (Newsreader) para titulares y cifras grandes.
  *  - Sans neutra y legible (Public Sans) para el cuerpo.
  *  - Mono (IBM Plex Mono) para etiquetas de datos, fechas y "kickers".
+ *  - Identidad (celeste / sol / noche): SOLO marca y superficies institucionales
+ *    (franja del encabezado, portada, pie, login). Nunca para codificar datos.
  *  Los colores de bloques/votos para JS están en src/styles/palette.ts.
  * ─────────────────────────────────────────────────────────────────────────
  */
@@ -73,9 +76,25 @@
   --ink-3: #77736a;
   --rule: #d8d2c3;
   --rule-strong-color: #16150f;
-  --accent: #1f4b7a; /* links, foco, UI interactiva */
+  --accent: #1a5490; /* azul patrio: links, foco, UI interactiva */
   --accent-ink: #f4f1ea;
   --highlight: #f3d65a; /* marcador amarillo para destacar */
+
+  /* Identidad patria (marca, no datos) */
+  --celeste: #6cace4;
+  --celeste-ink: #2f6fa8; /* celeste legible como texto sobre papel */
+  --sol: #e0a21b;
+  --noche: #0c1a2c; /* superficies institucionales oscuras (portada, pie) */
+  --noche-2: #142a44;
+  --noche-ink: #eef2f6;
+  --noche-ink-2: #a9b9cb;
+  --noche-rule: #2a3f5a;
+  --franja: linear-gradient(
+    90deg,
+    var(--celeste) 0 33.33%,
+    #f7f7f2 33.33% 66.66%,
+    var(--celeste) 66.66% 100%
+  );
   --focus-ring: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent);
   --shadow-pop: 0 1px 0 rgba(22, 21, 15, 0.04), 0 8px 24px -8px rgba(22, 21, 15, 0.22);
 
@@ -111,8 +130,11 @@
     --ink-3: #8b867a;
     --rule: #34332d;
     --rule-strong-color: #ece8dd;
-    --accent: #8fb6e3;
+    --accent: #8fc1ec;
     --accent-ink: #121210;
+    --celeste-ink: #8fc1ec;
+    --noche: #0a1524;
+    --noche-2: #10223a;
     --highlight: #8a7420;
     --shadow-pop: 0 8px 28px -8px rgba(0, 0, 0, 0.7);
     --voto-afirmativo: #2a9a80;
@@ -139,8 +161,11 @@
   --ink-3: #8b867a;
   --rule: #34332d;
   --rule-strong-color: #ece8dd;
-  --accent: #8fb6e3;
+  --accent: #8fc1ec;
   --accent-ink: #121210;
+  --celeste-ink: #8fc1ec;
+  --noche: #0a1524;
+  --noche-2: #10223a;
   --highlight: #8a7420;
   --shadow-pop: 0 8px 28px -8px rgba(0, 0, 0, 0.7);
   --voto-afirmativo: #2a9a80;

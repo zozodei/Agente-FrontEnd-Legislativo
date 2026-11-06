@@ -98,6 +98,14 @@
   padding: var(--space-7) 0 var(--space-6);
 }
 
+/* Marca de sección: un trazo celeste con el punto del sol, como en la portada. */
+.page::before {
+  content: '';
+  width: 56px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--celeste) 0 70%, transparent 70% 80%, var(--sol) 80%);
+}
+
 .pageTitle {
   font-size: var(--text-4xl);
   font-weight: 400;

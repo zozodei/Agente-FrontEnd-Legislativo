@@ -7,6 +7,7 @@ import { Pagination } from '@/components/ui/Pagination';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/States';
 import { PageHeader } from '@/components/ui/Typography';
 import { VoteBar } from '@/components/ui/VoteBar';
+import { useAuth } from '@/features/auth/useAuth';
 import { usePoroteos } from '@/features/poroteo/queries';
 import { TIPO_MAYORIA_LABEL } from '@/features/poroteo/resultado';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -15,7 +16,9 @@ import { formatRelative } from '@/utils/format';
 import styles from './PoroteosPage.module.css';
 
 export default function PoroteosPage() {
-  useDocumentTitle('Poroteos');
+  useDocumentTitle('Mis poroteos');
+  const { usuario } = useAuth();
+  const primerNombre = usuario?.nombre?.trim().split(/\s+/)[0];
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
   const qd = useDebouncedValue(q, 300);
@@ -24,9 +27,9 @@ export default function PoroteosPage() {
   return (
     <>
       <PageHeader
-        kicker="Poroteo manual"
+        kicker={primerNombre ? `Mis poroteos · ${primerNombre}` : 'Mis poroteos'}
         titulo="¿Sale o no sale?"
-        bajada="Cargá un proyecto de ley y estimá, banca por banca, cómo votaría cada diputado. El contador te dice en vivo si hay quórum y si el proyecto se aprueba."
+        bajada="Cargá un proyecto de ley y estimá, banca por banca, cómo votaría cada diputado. El contador te dice en vivo si hay quórum y si el proyecto se aprueba. Tus poroteos son privados: solo los ves vos."
       >
         <div>
           <ButtonLink to="/poroteos/nuevo" variant="primary">
@@ -37,7 +40,7 @@ export default function PoroteosPage() {
 
       <div className={styles.toolbar}>
         <SearchInput
-          label="Buscar poroteo"
+          label="Buscar entre mis poroteos"
           placeholder="Buscar por título…"
           value={q}
           onChange={(e) => {
@@ -61,7 +64,7 @@ export default function PoroteosPage() {
         </div>
       ) : data.data.length === 0 ? (
         <EmptyState
-          titulo={qd ? 'Ningún poroteo coincide' : 'Todavía no hay poroteos'}
+          titulo={qd ? 'Ningún poroteo coincide' : 'Todavía no hiciste ningún poroteo'}
           accion={
             !qd && (
               <ButtonLink to="/poroteos/nuevo" variant="primary">
@@ -72,7 +75,7 @@ export default function PoroteosPage() {
         >
           {qd
             ? 'Probá con otro título.'
-            : 'Un poroteo es una estimación de cómo votaría la Cámara un proyecto de ley.'}
+            : 'Un poroteo es una estimación de cómo votaría la Cámara un proyecto de ley. Armá el primero en cinco minutos.'}
         </EmptyState>
       ) : (
         <>

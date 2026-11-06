@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useBlocker, useNavigate, useParams } from 'react-router-dom';
-import { errorMessage } from '@/api/client';
+import { ApiError, errorMessage } from '@/api/client';
 import { Hemiciclo, type Banca } from '@/components/hemiciclo';
 import { Button } from '@/components/ui/Button';
 import { Segmented, SelectField } from '@/components/ui/Fields';
@@ -40,8 +40,14 @@ export default function PoroteoPage() {
             diputados.refetch();
           }}
           titulo="No pudimos abrir el poroteo"
+          mensaje={
+            // En poroteos, 404 también significa "es de otra persona".
+            poroteo.error instanceof ApiError && poroteo.error.status === 404
+              ? 'No existe o no tenés acceso. Los poroteos son personales: solo los ve quien los creó.'
+              : undefined
+          }
         />
-        <Link to="/poroteos">← Volver a los poroteos</Link>
+        <Link to="/poroteos">← Volver a mis poroteos</Link>
       </div>
     );
   }
@@ -152,7 +158,7 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
   return (
     <div className={styles.page}>
       <nav className={styles.crumbs} aria-label="Ruta">
-        <Link to="/poroteos">Poroteos</Link> <span aria-hidden>/</span>{' '}
+        <Link to="/poroteos">Mis poroteos</Link> <span aria-hidden>/</span>{' '}
         {poroteo.estado === 'final' ? 'final' : 'borrador'}
       </nav>
 

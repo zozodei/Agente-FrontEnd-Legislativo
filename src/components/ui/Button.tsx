@@ -2,8 +2,9 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { Link, type LinkProps } from 'react-router-dom';
 import styles from './Button.module.css';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
-type Size = 'sm' | 'md';
+/** `inverse` y `outlineInverse`: para superficies oscuras (--noche). */
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'inverse' | 'outlineInverse';
+type Size = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
