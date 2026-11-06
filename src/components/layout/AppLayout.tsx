@@ -1,14 +1,15 @@
-import { Suspense, useState } from 'react';
-import { NavLink, Outlet, ScrollRestoration } from 'react-router-dom';
+import { Suspense, useState, type ReactNode } from 'react';
+import { Link, NavLink, Outlet, ScrollRestoration, useMatches } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
 import { Skeleton } from '@/components/ui/States';
+import { BrandMark, Wordmark } from './Brand';
 import styles from './AppLayout.module.css';
 
 const NAV = [
-  { to: '/', label: 'Inicio', end: true },
+  { to: '/camara', label: 'La Cámara' },
   { to: '/diputados', label: 'Diputados' },
   { to: '/votaciones', label: 'Votaciones' },
-  { to: '/poroteos', label: 'Poroteo' },
+  { to: '/poroteos', label: 'Mis poroteos' },
 ];
 
 const THEME_LABEL = {
@@ -17,9 +18,15 @@ const THEME_LABEL = {
   dark: 'Tema: oscuro',
 } as const;
 
-export function AppLayout() {
+/**
+ * `cuenta`: zona de sesión del encabezado. Se inyecta desde el router para que
+ * components/ no dependa de features/ (regla de dependencias).
+ */
+export function AppLayout({ cuenta }: { cuenta?: (cerrarMenu: () => void) => ReactNode }) {
   const { theme, cycle } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const matches = useMatches();
+  const bleed = matches.some((m) => (m.handle as { bleed?: boolean } | undefined)?.bleed);
 
   return (
     <div className={styles.shell}>
@@ -29,12 +36,13 @@ export function AppLayout() {
       </a>
 
       <header className={styles.masthead}>
+        <div className={styles.franja} aria-hidden />
         <div className={styles.mastheadInner}>
-          <NavLink to="/" className={styles.brand} aria-label="Poroteo Legislativo, inicio">
-            <BrandMark />
+          <NavLink to="/" className={styles.brand} aria-label="demoIA, inicio">
+            <BrandMark className={styles.brandMark} />
             <span className={styles.brandText}>
-              <span className={styles.brandName}>Poroteo</span>
-              <span className={styles.brandSub}>Cámara de Diputados</span>
+              <Wordmark className={styles.brandName} />
+              <span className={styles.brandSub}>Poroteo legislativo</span>
             </span>
           </NavLink>
 
@@ -58,7 +66,6 @@ export function AppLayout() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={item.end}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
                   [styles.navLink, isActive && styles.navActive].filter(Boolean).join(' ')
@@ -67,6 +74,8 @@ export function AppLayout() {
                 {item.label}
               </NavLink>
             ))}
+            <span className={styles.navSep} aria-hidden />
+            {cuenta?.(() => setMenuOpen(false))}
             <button
               type="button"
               className={styles.theme}
@@ -80,23 +89,33 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main id="contenido" className={styles.main}>
+      <main id="contenido" className={styles.main} data-bleed={bleed || undefined}>
         <Suspense fallback={<PageFallback />}>
           <Outlet />
         </Suspense>
       </main>
 
       <footer className={styles.footer}>
+        <div className={styles.franja} aria-hidden />
         <div className={styles.footerInner}>
-          <div>
-            <p className={styles.footerTitle}>Poroteo Legislativo</p>
+          <div className={styles.footerBrand}>
+            <Link to="/" className={styles.footerLogo} aria-label="demoIA, inicio">
+              <BrandMark className={styles.brandMark} />
+              <Wordmark className={styles.brandName} />
+            </Link>
             <p className={styles.footerText}>
-              Prototipo de{' '}
+              Una herramienta abierta para anticipar cómo vota el Congreso. Las estimaciones de un
+              poroteo son escenarios, no predicciones oficiales.
+            </p>
+          </div>
+          <div>
+            <p className={styles.footerTitle}>Quiénes</p>
+            <p className={styles.footerText}>
+              Un proyecto de{' '}
               <a href="https://democraciaenred.org" target="_blank" rel="noreferrer">
                 Democracia en Red
               </a>
-              , desarrollado en el programa Hola Mundo Profesional. Las estimaciones de un poroteo
-              son escenarios, no predicciones oficiales.
+              , desarrollado por estudiantes del programa Hola Mundo Profesional.
             </p>
           </div>
           <div>
@@ -126,19 +145,6 @@ function PageFallback() {
       <Skeleton width="70%" height={56} />
       <Skeleton width="50%" height={18} />
     </div>
-  );
-}
-
-function BrandMark() {
-  // Cinco porotos en arco: la idea de "contar" votos.
-  return (
-    <svg viewBox="0 0 40 24" className={styles.brandMark} aria-hidden>
-      <circle cx="5" cy="20" r="3.2" />
-      <circle cx="10" cy="9.5" r="3.2" />
-      <circle cx="20" cy="4.5" r="3.2" className={styles.brandAccent} />
-      <circle cx="30" cy="9.5" r="3.2" />
-      <circle cx="35" cy="20" r="3.2" />
-    </svg>
   );
 }
 

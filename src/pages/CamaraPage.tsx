@@ -11,10 +11,10 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { bloqueStyle } from '@/styles/palette';
 import { formatDate, formatNumber, formatPct } from '@/utils/format';
 import { normalize, titleCase } from '@/utils/text';
-import styles from './HomePage.module.css';
+import styles from './CamaraPage.module.css';
 
-export default function HomePage() {
-  useDocumentTitle(null);
+export default function CamaraPage() {
+  useDocumentTitle('La Cámara');
   const diputados = useDiputados();
   const resumen = useResumen();
   const [bloqueActivo, setBloqueActivo] = useState<string | null>(null);

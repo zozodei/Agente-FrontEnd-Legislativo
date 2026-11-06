@@ -1,0 +1,25 @@
+.mark {
+  fill: currentColor;
+}
+
+.sol {
+  fill: var(--sol);
+}
+
+.word {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+/* "IA" en mono, con un subrayado celeste: lo tecnológico dentro de lo institucional. */
+.ia {
+  margin-left: 0.04em;
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--celeste-ink);
+  box-shadow: inset 0 -0.14em 0 var(--celeste);
+}

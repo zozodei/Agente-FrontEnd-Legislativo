@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const BASE = 'Poroteo Legislativo';
+const BASE = 'demoIA · Poroteo legislativo';
 
 export function useDocumentTitle(title?: string | null) {
   useEffect(() => {
