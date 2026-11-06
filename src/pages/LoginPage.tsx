@@ -3,16 +3,21 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react
 import { fieldErrors } from '@/api/client';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/Fields';
-import { Spinner } from '@/components/ui/States';
+import { SesionPendiente } from '@/features/auth/SesionPendiente';
 import { AuthShell } from '@/features/auth/components/AuthShell';
 import formStyles from '@/features/auth/components/AuthForm.module.css';
 import { useAuth } from '@/features/auth/useAuth';
-import { authErrorMessage, destinoSeguro, validarEmail } from '@/features/auth/validacion';
+import {
+  destinoAlEntrar,
+  authErrorMessage,
+  destinoSeguro,
+  validarEmail,
+} from '@/features/auth/validacion';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export default function LoginPage() {
   useDocumentTitle('Iniciar sesión');
-  const { estado, login } = useAuth();
+  const { estado, usuario, login } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const destino = destinoSeguro(params.get('redirect'));
@@ -25,9 +30,9 @@ export default function LoginPage() {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
-  if (estado === 'cargando') return <Spinner label="Verificando tu sesión…" />;
+  if (estado === 'cargando' || estado === 'error') return <SesionPendiente />;
   if (estado === 'autenticado' && !enviando)
-    return <Navigate to={destino} replace state={estadoPrevio} />;
+    return <Navigate to={destinoAlEntrar(usuario, destino)} replace state={estadoPrevio} />;
 
   const servidor = fieldErrors(error);
   const errores = {
@@ -42,8 +47,8 @@ export default function LoginPage() {
     if (validarEmail(email) || !password) return;
     setEnviando(true);
     try {
-      await login(email, password);
-      navigate(destino, { replace: true, state: estadoPrevio });
+      const actual = await login(email, password);
+      navigate(destinoAlEntrar(actual, destino), { replace: true, state: estadoPrevio });
     } catch (err) {
       setError(err);
       setEnviando(false);

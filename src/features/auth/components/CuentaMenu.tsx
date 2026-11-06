@@ -9,7 +9,8 @@ export function CuentaMenu({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate();
   const [saliendo, setSaliendo] = useState(false);
 
-  if (estado === 'cargando') return <span className={styles.placeholder} aria-hidden />;
+  if (estado === 'cargando' || estado === 'error')
+    return <span className={styles.placeholder} aria-hidden />;
 
   if (estado === 'anonimo') {
     return (
@@ -41,6 +42,11 @@ export function CuentaMenu({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <span className={styles.cuenta}>
+      {usuario?.rol === 'superadmin' && (
+        <Link to="/backoffice" className={styles.link} onClick={onNavigate}>
+          Backoffice
+        </Link>
+      )}
       <span className={styles.usuario} title={usuario?.email}>
         <span className={styles.inicial} aria-hidden>
           {nombre.charAt(0).toUpperCase()}

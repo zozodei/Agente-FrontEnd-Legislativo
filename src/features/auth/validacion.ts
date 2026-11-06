@@ -54,3 +54,8 @@ export function destinoSeguro(redirect: string | null, fallback = '/poroteos'): 
   if (redirect.startsWith('/login') || redirect.startsWith('/registro')) return fallback;
   return redirect;
 }
+
+/** Solo destino inicial de login/registro; no restringe navegación habitual. */
+export function destinoAlEntrar(usuario: { rol: string } | null, destino: string): string {
+  return usuario?.rol === 'superadmin' ? '/backoffice' : destino;
+}

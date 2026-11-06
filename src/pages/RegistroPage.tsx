@@ -3,11 +3,12 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { fieldErrors } from '@/api/client';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/Fields';
-import { Spinner } from '@/components/ui/States';
+import { SesionPendiente } from '@/features/auth/SesionPendiente';
 import { AuthShell } from '@/features/auth/components/AuthShell';
 import formStyles from '@/features/auth/components/AuthForm.module.css';
 import { useAuth } from '@/features/auth/useAuth';
 import {
+  destinoAlEntrar,
   authErrorMessage,
   destinoSeguro,
   validarEmail,
@@ -18,7 +19,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export default function RegistroPage() {
   useDocumentTitle('Crear cuenta');
-  const { estado, registrar } = useAuth();
+  const { estado, usuario, registrar } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const destino = destinoSeguro(params.get('redirect'));
@@ -33,8 +34,9 @@ export default function RegistroPage() {
   const [error, setError] = useState<unknown>(null);
   const [confirmarEmail, setConfirmarEmail] = useState<string | null>(null);
 
-  if (estado === 'cargando') return <Spinner label="Verificando tu sesión…" />;
-  if (estado === 'autenticado' && !enviando) return <Navigate to={destino} replace />;
+  if (estado === 'cargando' || estado === 'error') return <SesionPendiente />;
+  if (estado === 'autenticado' && !enviando)
+    return <Navigate to={destinoAlEntrar(usuario, destino)} replace />;
 
   if (confirmarEmail) {
     return (
@@ -88,7 +90,7 @@ export default function RegistroPage() {
         setConfirmarEmail(res.usuario.email || email.trim());
         setEnviando(false);
       } else {
-        navigate(destino, { replace: true });
+        navigate(destinoAlEntrar(res.usuario, destino), { replace: true });
       }
     } catch (err) {
       setError(err);

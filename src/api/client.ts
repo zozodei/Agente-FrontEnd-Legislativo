@@ -11,7 +11,14 @@
  *  - Si el refresh es rechazado, se limpia la sesión y se avisa con LOGOUT_EVENT.
  */
 import type { Sesion } from '@/types';
-import { getSesion, limpiarSesion, LOGOUT_EVENT, porVencer, setSesion } from './session';
+import {
+  getSesion,
+  getUsuarioGuardado,
+  limpiarSesion,
+  LOGOUT_EVENT,
+  porVencer,
+  setSesion,
+} from './session';
 
 const BASE_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 
@@ -86,6 +93,9 @@ export function refrescarSesion(): Promise<Sesion | null> {
       return null;
     }
     const payload = (await res.json().catch(() => null)) as { data?: { sesion?: Sesion } } | null;
+    // Un refresh anterior no puede restaurar una sesión cerrada ni otra cuenta.
+    const vigente = getSesion();
+    if (!vigente || vigente.refreshToken !== actual.refreshToken) return vigente;
     const nueva = payload?.data?.sesion ?? null;
     setSesion(nueva);
     if (!nueva) window.dispatchEvent(new Event(LOGOUT_EVENT));
@@ -101,6 +111,12 @@ export function refrescarSesion(): Promise<Sesion | null> {
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', query, body, signal, anonimo = false } = options;
   const isForm = body instanceof FormData;
+  const identidadInicial = anonimo ? null : getUsuarioGuardado()?.id;
+  const comprobarIdentidad = () => {
+    if (identidadInicial && (!getSesion() || getUsuarioGuardado()?.id !== identidadInicial)) {
+      throw new ApiError(401, 'SESSION_EXPIRED', 'La sesión cambió. Volvé a abrir tus poroteos.');
+    }
+  };
 
   let sesion = anonimo ? null : getSesion();
   if (sesion && porVencer(sesion)) {
@@ -108,6 +124,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
 
   const enviar = (s: Sesion | null) => {
+    comprobarIdentidad();
     const headers = new Headers();
     // FormData: NO setear Content-Type, el navegador agrega el boundary.
     if (body !== undefined && !isForm) headers.set('Content-Type', 'application/json');
@@ -123,6 +140,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   let response: Response;
   try {
     response = await enviar(sesion);
+    comprobarIdentidad();
     if (response.status === 401 && sesion) {
       // Si otra request ya renovó el token, alcanza con reintentar con el nuevo.
       const actual = getSesion();
@@ -135,6 +153,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     throw new ApiError(0, 'NETWORK_ERROR', 'No se pudo conectar con el servidor.');
   }
 
+  comprobarIdentidad();
   if (response.status === 204) return undefined as T;
 
   const payload = await response.json().catch(() => null);

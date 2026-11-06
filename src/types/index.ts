@@ -263,7 +263,10 @@ export interface PoroteoDetalle extends Poroteo {
 
 /* ── Autenticación ─────────────────────────────────────────────────────── */
 
+export type RolAplicacion = 'usuario' | 'superadmin';
+
 export interface Usuario {
+  rol: RolAplicacion;
   id: string; // uuid
   email: string;
   nombre: string | null;
@@ -288,4 +291,19 @@ export interface RegistroResponse {
   /** null si el backend exige confirmar el email antes de entrar. */
   sesion: Sesion | null;
   requiereConfirmacion: boolean;
+}
+
+export interface CuentaAdmin {
+  id: string;
+  email: string | null;
+  createdAt: string | null;
+  lastSignInAt: string | null;
+  rol: RolAplicacion;
+}
+
+export interface ResumenAdmin {
+  poroteos: { total: number; borradores: number; finalizados: number };
+  diputados: number;
+  bloques: number;
+  votaciones: number;
 }

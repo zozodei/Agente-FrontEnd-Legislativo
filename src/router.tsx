@@ -4,6 +4,8 @@ import { createBrowserRouter } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { CuentaMenu } from '@/features/auth/components/CuentaMenu';
 import { RutaProtegida } from '@/features/auth/RutaProtegida';
+import { RutaSuperadmin } from '@/features/auth/RutaSuperadmin';
+import { BackofficeLayout } from '@/features/backoffice/BackofficeLayout';
 import { RouteError } from '@/pages/RouteError';
 
 // Cada página se carga bajo demanda (code splitting).
@@ -19,6 +21,10 @@ const PoroteosPage = lazy(() => import('@/pages/PoroteosPage'));
 const NuevoPoroteoPage = lazy(() => import('@/pages/NuevoPoroteoPage'));
 const PoroteoPage = lazy(() => import('@/pages/PoroteoPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const BackofficePage = lazy(() => import('@/pages/BackofficePage'));
+const BackofficeCuentasPage = lazy(() => import('@/pages/BackofficeCuentasPage'));
+const BackofficePoroteosPage = lazy(() => import('@/pages/BackofficePoroteosPage'));
+const BackofficePoroteoPage = lazy(() => import('@/pages/BackofficePoroteoPage'));
 
 /** `handle.bleed`: la página ocupa todo el ancho (sin el contenedor centrado del layout). */
 export interface RouteHandle {
@@ -50,6 +56,22 @@ export const router = createBrowserRouter([
           { path: 'poroteos', element: <PoroteosPage /> },
           { path: 'poroteos/nuevo', element: <NuevoPoroteoPage /> },
           { path: 'poroteos/:id', element: <PoroteoPage /> },
+          {
+            element: <RutaSuperadmin />,
+            children: [
+              {
+                path: 'backoffice',
+                element: <BackofficeLayout />,
+                children: [
+                  { index: true, element: <BackofficePage /> },
+                  { path: 'cuentas', element: <BackofficeCuentasPage /> },
+                  { path: 'poroteos', element: <BackofficePoroteosPage /> },
+                  { path: 'poroteos/:id', element: <BackofficePoroteoPage /> },
+                  { path: '*', element: <NotFoundPage /> },
+                ],
+              },
+            ],
+          },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/client';
 import { queryKeys } from '@/api/queryKeys';
 import { authApi, type RegistroInput } from '@/api/resources';
 import {
   getSesion,
-  getUsuarioGuardado,
   limpiarSesion,
   LOGOUT_EVENT,
   SESION_KEY,
@@ -23,46 +22,68 @@ import { AuthContext, type AuthValue, type EstadoAuth } from './context';
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
-  const [usuario, setUsuario] = useState<Usuario | null>(() =>
-    getSesion() ? getUsuarioGuardado() : null,
-  );
+  // El perfil guardado nunca autoriza navegación: primero consultar /auth/me.
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [estado, setEstado] = useState<EstadoAuth>(() => (getSesion() ? 'cargando' : 'anonimo'));
+  const [error, setError] = useState<unknown>(null);
+  const revision = useRef(0);
+  const identidad = useRef<string | null>(null);
 
   /** Borra los datos privados de la caché (los poroteos son de cada usuario). */
   const olvidarDatosPrivados = useCallback(() => {
+    void qc.cancelQueries({ queryKey: queryKeys.poroteosAll });
+    void qc.cancelQueries({ queryKey: queryKeys.adminAll });
+    qc.getMutationCache().clear();
     qc.removeQueries({ queryKey: queryKeys.poroteosAll });
+    qc.removeQueries({ queryKey: queryKeys.adminAll });
   }, [qc]);
 
   const quedarAnonimo = useCallback(() => {
+    revision.current += 1;
+    setError(null);
+    identidad.current = null;
     limpiarSesion();
     setUsuario(null);
     setEstado('anonimo');
     olvidarDatosPrivados();
   }, [olvidarDatosPrivados]);
 
-  const entrar = useCallback((u: Usuario) => {
-    setUsuarioGuardado(u);
-    setUsuario(u);
-    setEstado('autenticado');
-  }, []);
-
-  /** Resultado de GET /auth/me: el estado se actualiza solo desde estos callbacks. */
-  const alFallarMe = useCallback(
-    (err: unknown) => {
-      if ((err as Error).name === 'AbortError') return;
-      if (err instanceof ApiError && err.status === 401) return quedarAnonimo();
-      // Sin red o backend caído: no tiramos la sesión, seguimos con el usuario guardado.
-      const guardado = getUsuarioGuardado();
-      if (guardado && getSesion()) entrar(guardado);
-      else quedarAnonimo();
+  const entrar = useCallback(
+    (u: Usuario) => {
+      if (identidad.current !== u.id) olvidarDatosPrivados();
+      identidad.current = u.id;
+      setError(null);
+      setUsuarioGuardado(u);
+      setUsuario(u);
+      setEstado('autenticado');
     },
-    [entrar, quedarAnonimo],
+    [olvidarDatosPrivados],
   );
 
   const verificar = useCallback(
-    (signal?: AbortSignal) => authApi.me(signal).then(({ data }) => entrar(data), alFallarMe),
-    [entrar, alFallarMe],
+    (signal?: AbortSignal) => {
+      const actual = ++revision.current;
+      return authApi.me(signal).then(
+        ({ data }) => {
+          if (actual === revision.current && getSesion()) entrar(data);
+        },
+        (err: unknown) => {
+          if (actual !== revision.current || (err as Error).name === 'AbortError') return;
+          if (err instanceof ApiError && err.status === 401) return quedarAnonimo();
+          // Retener el token permite reintentar, pero no autoriza usando localStorage.
+          setError(err);
+          setEstado('error');
+        },
+      );
+    },
+    [entrar, quedarAnonimo],
   );
+  const reintentar = useCallback(() => {
+    setEstado('cargando');
+    setUsuario(null);
+    setError(null);
+    void verificar();
+  }, [verificar]);
 
   // Verificación inicial.
   useEffect(() => {
@@ -76,23 +97,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     window.addEventListener(LOGOUT_EVENT, quedarAnonimo);
     return () => window.removeEventListener(LOGOUT_EVENT, quedarAnonimo);
-  }, [quedarAnonimo]);
+  }, [quedarAnonimo, olvidarDatosPrivados]);
 
   // Sincronización entre pestañas.
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key !== SESION_KEY) return;
       if (!e.newValue) quedarAnonimo();
-      else if (!e.oldValue) void verificar(); // inició sesión en otra pestaña
-      // Si solo cambió el token (refresh en otra pestaña) no hay nada que hacer:
-      // el cliente siempre lee la sesión vigente del storage.
+      else {
+        olvidarDatosPrivados();
+        setEstado('cargando');
+        setUsuario(null);
+        setError(null);
+        void verificar();
+      }
+      // También revalidar identidad/rol si otra pestaña cambia la sesión.
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, [quedarAnonimo, verificar]);
+  }, [quedarAnonimo, verificar, olvidarDatosPrivados]);
 
   const login = useCallback<AuthValue['login']>(
     async (email, password) => {
+      revision.current += 1;
       const { data } = await authApi.login({ email: email.trim(), password });
       olvidarDatosPrivados();
       setSesion(data.sesion);
@@ -104,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registrar = useCallback<AuthValue['registrar']>(
     async (input: RegistroInput) => {
+      revision.current += 1;
       const { data } = await authApi.registrar(input);
       if (data.sesion && !data.requiereConfirmacion) {
         olvidarDatosPrivados();
@@ -116,17 +144,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
+    revision.current += 1;
+    setEstado('cargando');
+    setUsuario(null);
+    olvidarDatosPrivados();
     try {
       if (getSesion()) await authApi.logout();
     } catch {
       /* aunque falle en el servidor, la sesión local se cierra igual */
     }
     quedarAnonimo();
-  }, [quedarAnonimo]);
+  }, [quedarAnonimo, olvidarDatosPrivados]);
 
   const value = useMemo<AuthValue>(
-    () => ({ usuario, estado, login, registrar, logout }),
-    [usuario, estado, login, registrar, logout],
+    () => ({ usuario, estado, error, reintentar, login, registrar, logout }),
+    [usuario, estado, error, reintentar, login, registrar, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

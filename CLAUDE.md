@@ -119,13 +119,13 @@ La pieza visual más importante. Props principales:
 ## 5 bis. Autenticación
 
 - Endpoints del backend: `POST /auth/registro`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`. **Todo `/poroteos` exige token**; diputados, votaciones, bloques, distritos y stats son públicos. En poroteos, `404` también significa "es de otra persona".
-- Sesión en `localStorage` (`poroteo.sesion`) + copia del usuario (`poroteo.usuario`, para no perder la sesión si el backend no responde al arrancar). `expiresAt` viene en **segundos**.
+- Sesión en `localStorage` (`poroteo.sesion`) + copia del usuario (`poroteo.usuario`, solo presentación; nunca habilita rutas ni roles). `expiresAt` viene en **segundos**.
 - `request()` en `api/client.ts`:
   - agrega `Authorization: Bearer` si hay sesión (opción `anonimo: true` para login/registro: ni token ni refresh, ahí un 401 es "credenciales incorrectas");
   - si quedan < 60 s, renueva antes de mandar;
   - ante 401 con token: si otra request ya renovó, reintenta con el token nuevo; si no, `refrescarSesion()`. **Una sola promesa de refresh en vuelo** (cada refreshToken sirve una vez);
   - refresh rechazado → `limpiarSesion()` + evento `auth:logout` en `window`. Sin red → no cierra la sesión.
-- `AuthProvider` (en `App.tsx`, dentro del QueryClientProvider): estado `'cargando' | 'autenticado' | 'anonimo'`; verifica con `/auth/me` al arrancar; escucha `auth:logout` y `storage` (otras pestañas). Al entrar/salir borra de la caché las queries de `poroteos` (son privadas).
+- `AuthProvider` (en `App.tsx`, dentro del QueryClientProvider): estado `'cargando' | 'autenticado' | 'anonimo' | 'error'`; verifica con `/auth/me` al arrancar; escucha `auth:logout` y `storage` (otras pestañas). Al entrar/salir borra de la caché las queries de `poroteos` (son privadas).
 - Mensajes de error de cuenta: `authErrorMessage()`; errores por campo (`BAD_REQUEST`): `fieldErrors()` (`body.email` → `email`).
 - Nunca loguear tokens, nunca mandarlos en la URL, nunca guardar la contraseña.
 
@@ -190,3 +190,71 @@ npm run build
 4. **Senado:** `<Hemiciclo/>` ya soporta cualquier N (72 bancas = 5 filas). Falta selector de cámara, quórum 37 y datos.
 5. **Auth para organizaciones** + correcciones con trazabilidad.
 6. Exportar un poroteo (imagen del hemiciclo / CSV / link público de solo lectura).
+
+## Backoffice y roles de aplicación
+
+El perfil del backend devuelve `rol: 'usuario' | 'superadmin'`. La configuración
+`SUPERADMIN_EMAILS` vive solo en el backend, no en variables `VITE_`. El frontend
+nunca decide el rol por email ni por metadata de Supabase: consume el perfil
+verificado y el backend autoriza cada consulta administrativa.
+
+| Ruta                       | Pantalla                                                    | Acceso     |
+| -------------------------- | ----------------------------------------------------------- | ---------- |
+| `/backoffice`              | Métricas disponibles                                        | superadmin |
+| `/backoffice/cuentas`      | Cuentas paginadas (ID, email, registro, último acceso, rol) | superadmin |
+| `/backoffice/poroteos`     | Búsqueda y listado paginado                                 | superadmin |
+| `/backoffice/poroteos/:id` | Texto, resultado y votos sin edición                        | superadmin |
+
+Después del login un superadmin va a `/backoffice`; un usuario conserva el destino
+habitual. La misma decisión se usa en registro si hay sesión y al ingresar luego
+de confirmar el correo. No existe una redirección global: el superadmin puede
+volver a `/poroteos`, Cámara y demás pantallas. El backoffice permite volver y
+cerrar sesión; no tiene operaciones de escritura.
+
+`RutaProtegida` espera el perfil actual de `/auth/me`; nunca usa el rol guardado
+como permiso. `AuthProvider` incorpora el estado `error` con reintento y conserva
+el token si falla esa verificación, pero no abre rutas privadas. La revisión de
+sesión evita que una respuesta antigua restaure la cuenta después de logout.
+`RutaSuperadmin` se monta para `/backoffice` y todas las hijas y vuelve a consultar
+el perfil en cada ruta y al recuperar foco: anónimo a login, usuario a acceso
+denegado, superadmin al contenido. `/api/admin` valida nuevamente la identidad y
+los permisos en el backend. Ocultar un enlace no constituye autorización.
+
+Las consultas están en `features/backoffice/queries.ts`, las llamadas de solo
+lectura en `api/admin.ts` y sus claves bajo `queryKeys.adminAll`. Se borran al
+entrar/salir o cambiar de cuenta. La interfaz utiliza CSS Modules, tokens y estados
+existentes, con grilla adaptable y tablas con desplazamiento propio en celular.
+
+Para habilitar las cuentas, ver `docs/backoffice.md` y `docs/autenticacion.md` del
+repositorio backend. No crear tabla `usuarios` ni configurar permisos desde el
+navegador. No se modificó el esquema, no se crearon cuentas ni se enviaron correos.
+El usuario configura manualmente Email/Confirm email/SMTP y registra y confirma
+las tres direcciones permitidas antes de iniciar sesión.
+
+Todas las rutas normales `/api/poroteos` exigen identidad validada y filtran por
+`user_id` en el backend, incluso para superadmins. Un ID ajeno o sin propietario
+responde 404. `autor` es descriptivo; el frontend no envía propietario. Solo los
+endpoints administrativos protegidos conservan lectura global, incluidos registros
+anteriores con `user_id NULL`; no hay escrituras globales.
+
+Las claves de poroteos incluyen el ID del perfil verificado para separar cachés,
+sin enviar ese ID como prueba de autorización. No se reutilizan filas anteriores
+como placeholder. Cambiar de cuenta o salir cancela consultas y borra datos y
+mutaciones privadas, también entre pestañas. Mientras se verifica la nueva sesión
+no se muestra contenido privado. Las respuestas pendientes no repueblan la caché
+de otra cuenta ni reintentan escrituras usando su token. Un refresh antiguo no
+restaura una sesión cerrada ni reemplaza otra cuenta.
+
+Pruebas automatizadas nuevas en `src/features/auth/privacidad.test.tsx`: dos
+identidades, cambio por storage, logout pendiente, mutaciones tardías, refresh
+pendiente y protección ante reintentos con identidad nueva. Se conservan los
+estados de carga, vacío, sesión vencida y 404, además de redirecciones por rol.
+Modelo, migración local no aplicada y pruebas manuales pendientes en
+`Agente-BackEnd-Legislativo/docs/poroteos-privados.md`. No se modificó Supabase remoto.
+
+Pruebas en `features/backoffice/backoffice.test.tsx`: roles y redirecciones,
+restauración sin confiar en localStorage, reintento, logout/cache, rutas directas,
+retirada de permisos, páginas y estados. Prueba visual local a 360 px y escritorio
+en temas claro/oscuro con respuestas simuladas, sin acceder a Supabase. El chequeo
+global de formato ya señalaba `Hemiciclo.module.css` antes de esta tarea; ese
+archivo no fue modificado.
