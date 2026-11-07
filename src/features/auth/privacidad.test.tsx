@@ -56,6 +56,9 @@ it('otra pestaña cambia de cuenta: bloquea datos anteriores y limpia lista, det
   const { result } = renderHook(() => ({ auth: useAuth(), lista: usePoroteos({}) }), { wrapper });
   await waitFor(() => expect(result.current.lista.data?.data[0].id).toBe('poroteo-a'));
   qc.setQueryData(queryKeys.poroteo('propio-a', 'a'), { titulo: 'Privado A' });
+  qc.setQueryData(queryKeys.miembros('propio-a', 'a'), {
+    miembros: [{ email: 'privado@example.org' }],
+  });
   qc.setQueryData(['admin', 'privado'], { titulo: 'Administrativo' });
   let verificarB!: (response: Response) => void;
   fetchMock.mockImplementationOnce(

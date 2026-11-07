@@ -9,6 +9,7 @@ const NAV = [
   { to: '/camara', label: 'La Cámara' },
   { to: '/diputados', label: 'Diputados' },
   { to: '/votaciones', label: 'Votaciones' },
+  { to: '/poroteos-publicos', label: 'Poroteos públicos' },
   { to: '/poroteos', label: 'Mis poroteos' },
 ];
 

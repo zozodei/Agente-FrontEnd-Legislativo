@@ -83,7 +83,7 @@ src/
 | `/diputados/:id`     | DiputadoPage     | `useDiputado` + `useVotosDiputado` (paginado en servidor)                                                          |
 | `/votaciones`        | VotacionesPage   | `useVotaciones` (paginado y filtrado en servidor; filtros en la URL)                                               |
 | `/votaciones/:id`    | VotacionPage     | `useVotacion`                                                                                                      |
-| `/poroteos` 🔒       | PoroteosPage     | `usePoroteos` ("Mis poroteos": cada usuario ve solo los suyos)                                                     |
+| `/poroteos` 🔒       | PoroteosPage     | `usePoroteos` ("Mis poroteos": incluye membresías como dueño o colaborador)                                        |
 | `/poroteos/nuevo` 🔒 | NuevoPoroteoPage | `useCrearPoroteo` (JSON o multipart con PDF). Acepta `location.state.titulo` para precargar                        |
 | `/poroteos/:id` 🔒   | PoroteoPage      | `usePoroteo` + `useDiputados`; guarda con `useGuardarVotos` (modo `replace`). 404 = "No existe o no tenés acceso"  |
 
@@ -120,7 +120,7 @@ La pieza visual más importante. Props principales:
 
 ## 5 bis. Autenticación
 
-- Endpoints del backend: `POST /auth/registro`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`, `GET /auth/google`, `POST /auth/google/id-token`. **Todo `/poroteos` exige token**; diputados, votaciones, bloques, distritos y stats son públicos. En poroteos, `404` también significa "es de otra persona".
+- Endpoints del backend: `POST /auth/registro`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`, `GET /auth/google`, `POST /auth/google/id-token`. **El editor `/poroteos` exige token**; la consulta `/poroteos-publicos` es anónima; diputados, votaciones, bloques, distritos y stats son públicos. En poroteos, `404` también significa "es de otra persona".
 - **Google (redirect):** `GoogleButton` (Login/Registro) → `useAuth().iniciarGoogle(destino)` pide `GET /auth/google?redirectTo=<origen>/auth/callback` y devuelve la URL; el botón navega con `window.location.href`. El destino post-login viaja en `sessionStorage` (`auth.google.redirect`), no en la URL. `/auth/callback` (pública) parsea el hash con `parseCallbackGoogle()` (`features/auth/google.ts`), limpia el hash de la URL con `history.replaceState`, guarda la sesión con `entrarConTokens()` (valida con `/auth/me`) y redirige al destino o a `/`. Errores de Google (`error`/`error_description`, en hash o query) se muestran con `mensajeErrorGoogle()`. `loginGoogleConIdToken()` queda listo para One Tap. Sin Supabase en el front, nunca.
 - Sesión en `localStorage` (`poroteo.sesion`) + copia del usuario (`poroteo.usuario`, solo presentación; nunca habilita rutas ni roles). `expiresAt` viene en **segundos**.
 - `request()` en `api/client.ts`:
@@ -234,11 +234,7 @@ navegador. No se modificó el esquema, no se crearon cuentas ni se enviaron corr
 El usuario configura manualmente Email/Confirm email/SMTP y registra y confirma
 las tres direcciones permitidas antes de iniciar sesión.
 
-Todas las rutas normales `/api/poroteos` exigen identidad validada y filtran por
-`user_id` en el backend, incluso para superadmins. Un ID ajeno o sin propietario
-responde 404. `autor` es descriptivo; el frontend no envía propietario. Solo los
-endpoints administrativos protegidos conservan lectura global, incluidos registros
-anteriores con `user_id NULL`; no hay escrituras globales.
+Las rutas privadas autorizan por membresía. user_id conserva al creador y no concede acceso. Dueños y colaboradores aparecen en Mis poroteos. Solo dueños publican, gestionan participantes y eliminan. El backoffice sigue siendo de consulta.
 
 Las claves de poroteos incluyen el ID del perfil verificado para separar cachés,
 sin enviar ese ID como prueba de autorización. No se reutilizan filas anteriores
@@ -261,3 +257,28 @@ retirada de permisos, páginas y estados. Prueba visual local a 360 px y escrito
 en temas claro/oscuro con respuestas simuladas, sin acceder a Supabase. El chequeo
 global de formato ya señalaba `Hemiciclo.module.css` antes de esta tarea; ese
 archivo no fue modificado.
+
+## Poroteos colaborativos y públicos
+
+/poroteos incluye los proyectos donde el perfil es dueño o colaborador. El editor
+consume permisos efectivos del backend y muestra rol y visibilidad. Incluye edición
+de título, descripción y texto, votos, participantes por email registrado, roles,
+salida, publicación y confirmación de borrado. No se crean cuentas ni invitaciones.
+
+/poroteos-publicos y /poroteos-publicos/:id son vistas anónimas de solo lectura.
+Las respuestas se piden con cache: no-store, sin token ni refresh. TanStack usa
+staleTime: 0 y gcTime: 0 para estas consultas; el detalle revalida cada 15 segundos,
+al volver y al recuperar foco. Un 404 posterior oculta inmediatamente el contenido.
+Lo ya visto por otra persona no puede retirarse de sus copias. No hay caché persistida.
+
+Toda escritura lleva la version leída. Ante 409 se conserva el borrador y no hay
+reintento automático. Recargar requiere una decisión explícita; se pueden copiar los
+campos y revisar los votos antes de descartarlos. La versión base no se adopta de
+refetches silenciosos. Contenido y votos se guardan mediante acciones independientes
+de la RPC atómica; si se editan ambos, guardar cada sección avanza la versión propia.
+Los participantes usan claves privadas bajo poroteos/usuario y se eliminan con la
+caché de la cuenta al cerrar sesión o cambiar de identidad, incluidas otras pestañas.
+
+Contrato backend: docs/poroteos-colaborativos.md en Agente-BackEnd-Legislativo.
+Pruebas nuevas: features/poroteo/colaboracion.test.tsx y privacidad.test.tsx.
+No se implementó Google, no se modificó Supabase remoto ni se realizó deploy.

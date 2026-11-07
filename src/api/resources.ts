@@ -1,3 +1,10 @@
+import type {
+  MiembroPoroteo,
+  PoroteoPublico,
+  PoroteoPublicoDetalle,
+  VersionPoroteo,
+  RolPoroteo,
+} from '@/types';
 import { request } from './client';
 import type {
   AuthResponse,
@@ -117,6 +124,25 @@ export interface VotoInput {
   voto: VotoPoroteo;
 }
 
+export interface ActualizarPoroteoInput {
+  version: VersionPoroteo;
+  titulo?: string;
+  descripcion?: string | null;
+  textoProyecto?: string | null;
+  tipoMayoria?: TipoMayoria;
+  estado?: 'borrador' | 'final';
+  visibilidad?: 'privado' | 'publico';
+}
+export const poroteosPublicosApi = {
+  list: (params: { q?: string; page?: number; pageSize?: number }, signal?: AbortSignal) =>
+    request<Paginated<PoroteoPublico>>('/poroteos-publicos', {
+      query: params,
+      signal,
+      anonimo: true,
+    }),
+  get: (id: string, signal?: AbortSignal) =>
+    request<{ data: PoroteoPublicoDetalle }>(`/poroteos-publicos/${id}`, { signal, anonimo: true }),
+};
 export const poroteosApi = {
   list: (params: { q?: string; page?: number; pageSize?: number }, signal?: AbortSignal) =>
     request<Paginated<Poroteo>>('/poroteos', { query: params, signal }),
@@ -134,21 +160,43 @@ export const poroteosApi = {
     return request<{ data: PoroteoDetalle }>('/poroteos', { method: 'POST', body: input });
   },
 
-  update: (
+  update: (id: string, changes: ActualizarPoroteoInput) =>
+    request<{ data: PoroteoDetalle }>(`/poroteos/${id}`, { method: 'PATCH', body: changes }),
+  saveVotos: (
     id: string,
-    changes: Partial<{
-      titulo: string;
-      descripcion: string | null;
-      tipoMayoria: TipoMayoria;
-      estado: 'borrador' | 'final';
-    }>,
-  ) => request<{ data: PoroteoDetalle }>(`/poroteos/${id}`, { method: 'PATCH', body: changes }),
-
-  saveVotos: (id: string, votos: VotoInput[], modo: 'merge' | 'replace' = 'replace') =>
+    votos: VotoInput[],
+    version: VersionPoroteo,
+    modo: 'merge' | 'replace' = 'replace',
+  ) =>
     request<{ data: PoroteoDetalle }>(`/poroteos/${id}/votos`, {
       method: 'PUT',
-      body: { modo, votos },
+      body: { version, modo, votos },
     }),
-
-  remove: (id: string) => request<void>(`/poroteos/${id}`, { method: 'DELETE' }),
+  remove: (id: string, version: VersionPoroteo) =>
+    request<void>(`/poroteos/${id}`, { method: 'DELETE', body: { version } }),
+  miembros: (id: string, signal?: AbortSignal) =>
+    request<{ data: { miembros: MiembroPoroteo[]; version: VersionPoroteo } }>(
+      `/poroteos/${id}/miembros`,
+      { signal },
+    ),
+  agregarMiembro: (
+    id: string,
+    input: { email: string; rol: RolPoroteo; version: VersionPoroteo },
+  ) =>
+    request<{ data: PoroteoDetalle }>(`/poroteos/${id}/miembros`, { method: 'POST', body: input }),
+  cambiarRol: (id: string, userId: string, rol: RolPoroteo, version: VersionPoroteo) =>
+    request<{ data: PoroteoDetalle }>(`/poroteos/${id}/miembros/${userId}`, {
+      method: 'PATCH',
+      body: { rol, version },
+    }),
+  quitarMiembro: (id: string, userId: string, version: VersionPoroteo) =>
+    request<{ data: PoroteoDetalle | { id: string; salido: true } }>(
+      `/poroteos/${id}/miembros/${userId}`,
+      { method: 'DELETE', body: { version } },
+    ),
+  salir: (id: string, version: VersionPoroteo) =>
+    request<{ data: { id: string; salido: true } }>(`/poroteos/${id}/salir`, {
+      method: 'POST',
+      body: { version },
+    }),
 };

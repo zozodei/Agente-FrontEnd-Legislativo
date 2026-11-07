@@ -20,6 +20,8 @@ const RegistroPage = lazy(() => import('@/pages/RegistroPage'));
 const AuthCallbackPage = lazy(() => import('@/pages/AuthCallbackPage'));
 const PoroteosPage = lazy(() => import('@/pages/PoroteosPage'));
 const NuevoPoroteoPage = lazy(() => import('@/pages/NuevoPoroteoPage'));
+const PoroteosPublicosPage = lazy(() => import('@/pages/PoroteosPublicosPage'));
+const PoroteoPublicoPage = lazy(() => import('@/pages/PoroteoPublicoPage'));
 const PoroteoPage = lazy(() => import('@/pages/PoroteoPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const BackofficePage = lazy(() => import('@/pages/BackofficePage'));
@@ -39,6 +41,8 @@ export const router = createBrowserRouter([
     errorElement: <RouteError />,
     children: [
       { index: true, element: <LandingPage />, handle: { bleed: true } satisfies RouteHandle },
+      { path: 'poroteos-publicos', element: <PoroteosPublicosPage /> },
+      { path: 'poroteos-publicos/:id', element: <PoroteoPublicoPage /> },
       { path: 'camara', element: <CamaraPage /> },
       { path: 'diputados', element: <DiputadosPage /> },
       { path: 'diputados/:id', element: <DiputadoPage /> },

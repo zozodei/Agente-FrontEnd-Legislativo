@@ -1,9 +1,10 @@
+import { Participantes } from '@/features/poroteo/components/Participantes';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useBlocker, useNavigate, useParams } from 'react-router-dom';
 import { ApiError, errorMessage } from '@/api/client';
 import { Hemiciclo, type Banca } from '@/components/hemiciclo';
 import { Button } from '@/components/ui/Button';
-import { Segmented, SelectField } from '@/components/ui/Fields';
+import { Segmented, SelectField, TextField } from '@/components/ui/Fields';
 import { ErrorState, Skeleton } from '@/components/ui/States';
 import { Kicker, SectionHeader } from '@/components/ui/Typography';
 import { diputadoToBanca, useDiputados } from '@/features/diputados/queries';
@@ -27,6 +28,7 @@ import styles from './PoroteoPage.module.css';
 export default function PoroteoPage() {
   const id = useParams().id ?? '';
   const poroteo = usePoroteo(id);
+  const [revision, setRevision] = useState(0);
   const diputados = useDiputados();
   useDocumentTitle(poroteo.data?.titulo ?? 'Poroteo');
 
@@ -43,7 +45,7 @@ export default function PoroteoPage() {
           mensaje={
             // En poroteos, 404 también significa "es de otra persona".
             poroteo.error instanceof ApiError && poroteo.error.status === 404
-              ? 'No existe o no tenés acceso. Los poroteos son personales: solo los ve quien los creó.'
+              ? 'No existe o ya no sos miembro de este poroteo.'
               : undefined
           }
         />
@@ -61,14 +63,43 @@ export default function PoroteoPage() {
     );
   }
   // key: si cambia el id, el editor se reinicia con los votos del nuevo poroteo.
-  return <Editor key={poroteo.data.id} poroteo={poroteo.data} diputados={diputados.data} />;
+  return (
+    <Editor
+      key={`${poroteo.data.id}-${revision}`}
+      poroteo={poroteo.data}
+      diputados={diputados.data}
+      onRecargar={async () => {
+        if (
+          !window.confirm(
+            '¿Recargar desde el servidor? Se descartarán las ediciones locales. Podés copiarlas antes de continuar.',
+          )
+        )
+          return;
+        const result = await poroteo.refetch();
+        if (result.isSuccess) setRevision((r) => r + 1);
+      }}
+    />
+  );
 }
 
 type Pincel = VotoPoroteo | 'BORRAR';
 const PINCELES: Pincel[] = ['AFIRMATIVO', 'NEGATIVO', 'ABSTENCION', 'AUSENTE', 'BORRAR'];
 type Vista = 'hemiciclo' | 'lista';
 
-function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Diputado[] }) {
+function Editor({
+  poroteo: inicial,
+  diputados,
+  onRecargar,
+}: {
+  poroteo: PoroteoDetalle;
+  diputados: Diputado[];
+  onRecargar: () => void;
+}) {
+  // La versión base solo avanza por una acción propia exitosa o recarga explícita.
+  const [poroteo, setPoroteo] = useState(inicial);
+  const [titulo, setTitulo] = useState(inicial.titulo);
+  const [descripcion, setDescripcion] = useState(inicial.descripcion ?? '');
+  const [textoProyecto, setTextoProyecto] = useState(inicial.textoProyecto ?? '');
   const navigate = useNavigate();
   const [tipoMayoria, setTipoMayoria] = useState<TipoMayoria>(poroteo.tipoMayoria);
   const editor = usePoroteoEditor(poroteo, tipoMayoria);
@@ -81,6 +112,16 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
   const actualizar = useActualizarPoroteo(poroteo.id);
   const eliminar = useEliminarPoroteo();
 
+  const contenidoDirty =
+    titulo !== poroteo.titulo ||
+    descripcion !== (poroteo.descripcion ?? '') ||
+    textoProyecto !== (poroteo.textoProyecto ?? '') ||
+    tipoMayoria !== poroteo.tipoMayoria;
+  const busy = guardar.isPending || actualizar.isPending || eliminar.isPending;
+  const conflicto = [guardar.error, actualizar.error, eliminar.error].some(
+    (e) => e instanceof ApiError && e.status === 409,
+  );
+  const cambios = dirty || contenidoDirty;
   const bancas: Banca[] = useMemo(
     () =>
       diputados.map((d) => ({ ...diputadoToBanca(d), href: null, voto: votos.get(d.id) ?? null })),
@@ -101,17 +142,28 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
   const onGuardar = () => {
     const payload = [...votos.entries()].map(([diputadoId, voto]) => ({ diputadoId, voto }));
     const snapshot = new Map(votos);
-    guardar.mutate(payload, { onSuccess: () => marcarGuardado(snapshot) });
+    if (busy || conflicto || !poroteo.permisos.editar) return;
+    guardar.mutate(
+      { votos: payload, version: poroteo.version },
+      {
+        onSuccess: (data) => {
+          setPoroteo(data);
+          marcarGuardado(snapshot);
+        },
+      },
+    );
   };
 
   const onTipoMayoria = (tipo: TipoMayoria) => {
     setTipoMayoria(tipo);
-    actualizar.mutate({ tipoMayoria: tipo });
   };
 
   const onEliminar = () => {
     if (!window.confirm(`¿Borrar el poroteo "${poroteo.titulo}"? No se puede deshacer.`)) return;
-    eliminar.mutate(poroteo.id, { onSuccess: () => navigate('/poroteos', { replace: true }) });
+    eliminar.mutate(
+      { id: poroteo.id, version: poroteo.version },
+      { onSuccess: () => navigate('/poroteos', { replace: true }) },
+    );
   };
 
   const completarAusentes = () => {
@@ -129,7 +181,7 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
         deshacer();
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        if (dirty && !guardar.isPending) onGuardar();
+        if (dirty && !busy && !conflicto) onGuardar();
       } else if (!e.ctrlKey && !e.metaKey && /^[1-5]$/.test(e.key)) {
         setPincel(PINCELES[Number(e.key) - 1]);
       }
@@ -140,14 +192,14 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
 
   // Avisar si se intenta salir con cambios sin guardar.
   useEffect(() => {
-    if (!dirty) return;
+    if (!cambios) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, [dirty]);
+  }, [cambios]);
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
-      dirty && currentLocation.pathname !== nextLocation.pathname,
+      cambios && currentLocation.pathname !== nextLocation.pathname,
   );
   useEffect(() => {
     if (blocker.state !== 'blocked') return;
@@ -172,8 +224,32 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
           {poroteo.descripcion && <p className={styles.desc}>{poroteo.descripcion}</p>}
         </div>
         <div className={styles.headerActions}>
+          <p>
+            {poroteo.visibilidad === 'publico' ? 'Público' : 'Privado'} ·{' '}
+            {poroteo.rolActual === 'dueno' ? 'Dueño' : 'Colaborador'}
+          </p>
+          {poroteo.permisos.publicar && (
+            <Button
+              disabled={cambios || busy || conflicto}
+              onClick={() =>
+                actualizar.mutate(
+                  {
+                    version: poroteo.version,
+                    visibilidad: poroteo.visibilidad === 'publico' ? 'privado' : 'publico',
+                  },
+                  { onSuccess: setPoroteo },
+                )
+              }
+            >
+              {poroteo.visibilidad === 'publico' ? 'Volver a privado' : 'Publicar'}
+            </Button>
+          )}
+          {poroteo.visibilidad === 'publico' && (
+            <Link to={`/poroteos-publicos/${poroteo.id}`}>Ver publicación</Link>
+          )}
           <SelectField
             label="Mayoría"
+            disabled={busy || conflicto || !poroteo.permisos.editar}
             value={tipoMayoria}
             onChange={(e) => onTipoMayoria(e.target.value as TipoMayoria)}
           >
@@ -183,12 +259,69 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
               </option>
             ))}
           </SelectField>
-          <Button variant="danger" size="sm" onClick={onEliminar} loading={eliminar.isPending}>
-            Borrar
-          </Button>
+          {poroteo.permisos.eliminar && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={onEliminar}
+              disabled={busy || conflicto}
+              loading={eliminar.isPending}
+            >
+              Borrar
+            </Button>
+          )}
         </div>
       </header>
 
+      <section className={styles.section} aria-label="Contenido del proyecto">
+        <SectionHeader titulo="Contenido del proyecto" />
+        <TextField
+          label="Título"
+          value={titulo}
+          maxLength={300}
+          disabled={busy}
+          onChange={(e) => setTitulo(e.target.value)}
+        />
+        <label>
+          Descripción
+          <textarea
+            value={descripcion}
+            maxLength={5000}
+            disabled={busy}
+            onChange={(e) => setDescripcion(e.target.value)}
+          />
+        </label>
+        <label>
+          Texto del proyecto
+          <textarea
+            value={textoProyecto}
+            maxLength={500000}
+            disabled={busy}
+            onChange={(e) => setTextoProyecto(e.target.value)}
+          />
+        </label>
+        <Button
+          disabled={!contenidoDirty || busy || conflicto || !poroteo.permisos.editar}
+          onClick={() =>
+            actualizar.mutate(
+              { version: poroteo.version, titulo, descripcion, textoProyecto, tipoMayoria },
+              { onSuccess: setPoroteo },
+            )
+          }
+        >
+          Guardar contenido
+        </Button>
+      </section>
+      {conflicto && (
+        <p role="alert">
+          Otra persona modificó el poroteo. Tu edición local se conserva. Revisá o copiá tus cambios
+          antes de recargar.
+        </p>
+      )}
+      <Button variant="ghost" onClick={onRecargar} disabled={busy}>
+        Recargar desde el servidor
+      </Button>
+      {eliminar.isError && <p role="alert">{errorMessage(eliminar.error)}</p>}
       <div className={styles.layout}>
         <div className={styles.main}>
           <div className={styles.toolbar}>
@@ -265,7 +398,7 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
               <Button
                 variant="primary"
                 onClick={onGuardar}
-                disabled={!dirty}
+                disabled={!dirty || busy || conflicto || !poroteo.permisos.editar}
                 loading={guardar.isPending}
               >
                 {dirty ? 'Guardar cambios' : 'Guardado'}
@@ -305,6 +438,11 @@ function Editor({ poroteo, diputados }: { poroteo: PoroteoDetalle; diputados: Di
           </div>
         </aside>
       </div>
+      <Participantes
+        poroteo={poroteo}
+        bloqueado={cambios || busy || conflicto}
+        onCambio={setPoroteo}
+      />
     </div>
   );
 }

@@ -131,6 +131,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     if (s) headers.set('Authorization', `Bearer ${s.accessToken}`);
     return fetch(`${BASE_URL}/api${path}${buildQuery(query)}`, {
       method,
+      cache: 'no-store',
       signal,
       headers,
       body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),

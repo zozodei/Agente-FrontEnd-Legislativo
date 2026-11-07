@@ -1,0 +1,25 @@
+.section {
+  border-top: 2px solid var(--rule-strong-color);
+  padding-block: var(--space-6);
+}
+.form,
+.member {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: end;
+  margin-block: var(--space-4);
+}
+.list {
+  list-style: none;
+  padding: 0;
+}
+.member {
+  border-top: 1px solid var(--rule);
+  padding-block: var(--space-3);
+}
+.email {
+  overflow-wrap: anywhere;
+  min-width: 0;
+  flex: 1 1 12rem;
+}

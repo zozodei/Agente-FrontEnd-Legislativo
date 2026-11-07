@@ -230,7 +230,26 @@ export interface ResumenPoroteo {
   definido: boolean;
 }
 
+export type VersionPoroteo = number | string;
+export type RolPoroteo = 'dueno' | 'colaborador';
+export interface PermisosPoroteo {
+  editar: boolean;
+  administrarMiembros: boolean;
+  publicar: boolean;
+  eliminar: boolean;
+  salir: boolean;
+}
+export interface MiembroPoroteo {
+  userId: string;
+  email: string | null;
+  rol: RolPoroteo;
+  createdAt: string;
+}
 export interface Poroteo {
+  version: VersionPoroteo;
+  visibilidad: 'privado' | 'publico';
+  rolActual: RolPoroteo | null;
+  permisos: PermisosPoroteo;
   id: string;
   titulo: string;
   descripcion: string | null;
@@ -259,6 +278,12 @@ export interface PoroteoVoto {
 export interface PoroteoDetalle extends Poroteo {
   textoProyecto: string | null;
   votos: PoroteoVoto[];
+}
+
+export type PoroteoPublico = Omit<Poroteo, 'metadata' | 'autor' | 'archivoNombre'>;
+export interface PoroteoPublicoDetalle extends PoroteoPublico {
+  textoProyecto: string | null;
+  votos: Pick<PoroteoVoto, 'diputadoId' | 'voto'>[];
 }
 
 /* ── Autenticación ─────────────────────────────────────────────────────── */

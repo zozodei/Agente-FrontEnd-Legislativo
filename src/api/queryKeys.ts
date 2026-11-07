@@ -17,6 +17,10 @@ export const queryKeys = {
   votacion: (id: number) => ['votaciones', 'detalle', id] as const,
   resumen: ['stats', 'resumen'] as const,
   poroteos: (params: object, userId: string) => ['poroteos', userId, 'lista', params] as const,
+  miembros: (id: string, userId: string) => ['poroteos', userId, 'miembros', id] as const,
+  publicosAll: ['poroteos-publicos'] as const,
+  publicos: (params: object) => ['poroteos-publicos', 'lista', params] as const,
+  publico: (id: string) => ['poroteos-publicos', 'detalle', id] as const,
   poroteosAll: ['poroteos'] as const,
   poroteo: (id: string, userId: string) => ['poroteos', userId, 'detalle', id] as const,
 };

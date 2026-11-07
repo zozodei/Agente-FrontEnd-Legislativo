@@ -4,7 +4,7 @@ Interfaz de **demoIA**, el prototipo de Poroteo Legislativo de [Democracia en Re
 
 Permite explorar la Cámara de Diputados (composición, diputados, votaciones históricas) y hacer un **poroteo manual**: estimar banca por banca cómo votaría cada diputado un proyecto de ley y ver en vivo si hay quórum y si se aprueba. Más adelante la estimación la va a hacer una IA.
 
-Cada persona tiene su **cuenta** (email + contraseña) y sus poroteos son privados. La exploración de la Cámara es pública.
+Cada persona tiene su **cuenta** (email + contraseña) y sus poroteos comienzan privados y pueden compartirse con miembros o publicarse. La exploración de la Cámara es pública.
 
 > Backend: [Agente-BackEnd-Legislativo](https://github.com/zozodei/Agente-BackEnd-Legislativo). El front **solo** habla con esa API, nunca con Supabase directo.
 
@@ -136,11 +136,7 @@ navegador. No se modificó el esquema, no se crearon cuentas ni se enviaron corr
 El usuario configura manualmente Email/Confirm email/SMTP y registra y confirma
 las tres direcciones permitidas antes de iniciar sesión.
 
-Todas las rutas normales `/api/poroteos` exigen identidad validada y filtran por
-`user_id` en el backend, incluso para superadmins. Un ID ajeno o sin propietario
-responde 404. `autor` es descriptivo; el frontend no envía propietario. Solo los
-endpoints administrativos protegidos conservan lectura global, incluidos registros
-anteriores con `user_id NULL`; no hay escrituras globales.
+Las rutas privadas autorizan por membresía. user_id conserva al creador y no concede acceso. Dueños y colaboradores aparecen en Mis poroteos. Solo dueños publican, gestionan participantes y eliminan. El backoffice sigue siendo de consulta.
 
 Las claves de poroteos incluyen el ID del perfil verificado para separar cachés,
 sin enviar ese ID como prueba de autorización. No se reutilizan filas anteriores
@@ -157,9 +153,31 @@ estados de carga, vacío, sesión vencida y 404, además de redirecciones por ro
 Modelo, migración local no aplicada y pruebas manuales pendientes en
 `Agente-BackEnd-Legislativo/docs/poroteos-privados.md`. No se modificó Supabase remoto.
 
-Pruebas en `features/backoffice/backoffice.test.tsx`: roles y redirecciones,
-restauración sin confiar en localStorage, reintento, logout/cache, rutas directas,
-retirada de permisos, páginas y estados. Prueba visual local a 360 px y escritorio
-en temas claro/oscuro con respuestas simuladas, sin acceder a Supabase. El chequeo
-global de formato ya señalaba `Hemiciclo.module.css` antes de esta tarea; ese
-archivo no fue modificado.
+Pruebas administrativas en features/backoffice/backoffice.test.tsx; el backoffice mantiene consulta global sin edición.
+
+## Poroteos colaborativos y públicos
+
+/poroteos incluye los proyectos donde el perfil es dueño o colaborador. El editor
+consume permisos efectivos del backend y muestra rol y visibilidad. Incluye edición
+de título, descripción y texto, votos, participantes por email registrado, roles,
+salida, publicación y confirmación de borrado. No se crean cuentas ni invitaciones.
+
+/poroteos-publicos y /poroteos-publicos/:id son vistas anónimas de solo lectura.
+Las respuestas se piden con cache: no-store, sin token ni refresh. TanStack usa
+staleTime: 0 y gcTime: 0 para estas consultas; el detalle revalida cada 15 segundos,
+al volver y al recuperar foco. Un 404 posterior oculta inmediatamente el contenido.
+Lo ya visto por otra persona no puede retirarse de sus copias. No hay caché persistida.
+
+Toda escritura lleva la version leída. Ante 409 se conserva el borrador y no hay
+reintento automático. Recargar requiere una decisión explícita; se pueden copiar los
+campos y revisar los votos antes de descartarlos. La versión base no se adopta de
+refetches silenciosos. Contenido y votos se guardan mediante acciones independientes
+de la RPC atómica; si se editan ambos, guardar cada sección avanza la versión propia.
+Los participantes usan claves privadas bajo poroteos/usuario y se eliminan con la
+caché de la cuenta al cerrar sesión o cambiar de identidad, incluidas otras pestañas.
+
+Contrato backend: docs/poroteos-colaborativos.md en Agente-BackEnd-Legislativo.
+Pruebas nuevas: features/poroteo/colaboracion.test.tsx y privacidad.test.tsx.
+No se implementó Google, no se modificó Supabase remoto ni se realizó deploy.
+
+Verificación visual local: Chrome headless con datos simulados para editor, detalle público y galería, a 360 y 1440 px en ambos temas; 12 combinaciones sin desbordes ni errores de renderizado.

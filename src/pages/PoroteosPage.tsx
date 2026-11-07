@@ -29,9 +29,10 @@ export default function PoroteosPage() {
       <PageHeader
         kicker={primerNombre ? `Mis poroteos · ${primerNombre}` : 'Mis poroteos'}
         titulo="¿Sale o no sale?"
-        bajada="Cargá un proyecto de ley y estimá, banca por banca, cómo votaría cada diputado. El contador te dice en vivo si hay quórum y si el proyecto se aprueba. Tus poroteos son privados: solo los ves vos."
+        bajada="Cargá un proyecto de ley y estimá, banca por banca, cómo votaría cada diputado. El contador te dice en vivo si hay quórum y si el proyecto se aprueba. Incluye los proyectos donde sos dueño o colaborador. Los nuevos poroteos son privados; un dueño puede publicarlos."
       >
         <div>
+          <ButtonLink to="/poroteos-publicos">Explorar públicos</ButtonLink>
           <ButtonLink to="/poroteos/nuevo" variant="primary">
             Nuevo poroteo
           </ButtonLink>
@@ -86,7 +87,11 @@ export default function PoroteosPage() {
                 <li key={p.id} className={styles.card}>
                   <Link to={`/poroteos/${p.id}`} className={styles.cardLink}>
                     <span className={styles.cardMeta}>
-                      <span>{TIPO_MAYORIA_LABEL[p.tipoMayoria]}</span>
+                      <span>
+                        {p.visibilidad === 'publico' ? 'Público' : 'Privado'} ·{' '}
+                        {p.rolActual === 'dueno' ? 'Dueño' : 'Colaborador'} ·{' '}
+                        {TIPO_MAYORIA_LABEL[p.tipoMayoria]}
+                      </span>
                       <span>Editado {formatRelative(p.updatedAt)}</span>
                     </span>
                     <span className={styles.cardTitle}>{p.titulo}</span>
