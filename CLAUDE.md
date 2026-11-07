@@ -31,8 +31,8 @@ src/
   router.tsx          rutas; cada página es lazy()
   api/
     client.ts         request<T>() + ApiError + errorMessage() + fieldErrors(). ÚNICO lugar que
-                      hace fetch. Agrega el Bearer token y maneja el refresh (ver §5 bis).
-    session.ts        sesión en localStorage (poroteo.sesion / poroteo.usuario), LOGOUT_EVENT
+                      hace fetch. Envía cookies y maneja refresh/CSRF (ver §5 bis).
+    session.ts        coordinación sin secretos en localStorage y LOGOUT_EVENT
     resources.ts      authApi, diputadosApi, votacionesApi, statsApi, poroteosApi, catalogosApi
     queryKeys.ts      claves de TanStack Query centralizadas
   types/index.ts      tipos = DTOs del backend (camelCase). Si cambia la API, cambiá esto.
@@ -78,7 +78,7 @@ src/
 | `/camara`            | CamaraPage       | `useDiputados` (hemiciclo) + `useResumen`                                                                          |
 | `/login`             | LoginPage        | `useAuth().login` + botón de Google (`iniciarGoogle`). Respeta `?redirect=` (solo rutas internas: `destinoSeguro`) |
 | `/registro`          | RegistroPage     | `useAuth().registrar` + botón de Google. Si `requiereConfirmacion` → pantalla "revisá tu email"                    |
-| `/auth/callback`     | AuthCallbackPage | Vuelta de Google: parsea el hash, guarda la sesión, valida con `/auth/me` y redirige (pública, `bleed`)            |
+| `/auth/callback`     | AuthCallbackPage | Vuelta de Google: descarta tokens del hash; OAuth no implementado en el backend (pública, `bleed`)                 |
 | `/diputados`         | DiputadosPage    | `useDiputados` (los 257, filtrado en memoria; filtros en la URL)                                                   |
 | `/diputados/:id`     | DiputadoPage     | `useDiputado` + `useVotosDiputado` (paginado en servidor)                                                          |
 | `/votaciones`        | VotacionesPage   | `useVotaciones` (paginado y filtrado en servidor; filtros en la URL)                                               |
@@ -120,17 +120,36 @@ La pieza visual más importante. Props principales:
 
 ## 5 bis. Autenticación
 
-- Endpoints del backend: `POST /auth/registro`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`, `GET /auth/google`, `POST /auth/google/id-token`. **El editor `/poroteos` exige token**; la consulta `/poroteos-publicos` es anónima; diputados, votaciones, bloques, distritos y stats son públicos. En poroteos, `404` también significa "es de otra persona".
-- **Google (redirect):** `GoogleButton` (Login/Registro) → `useAuth().iniciarGoogle(destino)` pide `GET /auth/google?redirectTo=<origen>/auth/callback` y devuelve la URL; el botón navega con `window.location.href`. El destino post-login viaja en `sessionStorage` (`auth.google.redirect`), no en la URL. `/auth/callback` (pública) parsea el hash con `parseCallbackGoogle()` (`features/auth/google.ts`), limpia el hash de la URL con `history.replaceState`, guarda la sesión con `entrarConTokens()` (valida con `/auth/me`) y redirige al destino o a `/`. Errores de Google (`error`/`error_description`, en hash o query) se muestran con `mensajeErrorGoogle()`. `loginGoogleConIdToken()` queda listo para One Tap. Sin Supabase en el front, nunca.
-- Sesión en `localStorage` (`poroteo.sesion`) + copia del usuario (`poroteo.usuario`, solo presentación; nunca habilita rutas ni roles). `expiresAt` viene en **segundos**.
-- `request()` en `api/client.ts`:
-  - agrega `Authorization: Bearer` si hay sesión (opción `anonimo: true` para login/registro: ni token ni refresh, ahí un 401 es "credenciales incorrectas");
-  - si quedan < 60 s, renueva antes de mandar;
-  - ante 401 con token: si otra request ya renovó, reintenta con el token nuevo; si no, `refrescarSesion()`. **Una sola promesa de refresh en vuelo** (cada refreshToken sirve una vez);
-  - refresh rechazado → `limpiarSesion()` + evento `auth:logout` en `window`. Sin red → no cierra la sesión.
-- `AuthProvider` (en `App.tsx`, dentro del QueryClientProvider): estado `'cargando' | 'autenticado' | 'anonimo' | 'error'`; verifica con `/auth/me` al arrancar; escucha `auth:logout` y `storage` (otras pestañas). Al entrar/salir borra de la caché las queries de `poroteos` (son privadas).
-- Mensajes de error de cuenta: `authErrorMessage()`; errores por campo (`BAD_REQUEST`): `fieldErrors()` (`body.email` → `email`).
-- Nunca loguear tokens, nunca mandarlos en la URL, nunca guardar la contraseña.
+El navegador usa cookies HttpOnly de Supabase a través del backend, con
+`credentials: include` y `X-Session-Mode: cookie`. JavaScript recibe solo
+vencimientos y perfil. `localStorage` conserva coordinación y presentación,
+nunca access/refresh tokens o contraseñas. Las sesiones antiguas requieren nuevo
+login. El backend verifica identidad/roles/permisos en cada operación.
+
+`api/sessionLock.ts` usa Web Locks para serializar login, refresh y logout entre
+pestañas del mismo origen. Requiere navegador moderno y HTTPS (o localhost). Sin
+Web Locks se rechazan operaciones de sesión en vez de arriesgar rotación paralela.
+Refresh temporalmente limitado o proveedor caído conserva sesión para reintentar.
+Salir o cambiar de cuenta limpia cachés y descarta respuestas pendientes.
+
+Todas las mutaciones del navegador, incluyendo login/registro/refresh/PDF, llevan
+un encabezado no simple y el backend exige Origin exacto como defensa CSRF.
+Consultas públicas omiten cookies y usan no-store. No agregar Bearer ni tokens
+en query strings. Autocomplete y gestores de contraseñas se conservan.
+
+Desplegar frontend/backend juntos sobre HTTPS, preferentemente mismo sitio o
+proxy /api. Lax es el SameSite por defecto; sitios distintos necesitan evaluar
+None/Secure y bloqueo de cookies de terceros. El hosting del frontend debe probar
+CSP en Report-Only antes de imponerla; Helmet del backend no configura ese hosting.
+Logout revoca refresh local cuando Auth responde, pero un access token copiado
+puede conservar vigencia hasta expirar; sin red no se garantiza revocación remota.
+
+El backend local no implementa las rutas Google presentes en componentes antiguos.
+El callback no importa tokens del hash ni los persiste; muestra que el flujo no
+está habilitado. No implementar OAuth por simple importación de tokens.
+
+Auditoría completa, evidencia, pruebas y pendientes en
+[docs/seguridad.md del backend](https://github.com/zozodei/Agente-BackEnd-Legislativo/blob/develop/docs/seguridad.md).
 
 ## 6. Dirección visual (no negociable)
 

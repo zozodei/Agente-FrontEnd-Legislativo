@@ -286,6 +286,17 @@ it('galería pública accesible sin identidad y con enlaces de solo lectura', as
   );
 });
 
+it('título, descripción y texto de proyecto se muestran como texto frente a XSS', async () => {
+  p.titulo = '<img src=x onerror=alert(1)>';
+  p.descripcion = '<script>alert(2)</script>';
+  p.textoProyecto = '<svg onload=alert(3)></svg>';
+  const { container } = montar('/poroteos-publicos/proyecto');
+  expect(await screen.findByRole('heading', { name: p.titulo })).toBeInTheDocument();
+  expect(screen.getByText(p.descripcion)).toBeInTheDocument();
+  expect(screen.getByText(p.textoProyecto)).toBeInTheDocument();
+  expect(container.querySelector('script, img[onerror], svg[onload]')).toBeNull();
+});
+
 it('409 de votos conserva el voto local, no reintenta y envía revisión y modo replace', async () => {
   montar();
   fireEvent.click(await screen.findByRole('radio', { name: 'Lista' }));

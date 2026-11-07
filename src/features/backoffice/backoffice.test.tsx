@@ -34,7 +34,7 @@ const admin: Usuario = {
 const normal: Usuario = { ...admin, email: 'normal@example.org', rol: 'usuario' };
 const json = (status: number, data: unknown) => new Response(JSON.stringify(data), { status });
 let perfil: Usuario;
-let fetchMock: ReturnType<typeof vi.fn>;
+let fetchMock: ReturnType<typeof vi.fn<(url: string, options?: RequestInit) => Promise<Response>>>;
 let qc: QueryClient;
 
 function montar(path: string) {

@@ -17,6 +17,7 @@ export function validarEmail(email: string): string | null {
 export function validarPasswordNueva(password: string): string | null {
   if (password.length < 8) return 'Usá al menos 8 caracteres.';
   if (password.length > 72) return 'Máximo 72 caracteres.';
+  if (new TextEncoder().encode(password).length > 72) return 'Máximo 72 bytes UTF-8.';
   return null;
 }
 
@@ -51,6 +52,18 @@ export function authErrorMessage(error: unknown): string {
 /** Solo rutas internas (evita redirecciones abiertas a otros sitios). */
 export function destinoSeguro(redirect: string | null, fallback = '/poroteos'): string {
   if (!redirect || !redirect.startsWith('/') || redirect.startsWith('//')) return fallback;
+  if (
+    Array.from(redirect).some(
+      (char) => char === '\\' || char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127,
+    )
+  )
+    return fallback;
+  try {
+    if (new URL(redirect, window.location.origin).origin !== window.location.origin)
+      return fallback;
+  } catch {
+    return fallback;
+  }
   if (redirect.startsWith('/login') || redirect.startsWith('/registro')) return fallback;
   return redirect;
 }

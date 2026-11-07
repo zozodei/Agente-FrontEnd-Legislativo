@@ -53,7 +53,8 @@ describe('useAuth', () => {
     await act(() => result.current.login('ana@example.org', 'secreta123'));
     expect(result.current.estado).toBe('autenticado');
     expect(result.current.usuario?.nombre).toBe('Ana');
-    expect(getSesion()?.accessToken).toBe('access-1');
+    expect(getSesion()?.accessToken).toBeUndefined();
+    expect(getSesion()?.expiresIn).toBe(3600);
   });
 
   it('con sesión guardada verifica con /auth/me (cargando → autenticado)', async () => {
@@ -85,13 +86,14 @@ describe('useAuth', () => {
     expect(new Headers(llamadaInit?.headers).get('Authorization')).toBeNull();
   });
 
-  it('entrarConTokens guarda la sesión y valida con /auth/me', async () => {
+  it('no importa tokens desde el callback OAuth no implementado', async () => {
     fetchMock.mockResolvedValue(json(200, { data: usuario }));
     const { result } = renderHook(() => useAuth(), { wrapper });
-    await act(() => result.current.entrarConTokens(sesion));
-    expect(result.current.estado).toBe('autenticado');
-    expect(getSesion()?.accessToken).toBe('access-1');
-    expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/auth\/me$/);
+    await expect(result.current.entrarConTokens(sesion)).rejects.toMatchObject({
+      code: 'OAUTH_UNAVAILABLE',
+    });
+    expect(getSesion()).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('entrarConTokens con /me 401 no deja sesión guardada', async () => {
@@ -168,14 +170,14 @@ describe('AuthCallbackPage', () => {
     );
   }
 
-  it('con tokens en el hash valida con /me y redirige a /', async () => {
+  it('rechaza tokens del hash sin persistir secretos', async () => {
     // Response fresca por llamada (como un fetch real): jsdom dispara el evento
     // `storage` en la misma pestaña y el provider verifica la sesión nueva.
     fetchMock.mockImplementation(async () => json(200, { data: usuario }));
     renderCallback('/auth/callback#access_token=tok-a&refresh_token=tok-r&expires_in=3600');
-    expect(await screen.findByText('inicio')).toBeInTheDocument();
-    expect(getSesion()?.accessToken).toBe('tok-a');
-    expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/auth\/me$/);
+    expect(await screen.findByRole('alert')).toHaveTextContent('todavía no está habilitado');
+    expect(getSesion()).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('con error=access_denied muestra el error visible y no llama a /me', async () => {
@@ -206,6 +208,7 @@ describe('destinoSeguro', () => {
   it('solo acepta rutas internas', () => {
     expect(destinoSeguro('/poroteos/1')).toBe('/poroteos/1');
     expect(destinoSeguro('//malicioso.com')).toBe('/poroteos');
+    expect(destinoSeguro('/\\malicioso.com')).toBe('/poroteos');
     expect(destinoSeguro('https://malicioso.com')).toBe('/poroteos');
     expect(destinoSeguro('/login')).toBe('/poroteos');
     expect(destinoSeguro(null)).toBe('/poroteos');

@@ -120,8 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback<AuthValue['login']>(
     async (email, password) => {
-      revision.current += 1;
+      const actual = ++revision.current;
       const { data } = await authApi.login({ email: email.trim(), password });
+      if (actual !== revision.current)
+        throw new ApiError(401, 'SESSION_EXPIRED', 'La sesión cambió durante el ingreso.');
       olvidarDatosPrivados();
       setSesion(data.sesion);
       entrar(data.usuario);
@@ -132,8 +134,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registrar = useCallback<AuthValue['registrar']>(
     async (input: RegistroInput) => {
-      revision.current += 1;
+      const actual = ++revision.current;
       const { data } = await authApi.registrar(input);
+      if (actual !== revision.current)
+        throw new ApiError(401, 'SESSION_EXPIRED', 'La sesión cambió durante el registro.');
       if (data.sesion && !data.requiereConfirmacion) {
         olvidarDatosPrivados();
         setSesion(data.sesion);
@@ -149,8 +153,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setEstado('cargando');
     setUsuario(null);
     olvidarDatosPrivados();
+    const teniaSesion = getSesion() !== null;
+    limpiarSesion();
     try {
-      if (getSesion()) await authApi.logout();
+      if (teniaSesion) await authApi.logout();
     } catch {
       /* aunque falle en el servidor, la sesión local se cierra igual */
     }
@@ -179,24 +185,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [entrar, olvidarDatosPrivados],
   );
 
-  const entrarConTokens = useCallback<AuthValue['entrarConTokens']>(
-    async (sesion) => {
-      olvidarDatosPrivados();
-      setSesion(sesion);
-      try {
-        const { data } = await authApi.me();
-        entrar(data);
-        return data;
-      } catch (err) {
-        // La sesión no valida (token revocado o backend caído con 401): no queda nada guardado.
-        limpiarSesion();
-        setUsuario(null);
-        setEstado('anonimo');
-        throw err;
-      }
-    },
-    [entrar, olvidarDatosPrivados],
-  );
+  const entrarConTokens = useCallback<AuthValue['entrarConTokens']>(async () => {
+    // El backend local no implementa OAuth. No importar secretos desde un hash.
+    throw new ApiError(
+      400,
+      'OAUTH_UNAVAILABLE',
+      'El ingreso con Google todavía no está habilitado. Ingresá con email y contraseña.',
+    );
+  }, []);
 
   const refrescar = useCallback(async () => {
     try {

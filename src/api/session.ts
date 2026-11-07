@@ -1,7 +1,6 @@
 /**
- * Sesión del usuario guardada en localStorage (sobrevive a recargas).
- * Solo guardamos tokens y datos públicos del usuario: nunca la contraseña.
- * No loguear nada de esto en la consola.
+ * Coordinación y perfil de presentación sin secretos en localStorage.
+ * Access y refresh tokens permanecen en cookies HttpOnly del backend.
  */
 import type { Sesion, Usuario } from '@/types';
 
@@ -28,8 +27,31 @@ function escribir(key: string, value: unknown) {
   }
 }
 
-export const getSesion = () => leer<Sesion>(SESION_KEY);
-export const setSesion = (s: Sesion | null) => escribir(SESION_KEY, s);
+export const getSesion = (): Sesion | null => {
+  const value = leer<Sesion & { mode?: string }>(SESION_KEY);
+  if (!value) return null;
+  if (value.mode !== 'cookie' || value.accessToken || value.refreshToken) {
+    // Migración: descartar credenciales del diseño anterior. Se requiere nuevo login.
+    escribir(SESION_KEY, null);
+    escribir(USUARIO_KEY, null);
+    return null;
+  }
+  return value;
+};
+export const setSesion = (s: Sesion | null) =>
+  escribir(
+    SESION_KEY,
+    s
+      ? {
+          mode: 'cookie',
+          expiresAt: s.expiresAt,
+          expiresIn: s.expiresIn,
+          tokenType: 'bearer',
+          revision: s.revision ?? crypto.randomUUID(),
+          sessionId: s.sessionId ?? crypto.randomUUID(),
+        }
+      : null,
+  );
 export const getUsuarioGuardado = () => leer<Usuario>(USUARIO_KEY);
 export const setUsuarioGuardado = (u: Usuario | null) => escribir(USUARIO_KEY, u);
 

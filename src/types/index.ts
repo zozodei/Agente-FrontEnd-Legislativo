@@ -301,8 +301,11 @@ export interface Usuario {
 }
 
 export interface Sesion {
-  accessToken: string;
-  refreshToken: string;
+  /** Solo compatibilidad de tipos con callbacks antiguos; nunca se persisten ni envían. */
+  accessToken?: string;
+  refreshToken?: string;
+  revision?: string;
+  sessionId?: string;
   expiresIn: number; // segundos (~3600)
   expiresAt: number; // timestamp Unix en SEGUNDOS (no ms)
   tokenType: 'bearer';

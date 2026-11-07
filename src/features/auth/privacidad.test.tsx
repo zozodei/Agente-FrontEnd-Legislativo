@@ -21,6 +21,7 @@ const b: Usuario = { ...a, id: 'b', email: 'b@example.org', nombre: 'B' };
 const session = (id: string): Sesion => ({
   accessToken: id,
   refreshToken: id,
+  revision: id,
   expiresAt: Math.floor(Date.now() / 1000) + 3600,
   expiresIn: 3600,
   tokenType: 'bearer',
@@ -38,8 +39,9 @@ function wrapper({ children }: { children: ReactNode }) {
 beforeEach(() => {
   localStorage.clear();
   qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
-  fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
-    const id = new Headers(init?.headers).get('Authorization')?.slice(7);
+  fetchMock = vi.fn(async (url: string) => {
+    // El transporte simula cookies del navegador; no se usa Authorization.
+    const id = getSesion()?.revision;
     if (url.endsWith('/auth/me')) return json(id === 'b' ? b : a);
     if (url.endsWith('/auth/logout')) return new Response(null, { status: 204 });
     return new Response(JSON.stringify({ data: [{ id: `poroteo-${id}` }], meta: { total: 1 } }));
@@ -104,6 +106,7 @@ it('logout limpia inmediatamente aunque la respuesta del servidor siga pendiente
   expect(
     qc.getQueriesData({ queryKey: queryKeys.poroteosAll }).every(([, data]) => data === undefined),
   ).toBe(true);
+  await waitFor(() => expect(cerrar).toBeTypeOf('function'));
   await act(async () => {
     cerrar(new Response(null, { status: 204 }));
     await salida;
@@ -152,10 +155,12 @@ it('refresh pendiente no restaura una sesión cerrada ni reemplaza otra cuenta',
         }),
     );
     const refresh = refrescarSesion();
+    await waitFor(() => expect(terminar).toBeTypeOf('function'));
     setSesion(siguiente);
+    const esperado = getSesion();
     terminar(json({ sesion: session('a-renovada') }));
     await refresh;
-    expect(getSesion()).toEqual(siguiente);
+    expect(getSesion()).toEqual(esperado);
   }
 });
 

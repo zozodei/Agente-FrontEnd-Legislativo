@@ -70,8 +70,8 @@ Todo lo que empieza con `VITE_` queda visible en el navegador: **nunca** poner c
 ## Autenticación
 
 - El backend expone `/api/auth/{registro,login,refresh,logout,me}`; el front nunca habla con Supabase.
-- La sesión (`accessToken`, `refreshToken`, `expiresAt`) se guarda en `localStorage` (`poroteo.sesion`).
-- `src/api/client.ts` agrega `Authorization: Bearer …` a cada request, renueva el token antes de que venza y, ante un `401`, hace **un solo** refresh compartido por todas las requests que fallaron juntas. Si el refresh falla, limpia la sesión y emite `auth:logout`.
+- Access y refresh permanecen en cookies HttpOnly; `localStorage` guarda solo vencimientos, coordinación y perfil de presentación.
+- `src/api/client.ts` envía cookies y encabezado CSRF; coordina renovación entre pestañas con Web Locks. Un 401 definitivo limpia la sesión y emite `auth:logout`; errores temporales permiten reintentar.
 - `AuthProvider` / `useAuth()` (`src/features/auth`) exponen `{ usuario, estado, login, registrar, logout }` y sincronizan la sesión entre pestañas.
 
 ## Estructura
@@ -181,3 +181,36 @@ Pruebas nuevas: features/poroteo/colaboracion.test.tsx y privacidad.test.tsx.
 No se implementó Google, no se modificó Supabase remoto ni se realizó deploy.
 
 Verificación visual local: Chrome headless con datos simulados para editor, detalle público y galería, a 360 y 1440 px en ambos temas; 12 combinaciones sin desbordes ni errores de renderizado.
+
+## Sesión del navegador y seguridad
+
+El navegador usa cookies HttpOnly de Supabase a través del backend, con
+`credentials: include` y `X-Session-Mode: cookie`. JavaScript recibe solo
+vencimientos y perfil. `localStorage` conserva coordinación y presentación,
+nunca access/refresh tokens o contraseñas. Las sesiones antiguas requieren nuevo
+login. El backend verifica identidad/roles/permisos en cada operación.
+
+`api/sessionLock.ts` usa Web Locks para serializar login, refresh y logout entre
+pestañas del mismo origen. Requiere navegador moderno y HTTPS (o localhost). Sin
+Web Locks se rechazan operaciones de sesión en vez de arriesgar rotación paralela.
+Refresh temporalmente limitado o proveedor caído conserva sesión para reintentar.
+Salir o cambiar de cuenta limpia cachés y descarta respuestas pendientes.
+
+Todas las mutaciones del navegador, incluyendo login/registro/refresh/PDF, llevan
+un encabezado no simple y el backend exige Origin exacto como defensa CSRF.
+Consultas públicas omiten cookies y usan no-store. No agregar Bearer ni tokens
+en query strings. Autocomplete y gestores de contraseñas se conservan.
+
+Desplegar frontend/backend juntos sobre HTTPS, preferentemente mismo sitio o
+proxy /api. Lax es el SameSite por defecto; sitios distintos necesitan evaluar
+None/Secure y bloqueo de cookies de terceros. El hosting del frontend debe probar
+CSP en Report-Only antes de imponerla; Helmet del backend no configura ese hosting.
+Logout revoca refresh local cuando Auth responde, pero un access token copiado
+puede conservar vigencia hasta expirar; sin red no se garantiza revocación remota.
+
+El backend local no implementa las rutas Google presentes en componentes antiguos.
+El callback no importa tokens del hash ni los persiste; muestra que el flujo no
+está habilitado. No implementar OAuth por simple importación de tokens.
+
+Auditoría completa, evidencia, pruebas y pendientes en
+[docs/seguridad.md del backend](https://github.com/zozodei/Agente-BackEnd-Legislativo/blob/develop/docs/seguridad.md).
