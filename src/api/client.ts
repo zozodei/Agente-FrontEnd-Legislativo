@@ -113,7 +113,7 @@ export function refrescarSesion(): Promise<Sesion | null> {
 /* ── Request ──────────────────────────────────────────────────────────── */
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  if (['/auth/login', '/auth/registro', '/auth/logout'].includes(path)) {
+  if (['/auth/login', '/auth/registro', '/auth/logout', '/auth/google/callback'].includes(path)) {
     return withSessionLock(() => performRequest<T>(path, options));
   }
   return performRequest<T>(path, options);

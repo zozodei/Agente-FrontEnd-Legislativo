@@ -2,17 +2,16 @@
  * Login con Google (redirect). El front nunca habla con Google ni con
  * Supabase directo: el backend da la URL y valida la sesión con /auth/me.
  *
- * Flujo: botón → GET /auth/google?redirectTo=<origen>/auth/callback →
- * Google → vuelve a /auth/callback con los tokens en el hash
- * (#access_token=…&refresh_token=…&expires_in=…) → se guardan y se
- * validan con GET /auth/me.
+ * Flujo (PKCE en el servidor): botón → GET /auth/google?redirectTo=<origen>/auth/callback
+ * (el backend guarda el verifier en una cookie HttpOnly) → Google → vuelve a
+ * /auth/callback?code=… → POST /auth/google/callback { code } → el backend canjea
+ * el código con su verifier y deja las cookies de sesión, igual que el login.
+ * El código solo no sirve: sin la cookie de este navegador no abre sesión.
  */
-import type { Sesion } from '@/types';
-
 const DESTINO_KEY = 'auth.google.redirect';
 
 export type ResultadoCallback =
-  | { tipo: 'sesion'; sesion: Sesion }
+  | { tipo: 'codigo'; code: string }
   | { tipo: 'error'; error: string; descripcion: string | null }
   | { tipo: 'vacio' };
 
@@ -22,43 +21,25 @@ export function urlCallbackGoogle(): string {
 }
 
 /**
- * Parsea lo que trae Google al volver. Los tokens vienen en el hash
- * (formato de Supabase); un error puede venir en el hash o en la query.
+ * Parsea lo que trae Supabase al volver: `?code=` (PKCE) o un error en la
+ * query o el hash. Tokens en el hash se ignoran a propósito: nunca se importan.
  * Función pura (recibe hash/search) para poder testearla sin router.
  */
-export function parseCallbackGoogle(
-  hash: string,
-  search = '',
-  ahora = Date.now(),
-): ResultadoCallback {
+export function parseCallbackGoogle(hash: string, search = ''): ResultadoCallback {
   const params = new URLSearchParams(hash.replace(/^#/, ''));
   const query = new URLSearchParams(search.replace(/^\?/, ''));
 
-  const error = params.get('error') ?? query.get('error');
+  const error = query.get('error') ?? params.get('error');
   if (error) {
     return {
       tipo: 'error',
       error,
-      descripcion: params.get('error_description') ?? query.get('error_description'),
+      descripcion: query.get('error_description') ?? params.get('error_description'),
     };
   }
 
-  const accessToken = params.get('access_token');
-  const refreshToken = params.get('refresh_token');
-  if (!accessToken || !refreshToken) return { tipo: 'vacio' };
-
-  const expiresIn = Number(params.get('expires_in'));
-  const segundos = Number.isFinite(expiresIn) && expiresIn > 0 ? Math.floor(expiresIn) : 3600;
-  return {
-    tipo: 'sesion',
-    sesion: {
-      accessToken,
-      refreshToken,
-      expiresIn: segundos,
-      expiresAt: Math.floor(ahora / 1000) + segundos, // SEGUNDOS, como el resto de la sesión
-      tokenType: 'bearer',
-    },
-  };
+  const code = query.get('code')?.trim();
+  return code ? { tipo: 'codigo', code } : { tipo: 'vacio' };
 }
 
 /** Mensaje para mostrar cuando Google vuelve con error (o sin tokens). */

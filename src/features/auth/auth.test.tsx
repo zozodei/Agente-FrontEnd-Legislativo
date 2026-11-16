@@ -86,23 +86,26 @@ describe('useAuth', () => {
     expect(new Headers(llamadaInit?.headers).get('Authorization')).toBeNull();
   });
 
-  it('no importa tokens desde el callback OAuth no implementado', async () => {
-    fetchMock.mockResolvedValue(json(200, { data: usuario }));
+  it('completarGoogle canjea el código en el backend y queda autenticado', async () => {
+    fetchMock.mockResolvedValue(json(200, { data: { usuario, sesion } }));
     const { result } = renderHook(() => useAuth(), { wrapper });
-    await expect(result.current.entrarConTokens(sesion)).rejects.toMatchObject({
-      code: 'OAUTH_UNAVAILABLE',
-    });
-    expect(getSesion()).toBeNull();
-    expect(fetchMock).not.toHaveBeenCalled();
+    await act(() => result.current.completarGoogle('codigo-1'));
+    expect(result.current.estado).toBe('autenticado');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toMatch(/\/api\/auth\/google\/callback$/);
+    expect(init.method).toBe('POST');
+    expect(init.credentials).toBe('include');
+    expect(JSON.parse(init.body)).toEqual({ code: 'codigo-1' });
+    expect(getSesion()?.accessToken).toBeUndefined();
   });
 
-  it('entrarConTokens con /me 401 no deja sesión guardada', async () => {
-    fetchMock.mockResolvedValue(json(401, { error: { code: 'SESSION_EXPIRED', message: 'x' } }));
+  it('completarGoogle con código rechazado no deja sesión guardada', async () => {
+    fetchMock.mockResolvedValue(json(400, { error: { code: 'OAUTH_FAILED', message: 'x' } }));
     const { result } = renderHook(() => useAuth(), { wrapper });
     let error: unknown = null;
     await act(async () => {
       try {
-        await result.current.entrarConTokens(sesion);
+        await result.current.completarGoogle('codigo-vencido');
       } catch (err) {
         error = err;
       }
@@ -171,13 +174,24 @@ describe('AuthCallbackPage', () => {
   }
 
   it('rechaza tokens del hash sin persistir secretos', async () => {
-    // Response fresca por llamada (como un fetch real): jsdom dispara el evento
-    // `storage` en la misma pestaña y el provider verifica la sesión nueva.
-    fetchMock.mockImplementation(async () => json(200, { data: usuario }));
     renderCallback('/auth/callback#access_token=tok-a&refresh_token=tok-r&expires_in=3600');
-    expect(await screen.findByRole('alert')).toHaveTextContent('todavía no está habilitado');
+    expect(await screen.findByRole('alert')).toHaveTextContent(/No se recibieron los datos/);
     expect(getSesion()).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('con ?code= canjea en el backend y navega al inicio', async () => {
+    // Response fresca por llamada (como un fetch real): jsdom dispara el evento
+    // `storage` en la misma pestaña y el provider verifica la sesión nueva.
+    fetchMock.mockImplementation(async (url: string) =>
+      url.endsWith('/auth/google/callback')
+        ? json(200, { data: { usuario, sesion } })
+        : json(200, { data: usuario }),
+    );
+    renderCallback('/auth/callback?code=codigo-1');
+    expect(await screen.findByText('inicio')).toBeInTheDocument();
+    expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/auth\/google\/callback$/);
+    expect(getSesion()?.accessToken).toBeUndefined();
   });
 
   it('con error=access_denied muestra el error visible y no llama a /me', async () => {
