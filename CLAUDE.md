@@ -56,11 +56,12 @@ src/
                                 (parseo del callback de Google), components/ AuthShell,
                                 CuentaMenu (zona de sesión del encabezado), GoogleButton
     dashboard/queries.ts        useResumen
-    landing/tablero/            portada 3D: escenario.ts (puro, testeado: bancas, votos del ejemplo,
-                                tramos de cámara y votación, conteo según progreso), progreso.ts
-                                (valor compartido scroll → escena), PoroteoEnVivo (figura + lectura
-                                + ScrollTrigger), TableroEscena (Canvas R3F, lazy; default export)
-  pages/              una por ruta: LandingPage, CamaraPage, DiputadosPage, DiputadoPage,
+    landing/portadas/           portada 3D de la landing y candidatas: comun.ts (tokens → THREE.Color,
+                                progreso del riel, tramos), piezas.tsx (pupitres instanciados,
+                                encuadre), PortadaVotacionReal (la de la landing), PortadaCongreso,
+                                PortadaVotos; cada una con su Escena* lazy
+    landing/tablero/            escenario.ts (bancas 3D + escenario de ejemplo, testeado), progreso.ts
+  pages/              una por ruta: LandingPage, PortadasPage (/portadas), CamaraPage, DiputadosPage, DiputadoPage,
                       VotacionesPage, VotacionPage, LoginPage, RegistroPage, AuthCallbackPage,
                       PoroteosPage, NuevoPoroteoPage, PoroteoPage, NotFoundPage
   hooks/              useTheme, useDebouncedValue, useDocumentTitle, useSearchParamState, useReducedMotion
@@ -74,7 +75,8 @@ src/
 
 | Ruta                 | Página           | Datos                                                                                                              |
 | -------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `/`                  | LandingPage      | Portada a todo el ancho (`handle.bleed`). `useDiputados` + `useResumen`                                            |
+| `/`                  | LandingPage      | Portada a todo el ancho (`handle.bleed`). `useVotacion(1516)` + `useDiputados` + `useResumen`                      |
+| `/portadas`          | PortadasPage     | Las 3 portadas 3D para mostrarlas (no está en el menú, `bleed`)                                                    |
 | `/camara`            | CamaraPage       | `useDiputados` (hemiciclo) + `useResumen`                                                                          |
 | `/login`             | LoginPage        | `useAuth().login` + botón de Google (`iniciarGoogle`). Respeta `?redirect=` (solo rutas internas: `destinoSeguro`) |
 | `/registro`          | RegistroPage     | `useAuth().registrar` + botón de Google. Si `requiereConfirmacion` → pantalla "revisá tu email"                    |
@@ -161,6 +163,7 @@ Auditoría completa, evidencia, pruebas y pendientes en
 - ✅ Color fuerte **solo para datos** (votos y bloques). La UI es monocroma con `--accent` (azul patrio) para links y foco.
 - ✅ **Identidad patria** (marca, nunca datos): `--celeste`, `--sol` (sol de mayo), `--noche` (azul noche) y `--franja` (celeste-blanco-celeste). Se usan en: la franja del encabezado y del pie, el pie noche, la portada, el panel de login/registro, el trazo celeste + sol arriba de cada `PageHeader` y el "IA" del wordmark. Sobre fondo noche, redefinir `--celeste-ink: var(--celeste)` y usar los botones `inverse` / `outlineInverse`.
 - ✅ Lo "tecnológico" se expresa con mono, retícula fina (líneas celeste al 7–10 %) y el cursor de la tarjeta de ejemplo: **sin** neón, glow ni gradientes violetas.
+  - **Excepción acordada (solo portada 3D):** bloom sutil en las pantallas de voto y en los puntos de luz de las escenas de la portada (`@react-three/postprocessing`, `luminanceThreshold` alto para que solo brille lo que es HDR). Fuera de la portada sigue sin glow.
 - ✅ Todo color/espaciado sale de `styles/tokens.css`. **No hardcodear hex en componentes** (excepción: `palette.ts`).
 - ✅ Modo oscuro: tokens redefinidos en `tokens.css` (sistema o forzado con `data-theme`). Probá siempre los dos.
 - ✅ Movimiento sutil: `--dur-*` y `--ease-out`; respetan `prefers-reduced-motion`.
@@ -171,13 +174,26 @@ Estados: toda vista con datos tiene **skeleton** (carga), **EmptyState** (vacío
 
 ## 6 bis. Portada 3D y animaciones
 
-- **Concepto:** el recinto como **tablero de votación electrónica**. 257 pupitres con su pantalla de voto. Al cargar se levantan fila por fila; con el scroll la cámara sube de una toma baja a la vista cenital y las pantallas se encienden banca por banca hasta el escenario de ejemplo (131 / 98 / 6 / 22, se aprueba). El conteo de la lectura es texto real (accesible) y sigue al scroll. (La primera versión, con porotos literales, quedó en la rama `feature/landing-porotos`.)
-- **Escritorio (> 960px):** la portada es `position: sticky` dentro de un riel de `240svh` (`.riel` en `LandingPage.module.css`); ScrollTrigger solo lee el recorrido del riel (`scrub`). **No usar `pin` de GSAP** acá: con datos que llegan después y cambian la altura de la página, el espaciado del pin quedaba en 0 y las secciones se superponían. **Celular:** sin sticky; la votación avanza mientras la figura cruza la pantalla.
-- **Movimiento reducido:** el riel no se alarga, sin subida ni inclinación; se muestra el resultado final. **Sin WebGL:** el mismo tablero en SVG (`HemicicloPlano`).
-- **Rendimiento:** dos `InstancedMesh` (pupitres y pantallas: dos llamadas de dibujo), `frameloop="demand"` (solo dibuja mientras algo se mueve), `dpr` máx. 2, chunk `TableroEscena` cargado con `lazy` (~250 kB gzip, no bloquea la primera pintura).
-- **Colores:** la escena lee los tokens CSS (`--voto-*`, `--noche*`, `--sol`) con `getComputedStyle` y los relee al cambiar el tema. Las pantallas usan material sin luz para que el color del voto sea exacto; "en duda" = `--noche-ink-2`, apagada = `--noche-rule`. No poner hex en la escena.
-- **GSAP:** importar de `@/utils/gsap`; animar solo dentro de `useGSAP` con `scope` (limpia ScrollTriggers al desmontar). Si cambia la altura de la página después de montar (datos que llegan), llamar `ScrollTrigger.refresh()`.
+- **Portada de la landing: "Votación real"** (`features/landing/portadas/PortadaVotacionReal` + `EscenaVotacionReal`). Reproduce la media sanción de la IVE del 14/06/2018 (votación 1516, 129 a 125) con los votos reales de la API, repartidos por bloque en 257 pupitres con pantalla de voto. Abre con un plano cerrado con profundidad de campo; con el scroll la cámara se aleja y sube mientras las pantallas se encienden en orden aleatorio (determinista). El marcador grande es texto real y sigue al scroll. En la landing el título es el `h1` (`principal`).
+- **Riel + sticky:** cada portada vive en un riel de `340svh` con la escena `position: sticky` (100svh); ScrollTrigger solo lee el recorrido (`scrub`). **No usar `pin` de GSAP**: con datos que llegan después y cambian la altura de la página, el espaciado del pin quedaba en 0 y las secciones se superponían.
+- **Encuadre (`EncuadreLateral`):** en pantallas anchas la escena se corre a la derecha (el título está a la izquierda); en celular se abre el campo de visión para que entre el arco y se baja a la franja entre el texto y el marcador.
+- **Movimiento reducido:** el riel no se alarga y se muestra el resultado final. **Sin WebGL:** queda el texto y el marcador (sin escena).
+- **Postprocesado:** `@react-three/postprocessing` (profundidad de campo, bloom solo sobre lo HDR, grano, viñeta). Ver la excepción de glow en §6.
+- **Rendimiento:** pupitres en dos `InstancedMesh`, `frameloop="demand"` y `'never'` fuera de pantalla, `dpr` máx. 1.75, cada escena es un chunk `lazy`.
+- **Colores:** las escenas leen los tokens CSS (`--voto-*`, `--noche*`, `--sol`, `--celeste`, `--paper*`) y los releen al cambiar el tema. No poner hex en las escenas (excepción: colores de bloque de `palette.ts`).
+- **GSAP:** importar de `@/utils/gsap`; animar solo dentro de `useGSAP` con `scope`. Si cambia la altura de la página después de montar, `ScrollTrigger.refresh()`.
 - Otras animaciones de la landing: bancas de "La Cámara, hoy" que se ocupan de izquierda a derecha (atributo `r`, una vez) y la línea de la hoja de ruta que se traza con el scroll (variables CSS `--avance` / `--encendido`).
+- Versiones anteriores de la portada en ramas: `feature/landing-porotos` (porotos) y `feature/landing-tablero` (tablero de ejemplo).
+
+### Portadas para mostrar (`/portadas`)
+
+Página aparte (fuera del menú) con las tres candidatas, una abajo de la otra:
+
+1. **Votación real** — la que está en la landing.
+2. **Del edificio al recinto** (`PortadaCongreso` + `EscenaCongreso`): Congreso low-poly hecho con geometría; la cámara entra por la cúpula, el edificio se desvanece y se vota el escenario de ejemplo.
+3. **Miles de votos** (`PortadaVotos` + `EscenaVotos`): ~24.700 puntos en un `ShaderMaterial` (GLSL) que pasan de un remolino a columnas sobre cada banca con el color de su bloque actual.
+
+Las tres comparten `comun.ts` y `piezas.tsx`: un cambio ahí afecta a la landing.
 
 ## 7. Seguridad: reglas que no se rompen
 

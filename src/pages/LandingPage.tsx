@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Hemiciclo } from '@/components/hemiciclo';
 import { ButtonLink } from '@/components/ui/Button';
@@ -7,30 +7,12 @@ import { Kicker } from '@/components/ui/Typography';
 import { useAuth } from '@/features/auth/useAuth';
 import { useResumen } from '@/features/dashboard/queries';
 import { diputadoToBanca, useDiputados } from '@/features/diputados/queries';
-import { PoroteoEnVivo } from '@/features/landing/tablero/PoroteoEnVivo';
+import { PortadaVotacionReal } from '@/features/landing/portadas/PortadaVotacionReal';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { formatNumber } from '@/utils/format';
 import { gsap, ScrollTrigger, useGSAP } from '@/utils/gsap';
 import styles from './LandingPage.module.css';
-
-/**
- * Foto de portada: "Atardecer en el Congreso de la Nación Argentina", de Miguel César,
- * Wikimedia Commons, CC BY-SA 3.0. Si se quiere servir local, bajarla a public/img/
- * y cambiar estas URLs (el crédito tiene que seguir visible).
- */
-const FOTO_BASE =
-  'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Atardecer_en_el_Congreso_de_la_Naci%C3%B3n_Argentina.jpg';
-const FOTO_ARCHIVO = 'Atardecer_en_el_Congreso_de_la_Naci%C3%B3n_Argentina.jpg';
-const FOTO = {
-  src: `${FOTO_BASE}/1920px-${FOTO_ARCHIVO}`,
-  srcSet: `${FOTO_BASE}/1280px-${FOTO_ARCHIVO} 1280w, ${FOTO_BASE}/1920px-${FOTO_ARCHIVO} 1920w, ${FOTO_BASE}/2560px-${FOTO_ARCHIVO} 2560w`,
-  pagina:
-    'https://commons.wikimedia.org/wiki/File:Atardecer_en_el_Congreso_de_la_Naci%C3%B3n_Argentina.jpg',
-  autor: 'Miguel César',
-  licencia: 'CC BY-SA 3.0',
-  licenciaUrl: 'https://creativecommons.org/licenses/by-sa/3.0/deed.es',
-};
 
 const PASOS = [
   {
@@ -101,46 +83,16 @@ export default function LandingPage() {
   const logueado = estado === 'autenticado';
   const resumen = useResumen();
   const votaciones = resumen.data?.votaciones.total;
-  const riel = useRef<HTMLDivElement>(null);
 
   return (
     <div className={styles.page}>
-      {/* ── Portada ─────────────────────────────────────────────── */}
-      {/* El riel es más alto que la pantalla: la portada queda fija (sticky) mientras se vota. */}
-      <div ref={riel} className={styles.riel} data-riel>
-        <section className={styles.hero} aria-labelledby="hero-titulo">
-          <Portada />
-          <div className={`${styles.wrap} ${styles.heroInner}`}>
-            <div className={styles.heroText}>
-              <span className={styles.heroKicker}>
-                <span className={styles.dot} aria-hidden /> Congreso de la Nación Argentina · Cámara
-                de Diputados
-              </span>
-              <h1 id="hero-titulo" className={styles.heroTitle}>
-                Sabé si una ley sale <em>antes de que se vote.</em>
-              </h1>
-              <p className={styles.heroLead}>
-                demoIA estima, banca por banca, cómo votaría cada uno de los 257 diputados un
-                proyecto de ley. Hoy, con tu criterio y datos abiertos; muy pronto, con inteligencia
-                artificial entrenada en décadas de votaciones nominales.
-              </p>
-              <div className={styles.heroActions}>
-                <ButtonLink
-                  to={logueado ? '/poroteos/nuevo' : '/registro'}
-                  variant="inverse"
-                  size="lg"
-                >
-                  Empezar a porotear
-                </ButtonLink>
-                <ButtonLink to="/camara" variant="outlineInverse" size="lg">
-                  Explorar la Cámara
-                </ButtonLink>
-              </div>
-            </div>
-
-            <PoroteoEnVivo rielRef={riel} />
-          </div>
-
+      {/* ── Portada: la IVE de 2018 votada banca por banca (ver features/landing/portadas) ── */}
+      <div>
+        <PortadaVotacionReal
+          principal
+          accionPrincipal={logueado ? '/poroteos/nuevo' : '/registro'}
+        />
+        <div className={styles.fichaBanda}>
           <dl className={`${styles.wrap} ${styles.ficha}`}>
             <div>
               <dt>Bancas</dt>
@@ -159,7 +111,7 @@ export default function LandingPage() {
               <dd>Abiertos</dd>
             </div>
           </dl>
-        </section>
+        </div>
       </div>
 
       {/* ── Qué es ──────────────────────────────────────────────── */}
@@ -245,7 +197,7 @@ export default function LandingPage() {
           <p className={styles.cierreTexto}>
             Creá una cuenta gratuita: tus poroteos quedan guardados y solo los ves vos.
           </p>
-          <div className={styles.heroActions}>
+          <div className={styles.acciones}>
             {logueado ? (
               <ButtonLink to="/poroteos" variant="inverse" size="lg">
                 Ir a mis poroteos
@@ -263,45 +215,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      <p className={`${styles.wrap} ${styles.credito}`}>
-        Foto de portada:{' '}
-        <a href={FOTO.pagina} target="_blank" rel="noreferrer">
-          “Atardecer en el Congreso de la Nación Argentina”
-        </a>
-        , {FOTO.autor}, Wikimedia Commons,{' '}
-        <a href={FOTO.licenciaUrl} target="_blank" rel="noreferrer">
-          {FOTO.licencia}
-        </a>
-        .
-      </p>
-    </div>
-  );
-}
-
-/** Foto del Congreso con duotono, retícula y un zoom muy lento ("plano de cámara"). */
-function Portada() {
-  const [cargada, setCargada] = useState(false);
-  const [fallo, setFallo] = useState(false);
-  return (
-    <div className={styles.portada} aria-hidden>
-      {!fallo && (
-        <img
-          src={FOTO.src}
-          srcSet={FOTO.srcSet}
-          sizes="100vw"
-          alt=""
-          className={styles.foto}
-          data-cargada={cargada || undefined}
-          onLoad={() => setCargada(true)}
-          onError={() => setFallo(true)}
-          fetchPriority="high"
-          decoding="async"
-        />
-      )}
-      <span className={styles.velo} />
-      <span className={styles.reticula} />
-      <span className={styles.sol} />
     </div>
   );
 }

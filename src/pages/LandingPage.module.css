@@ -1,8 +1,6 @@
 /*
- * Portada de demoIA. Dos registros que conviven:
- *  - institucional/patrio: foto del Congreso, azul noche, celeste y sol de mayo;
- *  - tecnológico: retícula fina, mono, la tarjeta "en pantalla" con cursor.
- * El resto de las secciones vuelven al papel + tinta del resto de la app.
+ * Landing de demoIA. La portada 3D vive en features/landing/portadas (fondo noche);
+ * el resto de las secciones vuelven al papel + tinta del resto de la app.
  */
 
 .page {
@@ -20,196 +18,14 @@
   padding-right: var(--page-gutter);
 }
 
-/* ── Portada ───────────────────────────────────────────────────────── */
+/* ── Ficha técnica, al pie de la portada (banda noche) ───────────── */
 
-/* Riel: en escritorio es más alto que la pantalla y la portada queda sticky adentro;
-   el recorrido extra (140% de la pantalla) es lo que dura la votación con el scroll. */
-.riel {
-  position: relative;
-}
-
-@media (min-width: 961px) and (prefers-reduced-motion: no-preference) {
-  .riel {
-    height: 240svh;
-  }
-
-  .riel > .hero {
-    position: sticky;
-    top: 0;
-    height: 100svh;
-    min-height: 0;
-  }
-}
-
-.hero {
-  --celeste-ink: var(--celeste);
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: min(100svh, 980px);
-  overflow: hidden;
+.fichaBanda {
+  padding-top: var(--space-4);
   background: var(--noche);
   color: var(--noche-ink);
 }
 
-.portada {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-}
-
-.foto {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 62% 40%;
-  opacity: 0;
-  transform: scale(1.08);
-  filter: saturate(0.75) contrast(1.05);
-  transition: opacity var(--dur-slow) var(--ease-out);
-}
-
-.foto[data-cargada] {
-  opacity: 1;
-  animation: plano 38s var(--ease-in-out) infinite alternate;
-}
-
-@keyframes plano {
-  from {
-    transform: scale(1.08) translate3d(0, 0, 0);
-  }
-  to {
-    transform: scale(1.18) translate3d(-2%, -1.5%, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .foto[data-cargada] {
-    animation: none;
-  }
-}
-
-/* Velo: azul noche fuerte a la izquierda (donde va el texto), se abre a la derecha. */
-.velo {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      90deg,
-      var(--noche) 0%,
-      color-mix(in srgb, var(--noche) 88%, transparent) 34%,
-      color-mix(in srgb, var(--noche) 72%, transparent) 62%,
-      color-mix(in srgb, var(--noche) 80%, transparent) 100%
-    ),
-    linear-gradient(0deg, var(--noche) 0%, transparent 38%);
-  mix-blend-mode: normal;
-}
-
-/* Retícula técnica muy tenue. */
-.reticula {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--celeste) 10%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--celeste) 10%, transparent) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: linear-gradient(90deg, transparent 0%, black 45%, black 100%);
-}
-
-/* Sol de mayo: un halo cálido detrás de la cúpula. */
-.sol {
-  position: absolute;
-  top: 8%;
-  right: 18%;
-  width: 34vmax;
-  height: 34vmax;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--sol) 30%, transparent) 0%,
-    transparent 62%
-  );
-  pointer-events: none;
-}
-
-.heroInner {
-  flex: 1 1 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  gap: var(--space-6);
-  align-items: end;
-  padding-top: var(--space-8);
-  padding-bottom: var(--space-6);
-}
-
-/* La figura de porotos ocupa toda la altura disponible de la columna. */
-.heroInner > figure {
-  align-self: stretch;
-}
-
-@media (max-width: 960px) {
-  .heroInner {
-    grid-template-columns: 1fr;
-    gap: var(--space-6);
-    padding-top: var(--space-7);
-  }
-}
-
-.heroText {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-
-.heroKicker {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-kicker);
-  text-transform: uppercase;
-  color: var(--celeste);
-}
-
-.dot {
-  display: inline-block;
-  flex: none;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--sol);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sol) 22%, transparent);
-}
-
-.heroTitle {
-  max-width: 15ch;
-  font-size: var(--text-display);
-  font-weight: 400;
-  line-height: 0.95;
-  letter-spacing: -0.035em;
-}
-
-.heroTitle em {
-  font-style: italic;
-  color: var(--celeste);
-}
-
-.heroLead {
-  max-width: 52ch;
-  font-size: var(--text-lg);
-  color: var(--noche-ink-2);
-}
-
-.heroActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
-/* Ficha técnica al pie de la portada */
 .ficha {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -657,6 +473,12 @@
   padding-bottom: var(--space-8);
 }
 
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .cierreTitulo {
   font-size: var(--text-4xl);
   font-weight: 400;
@@ -671,10 +493,4 @@
   max-width: 52ch;
   font-size: var(--text-lg);
   color: var(--noche-ink-2);
-}
-
-.credito {
-  margin-top: calc(var(--space-8) * -1);
-  font-size: var(--text-xs);
-  color: var(--ink-3);
 }
