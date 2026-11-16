@@ -16,6 +16,7 @@ Guía para cualquier agente o persona que trabaje en este repo. Leela completa a
 ## 2. Stack y arquitectura
 
 React 19 + Vite 6 + TypeScript strict. React Router 7 (data router), TanStack Query 5, Recharts, CSS Modules.
+Portada: three.js + React Three Fiber (escena 3D, chunk lazy) y GSAP + ScrollTrigger (animación con scroll).
 
 ```
 Navegador  →  backend (/api/...)  →  Supabase
@@ -55,6 +56,10 @@ src/
                                 (parseo del callback de Google), components/ AuthShell,
                                 CuentaMenu (zona de sesión del encabezado), GoogleButton
     dashboard/queries.ts        useResumen
+    landing/porotos/            portada 3D: escenario.ts (puro, testeado: bancas, montón, votos del
+                                ejemplo, conteo según progreso), progreso.ts (valor compartido
+                                scroll → escena), PoroteoEnVivo (figura + lectura + ScrollTrigger),
+                                PorotosEscena (Canvas R3F, lazy; default export)
     diputados/                  queries (useDiputados, useDiputado, useVotosDiputado, diputadoToBanca)
                                 components/ DiputadoCard, HistorialVotos, PerfilCharts
     votaciones/                 queries (useVotaciones, useVotacion), components/ VotacionRow, VotosTabla
@@ -64,8 +69,9 @@ src/
   pages/              una por ruta: LandingPage, CamaraPage, DiputadosPage, DiputadoPage,
                       VotacionesPage, VotacionPage, LoginPage, RegistroPage, AuthCallbackPage,
                       PoroteosPage, NuevoPoroteoPage, PoroteoPage, NotFoundPage
-  hooks/              useTheme, useDebouncedValue, useDocumentTitle, useSearchParamState
-  utils/              format.ts (números/fechas es-AR), text.ts (normalize, titleCase, nombreLegible)
+  hooks/              useTheme, useDebouncedValue, useDocumentTitle, useSearchParamState, useReducedMotion
+  utils/              format.ts (números/fechas es-AR), text.ts (normalize, titleCase, nombreLegible),
+                      gsap.ts (ÚNICO punto de entrada a GSAP: registra ScrollTrigger y useGSAP)
 ```
 
 **Regla de dependencias:** `pages → features → components/ui, api, hooks, utils`. Los componentes de `components/` no importan de `features/` ni de `pages/` (por eso `AppLayout` recibe la zona de cuenta como prop `cuenta` desde `router.tsx`).
@@ -164,9 +170,20 @@ Auditoría completa, evidencia, pruebas y pendientes en
 - ✅ Todo color/espaciado sale de `styles/tokens.css`. **No hardcodear hex en componentes** (excepción: `palette.ts`).
 - ✅ Modo oscuro: tokens redefinidos en `tokens.css` (sistema o forzado con `data-theme`). Probá siempre los dos.
 - ✅ Movimiento sutil: `--dur-*` y `--ease-out`; respetan `prefers-reduced-motion`.
+- ✅ **Un solo momento protagonista**: la portada (ver §6 bis). El resto del movimiento explica datos (bancas que se ocupan, línea de tiempo que se traza); nada de fade-in genérico en cada sección.
 - Paleta de votos validada para daltonismo (protan/deutan ΔE ≥ 7) con el voto siempre también como texto. "Ausente" es gris a propósito.
 
 Estados: toda vista con datos tiene **skeleton** (carga), **EmptyState** (vacío) y **ErrorState** con reintentar (error).
+
+## 6 bis. Portada 3D y animaciones
+
+- **Concepto:** porotear = contar porotos. 257 porotos 3D caen en un montón; al scrollear, cada uno viaja a su banca y se pinta con su voto hasta el escenario de ejemplo (131 / 98 / 6 / 22, se aprueba). El conteo de la lectura es texto real (accesible) y sigue al scroll.
+- **Escritorio (> 960px):** la portada se fija (`pin`) durante 140% de la altura de pantalla. **Celular:** sin pin; el poroteo avanza mientras la figura cruza la pantalla.
+- **Movimiento reducido:** sin pin, sin caída ni inclinación; se muestra el resultado final. **Sin WebGL:** el mismo escenario en SVG (`HemicicloPlano`).
+- **Rendimiento:** un `InstancedMesh` (una llamada de dibujo), `frameloop="demand"` (solo dibuja mientras algo se mueve), `dpr` máx. 2, chunk `PorotosEscena` cargado con `lazy` (~250 kB gzip, no bloquea la primera pintura).
+- **Colores:** la escena lee los tokens CSS (`--poroto`, `--voto-*`, `--celeste`, `--sol`, `--noche*`) con `getComputedStyle` y los relee al cambiar el tema. No poner hex en la escena.
+- **GSAP:** importar de `@/utils/gsap`; animar solo dentro de `useGSAP` con `scope` (limpia ScrollTriggers al desmontar). Si cambia la altura de la página después de montar (datos que llegan), llamar `ScrollTrigger.refresh()`.
+- Otras animaciones de la landing: bancas de "La Cámara, hoy" que se ocupan de izquierda a derecha (atributo `r`, una vez) y la línea de la hoja de ruta que se traza con el scroll (variables CSS `--avance` / `--encendido`).
 
 ## 7. Seguridad: reglas que no se rompen
 

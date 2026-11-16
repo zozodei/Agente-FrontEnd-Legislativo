@@ -95,6 +95,9 @@
   --noche-ink: #eef2f6;
   --noche-ink-2: #a9b9cb;
   --noche-rule: #2a3f5a;
+  /* Poroto sin pintar (alubia): el voto "en duda" de la escena 3D de la portada.
+     Vive sobre fondo noche en los dos temas, por eso no se redefine en oscuro. */
+  --poroto: #e6dcc6;
   --franja: linear-gradient(
     90deg,
     var(--celeste) 0 33.33%,
