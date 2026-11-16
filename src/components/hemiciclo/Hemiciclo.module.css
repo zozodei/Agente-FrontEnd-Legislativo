@@ -150,3 +150,16 @@
   font-weight: 600;
   color: var(--accent);
 }
+
+/* Voto estimado por la IA: borde fino de tinta para distinguirlo del manual. */
+.estimada:not(:hover, .active) {
+  stroke: var(--ink-3);
+  stroke-width: 0.6;
+}
+
+.tooltipNota {
+  max-width: 220px;
+  font-size: var(--text-2xs);
+  line-height: 1.35;
+  color: var(--ink-2);
+}

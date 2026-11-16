@@ -1,5 +1,13 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import type { PoroteoDetalle, TipoMayoria, VotoPoroteo } from '@/types';
+import type { PoroteoDetalle, TipoMayoria, VotoPoroteo, VotoPrediccion } from '@/types';
+import {
+  aplicarPrediccion,
+  armarVotosInput,
+  firmaIa,
+  iaDesdePoroteo,
+  type IaMap,
+  type ModoAplicar,
+} from './ia';
 import { calcularResultado } from './resultado';
 
 export type VotosMap = Map<number, VotoPoroteo>;
@@ -26,6 +34,13 @@ const MAX_HISTORY = 50;
 export function usePoroteoEditor(poroteo: PoroteoDetalle, tipoMayoria: TipoMayoria) {
   const [votos, setVotosState] = useState<VotosMap>(() => votosToMap(poroteo));
   const [guardados, setGuardados] = useState<VotosMap>(() => votosToMap(poroteo));
+  // Detalle de la IA por banca. No necesita historial: un voto es "de la IA" solo si
+  // coincide con lo que propuso el modelo, así que deshacer lo resuelve solo.
+  const [ia, setIa] = useState<IaMap>(() => iaDesdePoroteo(poroteo));
+  const [firmaGuardada, setFirmaGuardada] = useState(() =>
+    firmaIa(votosToMap(poroteo), iaDesdePoroteo(poroteo)),
+  );
+  const iaRef = useRef(ia);
   // Los refs guardan el valor "real" para las acciones; el estado dispara el render.
   const current = useRef(votos);
   const history = useRef<VotosMap[]>([]);
@@ -70,13 +85,32 @@ export function usePoroteoEditor(poroteo: PoroteoDetalle, tipoMayoria: TipoMayor
 
   const limpiar = useCallback(() => commit(() => new Map()), [commit]);
 
-  const marcarGuardado = useCallback((map: VotosMap) => setGuardados(new Map(map)), []);
+  const aplicarIa = useCallback(
+    (prediccion: VotoPrediccion[], modo: ModoAplicar) => {
+      const r = aplicarPrediccion(current.current, iaRef.current, prediccion, modo);
+      iaRef.current = r.ia;
+      setIa(r.ia);
+      commit(() => r.votos);
+      return r.aplicados;
+    },
+    [commit],
+  );
+
+  const payload = useCallback(() => armarVotosInput(current.current, iaRef.current), []);
+
+  const marcarGuardado = useCallback((map: VotosMap) => {
+    setGuardados(new Map(map));
+    setFirmaGuardada(firmaIa(map, iaRef.current));
+  }, []);
 
   const resumen = useMemo(
     () => calcularResultado(votos.values(), tipoMayoria),
     [votos, tipoMayoria],
   );
-  const dirty = useMemo(() => !sameMaps(votos, guardados), [votos, guardados]);
+  const dirty = useMemo(
+    () => !sameMaps(votos, guardados) || firmaIa(votos, ia) !== firmaGuardada,
+    [votos, guardados, ia, firmaGuardada],
+  );
 
   return {
     votos,
@@ -87,5 +121,8 @@ export function usePoroteoEditor(poroteo: PoroteoDetalle, tipoMayoria: TipoMayor
     resumen,
     dirty,
     marcarGuardado,
+    ia,
+    aplicarIa,
+    payload,
   };
 }

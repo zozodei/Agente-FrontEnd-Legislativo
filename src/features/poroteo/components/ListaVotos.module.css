@@ -104,3 +104,16 @@
     flex: 1;
   }
 }
+
+.ia {
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+
+.motivo {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--text-2xs);
+  line-height: 1.35;
+  color: var(--ink-3);
+}

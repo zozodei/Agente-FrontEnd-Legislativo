@@ -1,0 +1,111 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: var(--rule-width) solid var(--rule);
+  border-top: 2px solid var(--rule-strong-color);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.kicker,
+.simulado {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.simulado {
+  padding: 0 var(--space-2);
+  border: var(--rule-width) solid currentColor;
+  color: var(--voto-negativo);
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.prob {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.prob :global(.num) {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.probLabel,
+.esperados,
+.nota,
+.error,
+.alerta {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.nota {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.error {
+  color: var(--voto-negativo);
+}
+
+.alerta {
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--sol);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.detalles summary {
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--accent);
+}
+
+.detalles dl {
+  display: grid;
+  gap: var(--space-1);
+  margin-block: var(--space-2);
+}
+
+.detalles dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.detalles dt {
+  color: var(--ink-3);
+}
+
+.detalles dd {
+  text-align: right;
+}
+
+.advertencias {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}

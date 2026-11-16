@@ -2,6 +2,7 @@ import type {
   MiembroPoroteo,
   PoroteoPublico,
   PoroteoPublicoDetalle,
+  Prediccion,
   VersionPoroteo,
   RolPoroteo,
 } from '@/types';
@@ -122,6 +123,11 @@ export interface CrearPoroteoInput {
 export interface VotoInput {
   diputadoId: number;
   voto: VotoPoroteo;
+  /** Solo para votos propuestos por la IA y no corregidos a mano. */
+  origen?: 'manual' | 'ia';
+  confianza?: number | null;
+  justificacion?: string | null;
+  fuentes?: Record<string, unknown>[] | null;
 }
 
 export interface ActualizarPoroteoInput {
@@ -172,6 +178,9 @@ export const poroteosApi = {
       method: 'PUT',
       body: { version, modo, votos },
     }),
+  /** Propuesta de votos con IA. No guarda: se guarda después con saveVotos. */
+  predecir: (id: string) =>
+    request<{ data: Prediccion }>(`/poroteos/${id}/prediccion`, { method: 'POST', body: {} }),
   remove: (id: string, version: VersionPoroteo) =>
     request<void>(`/poroteos/${id}`, { method: 'DELETE', body: { version } }),
   miembros: (id: string, signal?: AbortSignal) =>

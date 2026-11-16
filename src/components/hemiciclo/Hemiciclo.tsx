@@ -152,12 +152,19 @@ export function Hemiciclo({
               cx={seat.x * SCALE}
               cy={-seat.y * SCALE}
               r={r}
-              style={{ fill: colorDe(banca) }}
+              style={{
+                fill: colorDe(banca),
+                // Votos de la IA: más tenues cuanto menor la confianza (nunca invisibles).
+                ...(typeof banca.confianza === 'number' && {
+                  fillOpacity: 0.3 + 0.7 * Math.min(1, Math.max(0, banca.confianza)),
+                }),
+              }}
               className={[
                 styles.seat,
                 atenuada && styles.dim,
                 sinVoto && styles.empty,
                 hover?.banca.id === banca.id && styles.active,
+                typeof banca.confianza === 'number' && styles.estimada,
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -195,8 +202,11 @@ export function Hemiciclo({
                 style={{ color: VOTO_COLOR[hover.banca.voto ?? 'INDEFINIDO'] }}
               >
                 {VOTO_LABEL[hover.banca.voto ?? 'INDEFINIDO']}
+                {typeof hover.banca.confianza === 'number' &&
+                  ` · IA ${Math.round(hover.banca.confianza * 100)}%`}
               </span>
             )}
+            {hover.banca.nota && <span className={styles.tooltipNota}>{hover.banca.nota}</span>}
             {hover.sticky && hover.banca.href && (
               <Link className={styles.tooltipLink} to={hover.banca.href}>
                 Ver perfil →

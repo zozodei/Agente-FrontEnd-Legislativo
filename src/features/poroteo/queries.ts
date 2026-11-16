@@ -173,3 +173,20 @@ export function usePoroteoPublico(id: string) {
     refetchInterval: 15000,
   });
 }
+
+/** Pide una propuesta de votos a la IA. No guarda ni toca la caché del poroteo. */
+export function usePrediccion(id: string) {
+  const { usuario } = useAuth();
+  const userId = usuario?.id ?? '';
+  return useMutation({
+    retry: false,
+    mutationFn: async () => {
+      const { data } = await poroteosApi.predecir(id);
+      // Si la sesión cambió mientras se calculaba, descartar la respuesta.
+      if (!getSesion() || getUsuarioGuardado()?.id !== userId) {
+        throw new Error('La sesión cambió mientras se calculaba la predicción.');
+      }
+      return data;
+    },
+  });
+}

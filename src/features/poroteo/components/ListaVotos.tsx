@@ -5,6 +5,7 @@ import { SearchInput, SelectField } from '@/components/ui/Fields';
 import { VOTO_COLOR, VOTO_LABEL } from '@/styles/palette';
 import type { Diputado, VotoPoroteo } from '@/types';
 import { normalize, titleCase } from '@/utils/text';
+import type { DetalleIa } from '../ia';
 import type { VotosMap } from '../usePoroteoEditor';
 import styles from './ListaVotos.module.css';
 
@@ -22,10 +23,13 @@ export function ListaVotos({
   diputados,
   votos,
   onAsignar,
+  estimadas,
 }: {
   diputados: Diputado[];
   votos: VotosMap;
   onAsignar: (ids: number[], voto: VotoPoroteo | null) => void;
+  /** Votos que todavía son los propuestos por la IA (con confianza y justificación). */
+  estimadas?: Map<number, DetalleIa>;
 }) {
   const [q, setQ] = useState('');
   const [bloque, setBloque] = useState('');
@@ -74,7 +78,13 @@ export function ListaVotos({
       <p className={`${styles.count} num`}>{filtrados.length} diputados</p>
       <ul className={styles.list}>
         {filtrados.map((d) => (
-          <Fila key={d.id} d={d} voto={votos.get(d.id) ?? 'INDEFINIDO'} onAsignar={onAsignar} />
+          <Fila
+            key={d.id}
+            d={d}
+            voto={votos.get(d.id) ?? 'INDEFINIDO'}
+            ia={estimadas?.get(d.id)}
+            onAsignar={onAsignar}
+          />
         ))}
       </ul>
     </div>
@@ -84,10 +94,12 @@ export function ListaVotos({
 const Fila = memo(function Fila({
   d,
   voto,
+  ia,
   onAsignar,
 }: {
   d: Diputado;
   voto: VotoPoroteo;
+  ia?: DetalleIa;
   onAsignar: (ids: number[], voto: VotoPoroteo | null) => void;
 }) {
   const nombre = `${d.nombre} ${d.apellido}`;
@@ -98,7 +110,13 @@ const Fila = memo(function Fila({
         <strong>{d.apellido}</strong>, {d.nombre}
         <span className={styles.sub}>
           <BloqueChip bloque={d.bloque} corto /> · {titleCase(d.distrito)}
+          {ia && (
+            <span className={styles.ia} title={ia.justificacion ?? undefined}>
+              {' · '}IA{ia.confianza !== null && ` ${Math.round(ia.confianza * 100)}%`}
+            </span>
+          )}
         </span>
+        {ia?.justificacion && <span className={styles.motivo}>{ia.justificacion}</span>}
       </span>
       <div className={styles.votes} role="radiogroup" aria-label={`Voto de ${nombre}`}>
         {VOTOS.map((v) => (

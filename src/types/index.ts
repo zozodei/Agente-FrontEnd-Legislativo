@@ -280,6 +280,43 @@ export interface PoroteoDetalle extends Poroteo {
   votos: PoroteoVoto[];
 }
 
+/* ── Predicción con IA (POST /poroteos/:id/prediccion) ─────────────────── */
+
+export type VotoPredicho = 'AFIRMATIVO' | 'NEGATIVO' | 'ABSTENCION' | 'AUSENTE';
+
+export interface VotoPrediccion {
+  diputadoId: number;
+  voto: VotoPredicho;
+  probabilidades: Record<VotoPredicho, number>;
+  confianza: number;
+  justificacion: string | null;
+  fuentes: Record<string, unknown>[] | null;
+}
+
+export interface Prediccion {
+  poroteoId: string;
+  version: VersionPoroteo;
+  generadaEn: string;
+  modelo: {
+    nombre: string;
+    version: string;
+    variante: string | null;
+    simulado: boolean;
+    datosHasta: string | null;
+  };
+  tema: { valor: string | null; origen: 'titulo' | 'texto' | 'usuario' | 'desconocido' } | null;
+  votos: VotoPrediccion[];
+  resumen: {
+    esperados: { afirmativos: number; negativos: number; abstenciones: number; ausentes: number };
+    intervalo80: { afirmativos: [number, number]; negativos: [number, number] } | null;
+    probAprobacion: number | null;
+    probQuorum: number | null;
+    probDividida: number | null;
+    posibleDividida: boolean | null;
+  };
+  advertencias: string[];
+}
+
 export type PoroteoPublico = Omit<Poroteo, 'metadata' | 'autor' | 'archivoNombre'>;
 export interface PoroteoPublicoDetalle extends PoroteoPublico {
   textoProyecto: string | null;

@@ -10,18 +10,21 @@ import { Kicker, SectionHeader } from '@/components/ui/Typography';
 import { diputadoToBanca, useDiputados } from '@/features/diputados/queries';
 import { BloqueAcciones } from '@/features/poroteo/components/BloqueAcciones';
 import { ListaVotos } from '@/features/poroteo/components/ListaVotos';
+import { PrediccionPanel } from '@/features/poroteo/components/PrediccionPanel';
 import { ResultadoPanel } from '@/features/poroteo/components/ResultadoPanel';
 import {
   useActualizarPoroteo,
   useEliminarPoroteo,
   useGuardarVotos,
   usePoroteo,
+  usePrediccion,
 } from '@/features/poroteo/queries';
+import { esIa, type DetalleIa, type ModoAplicar } from '@/features/poroteo/ia';
 import { TIPO_MAYORIA_LABEL } from '@/features/poroteo/resultado';
 import { usePoroteoEditor } from '@/features/poroteo/usePoroteoEditor';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { VOTO_COLOR, VOTO_LABEL } from '@/styles/palette';
-import type { Diputado, PoroteoDetalle, TipoMayoria, VotoPoroteo } from '@/types';
+import type { Diputado, PoroteoDetalle, Prediccion, TipoMayoria, VotoPoroteo } from '@/types';
 import { formatRelative } from '@/utils/format';
 import styles from './PoroteoPage.module.css';
 
@@ -82,6 +85,12 @@ export default function PoroteoPage() {
   );
 }
 
+const ORIGEN_LABEL = {
+  manual: 'Poroteo manual',
+  ia: 'Poroteo con IA',
+  mixto: 'Poroteo con IA y correcciones',
+} as const;
+
 type Pincel = VotoPoroteo | 'BORRAR';
 const PINCELES: Pincel[] = ['AFIRMATIVO', 'NEGATIVO', 'ABSTENCION', 'AUSENTE', 'BORRAR'];
 type Vista = 'hemiciclo' | 'lista';
@@ -103,8 +112,23 @@ function Editor({
   const navigate = useNavigate();
   const [tipoMayoria, setTipoMayoria] = useState<TipoMayoria>(poroteo.tipoMayoria);
   const editor = usePoroteoEditor(poroteo, tipoMayoria);
-  const { votos, asignar, deshacer, puedeDeshacer, limpiar, resumen, dirty, marcarGuardado } =
-    editor;
+  const {
+    votos,
+    asignar,
+    deshacer,
+    puedeDeshacer,
+    limpiar,
+    resumen,
+    dirty,
+    marcarGuardado,
+    ia,
+    aplicarIa,
+    payload,
+  } = editor;
+  const estimar = usePrediccion(inicial.id);
+  const [prediccion, setPrediccion] = useState<Prediccion | null>(null);
+  const [aplicados, setAplicados] = useState<number | null>(null);
+  const [modoIa, setModoIa] = useState<ModoAplicar>('sinAsignar');
   const [pincel, setPincel] = useState<Pincel>('AFIRMATIVO');
   const [vista, setVista] = useState<Vista>('hemiciclo');
 
@@ -117,15 +141,30 @@ function Editor({
     descripcion !== (poroteo.descripcion ?? '') ||
     textoProyecto !== (poroteo.textoProyecto ?? '') ||
     tipoMayoria !== poroteo.tipoMayoria;
-  const busy = guardar.isPending || actualizar.isPending || eliminar.isPending;
+  const busy = guardar.isPending || actualizar.isPending || eliminar.isPending || estimar.isPending;
   const conflicto = [guardar.error, actualizar.error, eliminar.error].some(
     (e) => e instanceof ApiError && e.status === 409,
   );
   const cambios = dirty || contenidoDirty;
+  // Detalle de la IA solo para las bancas que conservan el voto propuesto.
+  const estimadas = useMemo(() => {
+    const m = new Map<number, DetalleIa>();
+    for (const [id, detalle] of ia) if (esIa(id, votos, ia)) m.set(id, detalle);
+    return m;
+  }, [ia, votos]);
   const bancas: Banca[] = useMemo(
     () =>
-      diputados.map((d) => ({ ...diputadoToBanca(d), href: null, voto: votos.get(d.id) ?? null })),
-    [diputados, votos],
+      diputados.map((d) => {
+        const detalle = estimadas.get(d.id);
+        return {
+          ...diputadoToBanca(d),
+          href: null,
+          voto: votos.get(d.id) ?? null,
+          confianza: detalle ? (detalle.confianza ?? 1) : null,
+          nota: detalle?.justificacion ?? null,
+        };
+      }),
+    [diputados, votos, estimadas],
   );
 
   const pintar = useCallback(
@@ -140,11 +179,10 @@ function Editor({
   );
 
   const onGuardar = () => {
-    const payload = [...votos.entries()].map(([diputadoId, voto]) => ({ diputadoId, voto }));
     const snapshot = new Map(votos);
     if (busy || conflicto || !poroteo.permisos.editar) return;
     guardar.mutate(
-      { votos: payload, version: poroteo.version },
+      { votos: payload(), version: poroteo.version },
       {
         onSuccess: (data) => {
           setPoroteo(data);
@@ -152,6 +190,26 @@ function Editor({
         },
       },
     );
+  };
+
+  const bloqueoIa = !poroteo.permisos.editar
+    ? 'Solo quienes pueden editar el poroteo pueden estimar con IA.'
+    : conflicto
+      ? 'Recargá el poroteo antes de estimar.'
+      : contenidoDirty
+        ? 'Guardá el contenido del proyecto antes de estimar: la IA usa la versión guardada.'
+        : busy && !estimar.isPending
+          ? 'Esperá a que termine la operación en curso.'
+          : null;
+
+  const onEstimar = () => {
+    if (bloqueoIa || estimar.isPending) return;
+    estimar.mutate(undefined, {
+      onSuccess: (data) => {
+        setAplicados(aplicarIa(data.votos, modoIa));
+        setPrediccion(data);
+      },
+    });
   };
 
   const onTipoMayoria = (tipo: TipoMayoria) => {
@@ -217,7 +275,7 @@ function Editor({
       <header className={styles.header}>
         <div className={styles.headerText}>
           <Kicker tono="accent">
-            Poroteo manual · editado {formatRelative(poroteo.updatedAt)}
+            {ORIGEN_LABEL[poroteo.origen]} · editado {formatRelative(poroteo.updatedAt)}
             {poroteo.archivoNombre ? ` · ${poroteo.archivoNombre}` : ''}
           </Kicker>
           <h1 className={styles.title}>{poroteo.titulo}</h1>
@@ -379,7 +437,12 @@ function Editor({
               </p>
             </div>
           ) : (
-            <ListaVotos diputados={diputados} votos={votos} onAsignar={asignar} />
+            <ListaVotos
+              diputados={diputados}
+              votos={votos}
+              onAsignar={asignar}
+              estimadas={estimadas}
+            />
           )}
 
           <section className={styles.section}>
@@ -392,6 +455,17 @@ function Editor({
 
         <aside className={styles.aside}>
           <div className={styles.sticky}>
+            <PrediccionPanel
+              prediccion={prediccion}
+              aplicados={aplicados}
+              pendiente={estimar.isPending}
+              error={estimar.error}
+              bloqueo={bloqueoIa}
+              modo={modoIa}
+              onModo={setModoIa}
+              hayVotos={votos.size > 0}
+              onEstimar={onEstimar}
+            />
             <ResultadoPanel resumen={resumen} />
 
             <div className={styles.saveBox}>
