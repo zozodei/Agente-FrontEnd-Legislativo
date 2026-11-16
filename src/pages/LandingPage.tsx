@@ -9,15 +9,14 @@ import { useResumen } from '@/features/dashboard/queries';
 import { diputadoToBanca, useDiputados } from '@/features/diputados/queries';
 import { PortadaCongreso } from '@/features/landing/portadas/PortadaCongreso';
 import { PortadaVotacionReal } from '@/features/landing/portadas/PortadaVotacionReal';
-import { PortadaVotos } from '@/features/landing/portadas/PortadaVotos';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { formatNumber } from '@/utils/format';
 import { gsap, ScrollTrigger, useGSAP } from '@/utils/gsap';
 import styles from './LandingPage.module.css';
 
-/** Portadas candidatas: en cada visita a la landing se muestra una al azar. */
-const PORTADAS = [PortadaVotacionReal, PortadaCongreso, PortadaVotos];
+/** Portadas de la landing: en cada visita se muestra una de las dos al azar ("Miles de votos" queda solo en /portadas). */
+const PORTADAS = [PortadaVotacionReal, PortadaCongreso];
 
 const PASOS = [
   {
@@ -93,7 +92,7 @@ export default function LandingPage() {
 
   return (
     <div className={styles.page}>
-      {/* ── Portada: una de las tres al azar (ver features/landing/portadas) ── */}
+      {/* ── Portada: una de las dos al azar (ver features/landing/portadas) ── */}
       <div>
         <Portada principal accionPrincipal={logueado ? '/poroteos/nuevo' : '/registro'} />
         <div className={styles.fichaBanda}>
