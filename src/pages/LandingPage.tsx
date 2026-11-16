@@ -7,7 +7,7 @@ import { Kicker } from '@/components/ui/Typography';
 import { useAuth } from '@/features/auth/useAuth';
 import { useResumen } from '@/features/dashboard/queries';
 import { diputadoToBanca, useDiputados } from '@/features/diputados/queries';
-import { PoroteoEnVivo } from '@/features/landing/porotos/PoroteoEnVivo';
+import { PoroteoEnVivo } from '@/features/landing/tablero/PoroteoEnVivo';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { formatNumber } from '@/utils/format';
@@ -101,63 +101,66 @@ export default function LandingPage() {
   const logueado = estado === 'autenticado';
   const resumen = useResumen();
   const votaciones = resumen.data?.votaciones.total;
-  const hero = useRef<HTMLElement>(null);
+  const riel = useRef<HTMLDivElement>(null);
 
   return (
     <div className={styles.page}>
       {/* ── Portada ─────────────────────────────────────────────── */}
-      <section ref={hero} className={styles.hero} aria-labelledby="hero-titulo">
-        <Portada />
-        <div className={`${styles.wrap} ${styles.heroInner}`}>
-          <div className={styles.heroText}>
-            <span className={styles.heroKicker}>
-              <span className={styles.dot} aria-hidden /> Congreso de la Nación Argentina · Cámara
-              de Diputados
-            </span>
-            <h1 id="hero-titulo" className={styles.heroTitle}>
-              Sabé si una ley sale <em>antes de que se vote.</em>
-            </h1>
-            <p className={styles.heroLead}>
-              demoIA estima, banca por banca, cómo votaría cada uno de los 257 diputados un proyecto
-              de ley. Hoy, con tu criterio y datos abiertos; muy pronto, con inteligencia artificial
-              entrenada en décadas de votaciones nominales.
-            </p>
-            <div className={styles.heroActions}>
-              <ButtonLink
-                to={logueado ? '/poroteos/nuevo' : '/registro'}
-                variant="inverse"
-                size="lg"
-              >
-                Empezar a porotear
-              </ButtonLink>
-              <ButtonLink to="/camara" variant="outlineInverse" size="lg">
-                Explorar la Cámara
-              </ButtonLink>
+      {/* El riel es más alto que la pantalla: la portada queda fija (sticky) mientras se vota. */}
+      <div ref={riel} className={styles.riel} data-riel>
+        <section className={styles.hero} aria-labelledby="hero-titulo">
+          <Portada />
+          <div className={`${styles.wrap} ${styles.heroInner}`}>
+            <div className={styles.heroText}>
+              <span className={styles.heroKicker}>
+                <span className={styles.dot} aria-hidden /> Congreso de la Nación Argentina · Cámara
+                de Diputados
+              </span>
+              <h1 id="hero-titulo" className={styles.heroTitle}>
+                Sabé si una ley sale <em>antes de que se vote.</em>
+              </h1>
+              <p className={styles.heroLead}>
+                demoIA estima, banca por banca, cómo votaría cada uno de los 257 diputados un
+                proyecto de ley. Hoy, con tu criterio y datos abiertos; muy pronto, con inteligencia
+                artificial entrenada en décadas de votaciones nominales.
+              </p>
+              <div className={styles.heroActions}>
+                <ButtonLink
+                  to={logueado ? '/poroteos/nuevo' : '/registro'}
+                  variant="inverse"
+                  size="lg"
+                >
+                  Empezar a porotear
+                </ButtonLink>
+                <ButtonLink to="/camara" variant="outlineInverse" size="lg">
+                  Explorar la Cámara
+                </ButtonLink>
+              </div>
             </div>
+
+            <PoroteoEnVivo rielRef={riel} />
           </div>
 
-          <PoroteoEnVivo pinRef={hero} />
-        </div>
-
-        <dl className={`${styles.wrap} ${styles.ficha}`}>
-          <div>
-            <dt>Bancas</dt>
-            <dd className="num">257</dd>
-          </div>
-          <div>
-            <dt>Quórum</dt>
-            <dd className="num">129</dd>
-          </div>
-          <div>
-            <dt>Votaciones nominales</dt>
-            <dd className="num">{votaciones ? formatNumber(votaciones) : '—'}</dd>
-          </div>
-          <div>
-            <dt>Datos</dt>
-            <dd>Abiertos</dd>
-          </div>
-        </dl>
-      </section>
+          <dl className={`${styles.wrap} ${styles.ficha}`}>
+            <div>
+              <dt>Bancas</dt>
+              <dd className="num">257</dd>
+            </div>
+            <div>
+              <dt>Quórum</dt>
+              <dd className="num">129</dd>
+            </div>
+            <div>
+              <dt>Votaciones nominales</dt>
+              <dd className="num">{votaciones ? formatNumber(votaciones) : '—'}</dd>
+            </div>
+            <div>
+              <dt>Datos</dt>
+              <dd>Abiertos</dd>
+            </div>
+          </dl>
+        </section>
+      </div>
 
       {/* ── Qué es ──────────────────────────────────────────────── */}
       <section className={`${styles.wrap} ${styles.definicion}`} aria-labelledby="que-es">

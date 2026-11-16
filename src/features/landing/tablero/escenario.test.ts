@@ -1,38 +1,41 @@
 import { describe, expect, it } from 'vitest';
 import {
-  avanceViaje,
+  avanceCamara,
+  avanceVotacion,
   BANCAS,
   CONTEO_FINAL,
   conteoEn,
-  crearPorotos,
+  crearBancas,
   radiosFilas,
+  TRAMO_CAMARA,
+  TRAMO_VOTACION,
 } from './escenario';
 import { crearProgreso } from './progreso';
 
-describe('escenario de porotos de la portada', () => {
-  const porotos = crearPorotos();
+describe('tablero de votación de la portada', () => {
+  const bancas = crearBancas();
 
-  it('crea un poroto por banca, con el reparto del ejemplo', () => {
-    expect(porotos).toHaveLength(BANCAS);
+  it('crea las 257 bancas, con el reparto del ejemplo', () => {
+    expect(bancas).toHaveLength(BANCAS);
     const total = Object.values(CONTEO_FINAL).reduce((a, b) => a + b, 0);
     expect(total).toBe(BANCAS);
-    expect(conteoEn(porotos, 1)).toEqual(CONTEO_FINAL);
+    expect(conteoEn(bancas, 1)).toEqual(CONTEO_FINAL);
   });
 
   it('es determinista', () => {
-    expect(crearPorotos()).toEqual(porotos);
+    expect(crearBancas()).toEqual(bancas);
   });
 
   it('al principio todo está en duda y el conteo avanza sin retroceder', () => {
-    expect(conteoEn(porotos, 0)).toEqual({
+    expect(conteoEn(bancas, 0)).toEqual({
       afirmativo: 0,
       negativo: 0,
       abstencion: 0,
       pendiente: BANCAS,
     });
-    let previo = conteoEn(porotos, 0);
+    let previo = conteoEn(bancas, 0);
     for (let p = 0; p <= 1.0001; p += 0.01) {
-      const c = conteoEn(porotos, p);
+      const c = conteoEn(bancas, p);
       expect(c.afirmativo).toBeGreaterThanOrEqual(previo.afirmativo);
       expect(c.negativo).toBeGreaterThanOrEqual(previo.negativo);
       expect(c.pendiente).toBeLessThanOrEqual(previo.pendiente);
@@ -40,11 +43,11 @@ describe('escenario de porotos de la portada', () => {
     }
   });
 
-  it('cada poroto termina el viaje a su banca antes del final del scroll', () => {
-    for (const po of porotos) {
-      expect(avanceViaje(po.orden, 0)).toBe(0);
-      expect(avanceViaje(po.orden, 0.6)).toBeCloseTo(1, 9);
-    }
+  it('la cámara llega a la vista cenital antes de que termine la votación', () => {
+    expect(avanceCamara(0)).toBe(0);
+    expect(avanceCamara(TRAMO_CAMARA.hasta)).toBe(1);
+    expect(TRAMO_CAMARA.hasta).toBeLessThan(TRAMO_VOTACION.hasta);
+    expect(avanceVotacion(1)).toBe(1);
   });
 
   it('las bancas quedan dentro del radio de las filas', () => {

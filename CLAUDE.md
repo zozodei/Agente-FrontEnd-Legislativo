@@ -56,16 +56,10 @@ src/
                                 (parseo del callback de Google), components/ AuthShell,
                                 CuentaMenu (zona de sesión del encabezado), GoogleButton
     dashboard/queries.ts        useResumen
-    landing/porotos/            portada 3D: escenario.ts (puro, testeado: bancas, montón, votos del
-                                ejemplo, conteo según progreso), progreso.ts (valor compartido
-                                scroll → escena), PoroteoEnVivo (figura + lectura + ScrollTrigger),
-                                PorotosEscena (Canvas R3F, lazy; default export)
-    diputados/                  queries (useDiputados, useDiputado, useVotosDiputado, diputadoToBanca)
-                                components/ DiputadoCard, HistorialVotos, PerfilCharts
-    votaciones/                 queries (useVotaciones, useVotacion), components/ VotacionRow, VotosTabla
-    poroteo/                    queries (CRUD + mutaciones), resultado.ts (cálculo en vivo),
-                                usePoroteoEditor.ts (estado local + deshacer), components/
-                                ResultadoPanel, BloqueAcciones, ListaVotos
+    landing/tablero/            portada 3D: escenario.ts (puro, testeado: bancas, votos del ejemplo,
+                                tramos de cámara y votación, conteo según progreso), progreso.ts
+                                (valor compartido scroll → escena), PoroteoEnVivo (figura + lectura
+                                + ScrollTrigger), TableroEscena (Canvas R3F, lazy; default export)
   pages/              una por ruta: LandingPage, CamaraPage, DiputadosPage, DiputadoPage,
                       VotacionesPage, VotacionPage, LoginPage, RegistroPage, AuthCallbackPage,
                       PoroteosPage, NuevoPoroteoPage, PoroteoPage, NotFoundPage
@@ -177,11 +171,11 @@ Estados: toda vista con datos tiene **skeleton** (carga), **EmptyState** (vacío
 
 ## 6 bis. Portada 3D y animaciones
 
-- **Concepto:** porotear = contar porotos. 257 porotos 3D caen en un montón; al scrollear, cada uno viaja a su banca y se pinta con su voto hasta el escenario de ejemplo (131 / 98 / 6 / 22, se aprueba). El conteo de la lectura es texto real (accesible) y sigue al scroll.
-- **Escritorio (> 960px):** la portada se fija (`pin`) durante 140% de la altura de pantalla. **Celular:** sin pin; el poroteo avanza mientras la figura cruza la pantalla.
-- **Movimiento reducido:** sin pin, sin caída ni inclinación; se muestra el resultado final. **Sin WebGL:** el mismo escenario en SVG (`HemicicloPlano`).
-- **Rendimiento:** un `InstancedMesh` (una llamada de dibujo), `frameloop="demand"` (solo dibuja mientras algo se mueve), `dpr` máx. 2, chunk `PorotosEscena` cargado con `lazy` (~250 kB gzip, no bloquea la primera pintura).
-- **Colores:** la escena lee los tokens CSS (`--poroto`, `--voto-*`, `--celeste`, `--sol`, `--noche*`) con `getComputedStyle` y los relee al cambiar el tema. No poner hex en la escena.
+- **Concepto:** el recinto como **tablero de votación electrónica**. 257 pupitres con su pantalla de voto. Al cargar se levantan fila por fila; con el scroll la cámara sube de una toma baja a la vista cenital y las pantallas se encienden banca por banca hasta el escenario de ejemplo (131 / 98 / 6 / 22, se aprueba). El conteo de la lectura es texto real (accesible) y sigue al scroll. (La primera versión, con porotos literales, quedó en la rama `feature/landing-porotos`.)
+- **Escritorio (> 960px):** la portada es `position: sticky` dentro de un riel de `240svh` (`.riel` en `LandingPage.module.css`); ScrollTrigger solo lee el recorrido del riel (`scrub`). **No usar `pin` de GSAP** acá: con datos que llegan después y cambian la altura de la página, el espaciado del pin quedaba en 0 y las secciones se superponían. **Celular:** sin sticky; la votación avanza mientras la figura cruza la pantalla.
+- **Movimiento reducido:** el riel no se alarga, sin subida ni inclinación; se muestra el resultado final. **Sin WebGL:** el mismo tablero en SVG (`HemicicloPlano`).
+- **Rendimiento:** dos `InstancedMesh` (pupitres y pantallas: dos llamadas de dibujo), `frameloop="demand"` (solo dibuja mientras algo se mueve), `dpr` máx. 2, chunk `TableroEscena` cargado con `lazy` (~250 kB gzip, no bloquea la primera pintura).
+- **Colores:** la escena lee los tokens CSS (`--voto-*`, `--noche*`, `--sol`) con `getComputedStyle` y los relee al cambiar el tema. Las pantallas usan material sin luz para que el color del voto sea exacto; "en duda" = `--noche-ink-2`, apagada = `--noche-rule`. No poner hex en la escena.
 - **GSAP:** importar de `@/utils/gsap`; animar solo dentro de `useGSAP` con `scope` (limpia ScrollTriggers al desmontar). Si cambia la altura de la página después de montar (datos que llegan), llamar `ScrollTrigger.refresh()`.
 - Otras animaciones de la landing: bancas de "La Cámara, hoy" que se ocupan de izquierda a derecha (atributo `r`, una vez) y la línea de la hoja de ruta que se traza con el scroll (variables CSS `--avance` / `--encendido`).
 

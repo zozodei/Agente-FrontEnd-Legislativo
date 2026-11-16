@@ -1,5 +1,5 @@
 /*
- * Figura de la portada: el lienzo 3D con los porotos y, debajo, la lectura del conteo
+ * Figura de la portada: el tablero de votación 3D y, debajo, la lectura del conteo
  * en mono, como una planilla de poroteo. Vive sobre fondo noche (lo define la portada).
  */
 
@@ -38,7 +38,7 @@
   height: 100%;
 }
 
-.plano ellipse {
+.plano circle {
   transition: fill var(--dur-slow) var(--ease-out);
 }
 
@@ -191,7 +191,7 @@
   height: 7px;
   margin-right: 4px;
   border-radius: 50%;
-  background: var(--poroto);
+  background: var(--noche-ink-2);
 }
 
 .conteo div[data-voto='afirmativo'] dt::before {

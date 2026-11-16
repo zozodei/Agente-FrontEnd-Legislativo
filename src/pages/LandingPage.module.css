@@ -22,6 +22,25 @@
 
 /* ── Portada ───────────────────────────────────────────────────────── */
 
+/* Riel: en escritorio es más alto que la pantalla y la portada queda sticky adentro;
+   el recorrido extra (140% de la pantalla) es lo que dura la votación con el scroll. */
+.riel {
+  position: relative;
+}
+
+@media (min-width: 961px) and (prefers-reduced-motion: no-preference) {
+  .riel {
+    height: 240svh;
+  }
+
+  .riel > .hero {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    min-height: 0;
+  }
+}
+
 .hero {
   --celeste-ink: var(--celeste);
   position: relative;

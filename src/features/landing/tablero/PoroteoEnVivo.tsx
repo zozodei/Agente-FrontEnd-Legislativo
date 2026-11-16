@@ -2,18 +2,18 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type RefObject } 
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { gsap, useGSAP } from '@/utils/gsap';
 import {
-  avancePoroteo,
+  avanceVotacion,
   BANCAS,
   conteoEn,
-  crearPorotos,
-  estaPintado,
+  crearBancas,
+  estaEncendida,
   QUORUM,
   type VotoEjemplo,
 } from './escenario';
 import { crearProgreso } from './progreso';
 import styles from './PoroteoEnVivo.module.css';
 
-const PorotosEscena = lazy(() => import('./PorotosEscena'));
+const TableroEscena = lazy(() => import('./TableroEscena'));
 
 function soportaWebGL(): boolean {
   try {
@@ -40,35 +40,38 @@ const ETIQUETAS: [VotoEjemplo, string][] = [
 ];
 
 export interface PoroteoEnVivoProps {
-  /** Sección que se fija (pin) mientras se porotea, en escritorio. */
-  pinRef: RefObject<HTMLElement | null>;
+  /**
+   * Riel: contenedor más alto que la pantalla dentro del cual la portada es `sticky`
+   * (en escritorio). Su recorrido de scroll es el recorrido de la votación.
+   */
+  rielRef: RefObject<HTMLElement | null>;
 }
 
 /**
- * Portada: el escenario de ejemplo contado con porotos 3D. El scroll mueve el progreso
+ * Portada: el escenario de ejemplo como tablero de votación 3D. El scroll mueve el progreso
  * (0 → montón, 1 → hemiciclo poroteado). Sin WebGL se dibuja el mismo escenario en SVG;
- * con movimiento reducido se muestra directamente el resultado, sin fijar la sección.
+ * con movimiento reducido se muestra directamente el resultado (y el riel no se alarga).
  */
-export function PoroteoEnVivo({ pinRef }: PoroteoEnVivoProps) {
+export function PoroteoEnVivo({ rielRef }: PoroteoEnVivoProps) {
   const reducido = useReducedMotion();
-  const porotos = useMemo(() => crearPorotos(), []);
+  const bancas = useMemo(() => crearBancas(), []);
   const progreso = useMemo(() => crearProgreso(0), []);
   const [webgl] = useState(soportaWebGL);
   const [activo, setActivo] = useState(true);
-  const [estado, setEstado] = useState(() => ({ conteo: conteoEn(porotos, 0), p: 0 }));
+  const [estado, setEstado] = useState(() => ({ conteo: conteoEn(bancas, 0), p: 0 }));
   const figura = useRef<HTMLElement>(null);
 
   // El conteo de la UI solo se actualiza cuando cambia algún número (≤ 257 veces).
   useEffect(
     () =>
       progreso.suscribir((p) => {
-        const conteo = conteoEn(porotos, p);
-        const hito = (x: number) => (x > 0.02 ? 1 : 0) + (avancePoroteo(x) >= 1 ? 1 : 0);
+        const conteo = conteoEn(bancas, p);
+        const hito = (x: number) => (x > 0.02 ? 1 : 0) + (avanceVotacion(x) >= 1 ? 1 : 0);
         setEstado((prev) =>
           igual(prev.conteo, conteo) && hito(p) === hito(prev.p) ? prev : { conteo, p },
         );
       }),
-    [progreso, porotos],
+    [progreso, bancas],
   );
 
   useEffect(() => {
@@ -97,11 +100,13 @@ export function PoroteoEnVivo({ pinRef }: PoroteoEnVivoProps) {
       const mm = gsap.matchMedia();
       // Escritorio: la portada queda fija mientras se porotea.
       // Los efectos de los hijos corren antes de que React asigne el ref del padre, así que
-      // si todavía no está, se busca la sección que contiene a la figura.
-      const seccion = pinRef.current ?? figura.current?.closest('section') ?? null;
+      // si todavía no está, se busca el riel que contiene a la figura.
+      const riel = rielRef.current ?? figura.current?.closest<HTMLElement>('[data-riel]') ?? null;
+      // Escritorio: la portada es sticky dentro del riel (CSS); acá solo se lee el recorrido.
+      // Sin pin de GSAP: el sticky no se rompe cuando cambia la altura de la página.
       mm.add('(min-width: 961px)', () => {
-        if (!seccion) return;
-        tween({ trigger: seccion, start: 'top top', end: '+=140%', pin: true, scrub: 0.6 });
+        if (!riel) return;
+        tween({ trigger: riel, start: 'top top', end: 'bottom bottom', scrub: 0.6 });
       });
       // Celular / tablet: sin fijar; el poroteo avanza mientras la figura cruza la pantalla.
       mm.add('(max-width: 960px)', () => {
@@ -113,7 +118,7 @@ export function PoroteoEnVivo({ pinRef }: PoroteoEnVivoProps) {
 
   const { conteo } = estado;
   const presentes = conteo.afirmativo + conteo.negativo + conteo.abstencion;
-  const terminado = avancePoroteo(estado.p) >= 1;
+  const terminado = avanceVotacion(estado.p) >= 1;
   const resultado = !terminado
     ? 'Poroteando…'
     : conteo.afirmativo > conteo.negativo
@@ -129,14 +134,14 @@ export function PoroteoEnVivo({ pinRef }: PoroteoEnVivoProps) {
       <div className={styles.lienzo} aria-hidden>
         {webgl ? (
           <Suspense fallback={null}>
-            <PorotosEscena progreso={progreso} reducido={reducido} activo={activo} />
+            <TableroEscena progreso={progreso} reducido={reducido} activo={activo} />
           </Suspense>
         ) : (
-          <HemicicloPlano porotos={porotos} p={estado.p} />
+          <HemicicloPlano bancas={bancas} p={estado.p} />
         )}
         {!reducido && (
           <p className={styles.pista} data-oculta={estado.p > 0.02 || undefined}>
-            Bajá para contar los porotos
+            Bajá para ver cómo se vota
           </p>
         )}
       </div>
@@ -180,23 +185,22 @@ export function PoroteoEnVivo({ pinRef }: PoroteoEnVivoProps) {
   );
 }
 
-/** Alternativa sin WebGL: el mismo escenario visto desde arriba, en SVG. */
-function HemicicloPlano({ porotos, p }: { porotos: ReturnType<typeof crearPorotos>; p: number }) {
+/** Alternativa sin WebGL: el mismo tablero visto desde arriba, en SVG. */
+function HemicicloPlano({ bancas, p }: { bancas: ReturnType<typeof crearBancas>; p: number }) {
   return (
     <svg className={styles.plano} viewBox="-4.6 -3.4 9.2 4.9" role="presentation">
-      {porotos.map((po, i) => (
-        <ellipse
+      {bancas.map((b, i) => (
+        <circle
           key={i}
-          cx={po.banca.x}
-          cy={po.banca.z}
-          rx={0.13}
-          ry={0.085}
-          transform={`rotate(${(-po.giroBanca * 180) / Math.PI} ${po.banca.x} ${po.banca.z})`}
+          cx={b.x}
+          cy={b.z}
+          r={0.11}
           style={{
-            fill:
-              po.voto !== 'pendiente' && estaPintado(po.orden, p)
-                ? `var(--voto-${po.voto})`
-                : 'var(--poroto)',
+            fill: !estaEncendida(b.orden, p)
+              ? 'var(--noche-rule)'
+              : b.voto === 'pendiente'
+                ? 'var(--noche-ink-2)'
+                : `var(--voto-${b.voto})`,
           }}
         />
       ))}
