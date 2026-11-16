@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Hemiciclo } from '@/components/hemiciclo';
 import { ButtonLink } from '@/components/ui/Button';
@@ -7,12 +7,17 @@ import { Kicker } from '@/components/ui/Typography';
 import { useAuth } from '@/features/auth/useAuth';
 import { useResumen } from '@/features/dashboard/queries';
 import { diputadoToBanca, useDiputados } from '@/features/diputados/queries';
+import { PortadaCongreso } from '@/features/landing/portadas/PortadaCongreso';
 import { PortadaVotacionReal } from '@/features/landing/portadas/PortadaVotacionReal';
+import { PortadaVotos } from '@/features/landing/portadas/PortadaVotos';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { formatNumber } from '@/utils/format';
 import { gsap, ScrollTrigger, useGSAP } from '@/utils/gsap';
 import styles from './LandingPage.module.css';
+
+/** Portadas candidatas: en cada visita a la landing se muestra una al azar. */
+const PORTADAS = [PortadaVotacionReal, PortadaCongreso, PortadaVotos];
 
 const PASOS = [
   {
@@ -83,15 +88,14 @@ export default function LandingPage() {
   const logueado = estado === 'autenticado';
   const resumen = useResumen();
   const votaciones = resumen.data?.votaciones.total;
+  // Se sortea una sola vez por montaje para que no cambie en cada render.
+  const [Portada] = useState(() => PORTADAS[Math.floor(Math.random() * PORTADAS.length)]);
 
   return (
     <div className={styles.page}>
-      {/* ── Portada: la IVE de 2018 votada banca por banca (ver features/landing/portadas) ── */}
+      {/* ── Portada: una de las tres al azar (ver features/landing/portadas) ── */}
       <div>
-        <PortadaVotacionReal
-          principal
-          accionPrincipal={logueado ? '/poroteos/nuevo' : '/registro'}
-        />
+        <Portada principal accionPrincipal={logueado ? '/poroteos/nuevo' : '/registro'} />
         <div className={styles.fichaBanda}>
           <dl className={`${styles.wrap} ${styles.ficha}`}>
             <div>

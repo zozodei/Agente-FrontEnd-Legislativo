@@ -11,6 +11,7 @@ import {
   useEnPantalla,
   useProgresoEscalonado,
   useProgresoRiel,
+  type PortadaProps,
 } from './comun';
 import styles from './Portadas.module.css';
 
@@ -20,7 +21,11 @@ const Escena = lazy(() => import('./EscenaVotos'));
  * Portada 3 · Miles de votos: el historial de votaciones nominales como puntos de luz que se
  * ordenan en la Cámara de hoy, cada banca con el color de su bloque.
  */
-export function PortadaVotos() {
+export function PortadaVotos({
+  principal = false,
+  accionPrincipal = '/registro',
+}: PortadaProps = {}) {
+  const Titulo = principal ? 'h1' : 'h2';
   const riel = useRef<HTMLDivElement>(null);
   const escenario = useRef<HTMLDivElement>(null);
   const { progreso, reducido } = useProgresoRiel(riel);
@@ -65,15 +70,15 @@ export function PortadaVotos() {
             <p className={styles.kicker}>
               <span className={styles.dot} aria-hidden /> Congreso de la Nación Argentina
             </p>
-            <h2 className={styles.titulo}>
+            <Titulo id={principal ? 'hero-titulo' : undefined} className={styles.titulo}>
               Sabé si una ley sale <em>antes de que se vote.</em>
-            </h2>
+            </Titulo>
             <p className={styles.lead}>
               demoIA aprende de cada votación nominal de Diputados para estimar cómo votaría cada
               banca un proyecto nuevo.
             </p>
             <div className={styles.acciones}>
-              <ButtonLink to="/registro" variant="inverse" size="lg">
+              <ButtonLink to={accionPrincipal} variant="inverse" size="lg">
                 Empezar a porotear
               </ButtonLink>
               <ButtonLink to="/votaciones" variant="outlineInverse" size="lg">

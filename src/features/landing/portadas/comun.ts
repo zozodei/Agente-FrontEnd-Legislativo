@@ -168,3 +168,11 @@ export const TRAMOS_CONGRESO = {
 
 /** Puntos de luz por banca en la portada 3. */
 export const PUNTOS_POR_BANCA = 96;
+
+/** Props comunes a las portadas, para que la landing pueda usar cualquiera de ellas. */
+export interface PortadaProps {
+  /** En la landing es la portada de la página: el título pasa a ser el h1. */
+  principal?: boolean;
+  /** Destino del botón principal (p. ej. /poroteos/nuevo si hay sesión). */
+  accionPrincipal?: string;
+}

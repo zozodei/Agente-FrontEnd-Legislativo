@@ -2,7 +2,13 @@ import { lazy, Suspense, useMemo, useRef, useState } from 'react';
 import { ButtonLink } from '@/components/ui/Button';
 import { useVotacion } from '@/features/votaciones/queries';
 import { formatDate } from '@/utils/format';
-import { soportaWebGL, useEnPantalla, useProgresoEscalonado, useProgresoRiel } from './comun';
+import {
+  soportaWebGL,
+  useEnPantalla,
+  useProgresoEscalonado,
+  useProgresoRiel,
+  type PortadaProps,
+} from './comun';
 import { avanceVoto, conteoReal, repartirVotos, VOTACION_DESTACADA } from './votacionReal';
 import styles from './Portadas.module.css';
 
@@ -12,12 +18,7 @@ const Escena = lazy(() => import('./EscenaVotacionReal'));
  * Portada 1 · Votación real: la media sanción de la IVE (14/06/2018, 129 a 125) reproducida
  * banca por banca con los votos reales de la base. El conteo es texto real y sigue al scroll.
  */
-export interface PortadaVotacionRealProps {
-  /** En la landing es la portada de la página: el título pasa a ser el h1. */
-  principal?: boolean;
-  /** Destino del botón principal (p. ej. /poroteos/nuevo si hay sesión). */
-  accionPrincipal?: string;
-}
+export type PortadaVotacionRealProps = PortadaProps;
 
 export function PortadaVotacionReal({
   principal = false,

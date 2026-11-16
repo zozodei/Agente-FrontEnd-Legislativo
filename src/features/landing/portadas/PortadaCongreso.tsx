@@ -8,6 +8,7 @@ import {
   useProgresoEscalonado,
   useProgresoRiel,
   TRAMOS_CONGRESO,
+  type PortadaProps,
 } from './comun';
 import styles from './Portadas.module.css';
 
@@ -17,7 +18,11 @@ const Escena = lazy(() => import('./EscenaCongreso'));
  * Portada 2 · Del edificio al recinto. El texto acompaña las tres etapas del recorrido:
  * el edificio, la entrada por la cúpula y la votación en el recinto.
  */
-export function PortadaCongreso() {
+export function PortadaCongreso({
+  principal = false,
+  accionPrincipal = '/registro',
+}: PortadaProps = {}) {
+  const Titulo = principal ? 'h1' : 'h2';
   const riel = useRef<HTMLDivElement>(null);
   const escenario = useRef<HTMLDivElement>(null);
   const { progreso, reducido } = useProgresoRiel(riel);
@@ -45,15 +50,15 @@ export function PortadaCongreso() {
             <p className={styles.kicker}>
               <span className={styles.dot} aria-hidden /> Congreso de la Nación Argentina
             </p>
-            <h2 className={styles.titulo}>
+            <Titulo id={principal ? 'hero-titulo' : undefined} className={styles.titulo}>
               Sabé si una ley sale <em>antes de que se vote.</em>
-            </h2>
+            </Titulo>
             <p className={styles.lead}>
               Entrá al recinto: demoIA estima, banca por banca, cómo votaría cada uno de los 257
               diputados un proyecto de ley.
             </p>
             <div className={styles.acciones}>
-              <ButtonLink to="/registro" variant="inverse" size="lg">
+              <ButtonLink to={accionPrincipal} variant="inverse" size="lg">
                 Empezar a porotear
               </ButtonLink>
               <ButtonLink to="/camara" variant="outlineInverse" size="lg">
