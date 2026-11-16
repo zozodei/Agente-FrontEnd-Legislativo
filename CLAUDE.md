@@ -114,7 +114,7 @@ La pieza visual más importante. Props principales:
 
 ## 5. Poroteo manual
 
-- `usePoroteoEditor(poroteo, tipoMayoria)`: estado local `Map<diputadoId, voto>`, deshacer (50 pasos), `dirty`, `resumen` en vivo. Se monta con `key={poroteo.id}`.
+- `usePoroteoEditor(poroteo, tipoMayoria)`: estado local `Map<diputadoId, voto>`, deshacer (50 pasos), `dirty`, `resumen` en vivo. Se monta con `key={poroteo.id}`. También guarda el detalle de los votos propuestos por la IA (`ia`, `aplicarIa`, `payload`; ver "Estimar con IA").
 - Diputado sin voto en el mapa = **sin asignar** (no se guarda fila). `INDEFINIDO` explícito casi no se usa en la UI manual (el botón "?" limpia).
 - `features/poroteo/resultado.ts` es **copia exacta** de `backend/src/services/resultado.js`. Si cambiás una, cambiá la otra y sus tests (`resultado.test.ts` y `backend/tests/resultado.test.js` tienen los mismos casos).
 - Reglas: quórum 129 presentes (afirm + neg + abst). `simple`: afirm > neg. `absoluta`: afirm ≥ 129. `dos_tercios`: afirm ≥ ⌈2/3 presentes⌉. Mejor/peor caso con los votos en disputa → `definido`.
@@ -234,7 +234,7 @@ npm run build
 ## 10. Roadmap
 
 1. ✅ Poroteo manual de Diputados.
-2. **IA:** botón "Estimar con IA" en el editor → `POST /api/poroteos/:id/prediccion` (a crear en el backend). Mostrar `confianza` (opacidad o anillo en la banca), `justificacion` y `fuentes` en el tooltip/lista, y diferenciar votos `origen: 'ia'` de los corregidos a mano. Los tipos `PoroteoVoto` ya tienen esos campos.
+2. **IA (en curso, rama `ML-TESTING`):** ver "Estimar con IA" abajo. Falta el modelo real (servicio Python de `ml/` en el backend); hoy responde un predictor simulado.
 3. **Sugerir desde historial:** precargar el poroteo con cómo votó cada diputado en leyes similares (`cv_buscar_leyes` + `cv_historial_diputados` del backend).
 4. **Senado:** `<Hemiciclo/>` ya soporta cualquier N (72 bancas = 5 filas). Falta selector de cámara, quórum 37 y datos.
 5. **Auth para organizaciones** + correcciones con trazabilidad.
@@ -328,3 +328,26 @@ caché de la cuenta al cerrar sesión o cambiar de identidad, incluidas otras pe
 Contrato backend: docs/poroteos-colaborativos.md en Agente-BackEnd-Legislativo.
 Pruebas nuevas: features/poroteo/colaboracion.test.tsx y privacidad.test.tsx.
 No se implementó Google, no se modificó Supabase remoto ni se realizó deploy.
+
+## Estimar con IA
+
+`PrediccionPanel` (aside del editor) llama a `POST /api/poroteos/:id/prediccion` con
+`usePrediccion`. El backend **no guarda**: devuelve una propuesta y `usePoroteoEditor.aplicarIa`
+la carga en el editor (deshacible), en modo "Solo sin asignar" (respeta lo cargado) o
+"Reemplazar todo". Se guarda con el botón de siempre.
+
+- Un voto es de la IA solo mientras la banca conserve el voto propuesto (`features/poroteo/ia.ts`,
+  `esIa`). Si alguien lo cambia, se guarda como manual; si no, `armarVotosInput` manda
+  `origen: 'ia'`, `confianza`, `justificacion` y `fuentes`. `dirty` también detecta cambios de origen.
+- Hemiciclo: `Banca.confianza` atenúa la banca (opacidad 0,3–1) y le pone borde fino;
+  `Banca.nota` agrega la justificación a la ficha. La vista Lista muestra "IA 71%" y el motivo.
+- El panel muestra probabilidad de aprobación, conteo esperado (Σp), alerta de "posible
+  votación dividida" y, en "Intervalo y detalles", el IC80, quórum, tema y modelo. Aclara que el
+  contador del hemiciclo (voto más probable) no tiene por qué coincidir con el esperado.
+- Con `modelo.simulado` muestra la etiqueta **Simulación**: son datos de mentira.
+- Se bloquea sin permiso de edición, con conflicto 409 o con contenido sin guardar (la IA usa
+  la versión guardada). Una respuesta que llega después de cambiar de cuenta se descarta.
+- El resumen del modelo no se persiste todavía (requiere migración en el backend).
+
+Contrato: `docs/prediccion.md` del backend. Pruebas: `features/poroteo/ia.test.ts`. Prueba
+visual con API simulada a 360 px y escritorio, claro y oscuro.
