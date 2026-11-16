@@ -80,7 +80,7 @@ src/
 | `/camara`            | CamaraPage       | `useDiputados` (hemiciclo) + `useResumen`                                                                          |
 | `/login`             | LoginPage        | `useAuth().login` + botón de Google (`iniciarGoogle`). Respeta `?redirect=` (solo rutas internas: `destinoSeguro`) |
 | `/registro`          | RegistroPage     | `useAuth().registrar` + botón de Google. Si `requiereConfirmacion` → pantalla "revisá tu email"                    |
-| `/auth/callback`     | AuthCallbackPage | Vuelta de Google: descarta tokens del hash; OAuth no implementado en el backend (pública, `bleed`)                 |
+| `/auth/callback`     | AuthCallbackPage | Vuelta de Google: canjea `?code=` con `completarGoogle` (PKCE en el backend); ignora tokens del hash (pública)     |
 | `/diputados`         | DiputadosPage    | `useDiputados` (los 257, filtrado en memoria; filtros en la URL)                                                   |
 | `/diputados/:id`     | DiputadoPage     | `useDiputado` + `useVotosDiputado` (paginado en servidor)                                                          |
 | `/votaciones`        | VotacionesPage   | `useVotaciones` (paginado y filtrado en servidor; filtros en la URL)                                               |
@@ -146,9 +146,11 @@ CSP en Report-Only antes de imponerla; Helmet del backend no configura ese hosti
 Logout revoca refresh local cuando Auth responde, pero un access token copiado
 puede conservar vigencia hasta expirar; sin red no se garantiza revocación remota.
 
-El backend local no implementa las rutas Google presentes en componentes antiguos.
-El callback no importa tokens del hash ni los persiste; muestra que el flujo no
-está habilitado. No implementar OAuth por simple importación de tokens.
+Google usa PKCE en el backend: `iniciarGoogle` pide la URL a `GET /auth/google` (el
+backend guarda el verifier en cookie HttpOnly) y el callback manda el `?code=` a
+`POST /auth/google/callback` con `completarGoogle`, que deja las cookies de sesión como
+el login. El callback nunca importa tokens del hash. No implementar OAuth por simple
+importación de tokens.
 
 Auditoría completa, evidencia, pruebas y pendientes en
 [docs/seguridad.md del backend](https://github.com/zozodei/Agente-BackEnd-Legislativo/blob/develop/docs/seguridad.md).
@@ -327,4 +329,4 @@ caché de la cuenta al cerrar sesión o cambiar de identidad, incluidas otras pe
 
 Contrato backend: docs/poroteos-colaborativos.md en Agente-BackEnd-Legislativo.
 Pruebas nuevas: features/poroteo/colaboracion.test.tsx y privacidad.test.tsx.
-No se implementó Google, no se modificó Supabase remoto ni se realizó deploy.
+No se modificó Supabase remoto.

@@ -3,38 +3,37 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Spinner } from '@/components/ui/States';
 import { useAuth } from '@/features/auth/useAuth';
 import { leerDestinoGoogle, mensajeErrorGoogle, parseCallbackGoogle } from '@/features/auth/google';
-import { authErrorMessage, destinoSeguro } from '@/features/auth/validacion';
+import { authErrorMessage, destinoAlEntrar, destinoSeguro } from '@/features/auth/validacion';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import styles from './AuthCallbackPage.module.css';
 
 /**
- * Volvé de Google: los tokens vienen en el hash (#access_token=…), se
- * guardan, se validan con GET /auth/me y se redirige al destino que pedía
- * el usuario (o a /). Ruta pública: no la envuelve RutaProtegida.
+ * Vuelta de Google: Supabase trae `?code=` (PKCE). El backend lo canjea con el
+ * verifier de su cookie HttpOnly y deja las cookies de sesión; después se va al
+ * destino que pedía el usuario (o a /). Ruta pública: no la envuelve RutaProtegida.
  */
 export default function AuthCallbackPage() {
   useDocumentTitle('Completando tu inicio de sesión');
   const navigate = useNavigate();
   const location = useLocation();
-  const { entrarConTokens } = useAuth();
-  // El parseo es puro: error/vacío se deriva en el render; el efecto solo
-  // hace el trabajo asíncrono (guardar + validar + navegar).
-  const resultado = parseCallbackGoogle(location.hash, location.search);
+  const { completarGoogle } = useAuth();
+  // Se parsea una sola vez: después de leerlo, el código sale de la URL.
+  const [resultado] = useState(() => parseCallbackGoogle(location.hash, location.search));
   const [errorAsync, setErrorAsync] = useState<string | null>(null);
-  const error = resultado.tipo !== 'sesion' ? mensajeErrorGoogle(resultado) : errorAsync;
+  const error = resultado.tipo !== 'codigo' ? mensajeErrorGoogle(resultado) : errorAsync;
   const hecho = useRef(false);
 
   useEffect(() => {
     if (hecho.current) return; // StrictMode en dev monta los efectos dos veces
     hecho.current = true;
     const destino = destinoSeguro(leerDestinoGoogle(), '/');
-    // Los tokens salen de la URL cuanto antes (no quedan en el historial).
+    // El código (y cualquier token en el hash) sale de la URL y del historial.
     window.history.replaceState(null, '', window.location.pathname);
-    if (resultado.tipo !== 'sesion') return;
-    entrarConTokens(resultado.sesion)
-      .then(() => navigate(destino, { replace: true }))
+    if (resultado.tipo !== 'codigo') return;
+    completarGoogle(resultado.code)
+      .then((usuario) => navigate(destinoAlEntrar(usuario, destino), { replace: true }))
       .catch((err) => setErrorAsync(authErrorMessage(err)));
-  }, [entrarConTokens, navigate, resultado]);
+  }, [completarGoogle, navigate, resultado]);
 
   if (error) {
     return (

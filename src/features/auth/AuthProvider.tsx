@@ -185,14 +185,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [entrar, olvidarDatosPrivados],
   );
 
-  const entrarConTokens = useCallback<AuthValue['entrarConTokens']>(async () => {
-    // El backend local no implementa OAuth. No importar secretos desde un hash.
-    throw new ApiError(
-      400,
-      'OAUTH_UNAVAILABLE',
-      'El ingreso con Google todavía no está habilitado. Ingresá con email y contraseña.',
-    );
-  }, []);
+  const completarGoogle = useCallback<AuthValue['completarGoogle']>(
+    async (code) => {
+      const actual = ++revision.current;
+      const { data } = await authApi.googleCallback(code);
+      if (actual !== revision.current)
+        throw new ApiError(401, 'SESSION_EXPIRED', 'La sesión cambió durante el ingreso.');
+      olvidarDatosPrivados();
+      setSesion(data.sesion);
+      entrar(data.usuario);
+      return data.usuario;
+    },
+    [entrar, olvidarDatosPrivados],
+  );
 
   const refrescar = useCallback(async () => {
     try {
@@ -215,7 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cerrarSesion: logout,
       iniciarGoogle,
       loginGoogleConIdToken,
-      entrarConTokens,
+      completarGoogle,
       refrescar,
     }),
     [
@@ -228,7 +233,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       iniciarGoogle,
       loginGoogleConIdToken,
-      entrarConTokens,
+      completarGoogle,
       refrescar,
     ],
   );

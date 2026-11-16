@@ -7,31 +7,15 @@ import {
   urlCallbackGoogle,
 } from './google';
 
-const AHORA = 1_700_000_000_000; // ms fijos para expiresAt
-
 describe('parseCallbackGoogle', () => {
-  it('extrae la sesión del hash y calcula expiresAt en segundos', () => {
-    const r = parseCallbackGoogle(
-      '#access_token=tok-a&refresh_token=tok-r&expires_in=3600&token_type=bearer',
-      '',
-      AHORA,
-    );
-    expect(r).toEqual({
-      tipo: 'sesion',
-      sesion: {
-        accessToken: 'tok-a',
-        refreshToken: 'tok-r',
-        expiresIn: 3600,
-        expiresAt: AHORA / 1000 + 3600,
-        tokenType: 'bearer',
-      },
-    });
+  it('extrae el código PKCE de la query', () => {
+    expect(parseCallbackGoogle('', '?code=abc-123')).toEqual({ tipo: 'codigo', code: 'abc-123' });
   });
 
-  it('sin expires_in usa 3600 por defecto', () => {
-    const r = parseCallbackGoogle('#access_token=a&refresh_token=r', '', AHORA);
-    expect(r.tipo).toBe('sesion');
-    if (r.tipo === 'sesion') expect(r.sesion.expiresIn).toBe(3600);
+  it('nunca importa tokens del hash', () => {
+    expect(parseCallbackGoogle('#access_token=tok-a&refresh_token=tok-r&expires_in=3600')).toEqual({
+      tipo: 'vacio',
+    });
   });
 
   it('error de Google en el hash (access_denied)', () => {

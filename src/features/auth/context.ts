@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import type { RegistroInput } from '@/api/resources';
-import type { RegistroResponse, Sesion, Usuario } from '@/types';
+import type { RegistroResponse, Usuario } from '@/types';
 
 export type EstadoAuth = 'cargando' | 'autenticado' | 'anonimo' | 'error';
 
@@ -22,8 +22,8 @@ export interface AuthValue {
   iniciarGoogle: (destino?: string) => Promise<string>;
   /** One Tap (opcional): canjea el idToken de Google por la sesión del backend. */
   loginGoogleConIdToken: (idToken: string, nonce?: string) => Promise<Usuario>;
-  /** Guarda la sesión del callback de Google y la valida con GET /auth/me. */
-  entrarConTokens: (sesion: Sesion) => Promise<Usuario>;
+  /** Canjea el `code` del callback de Google (POST /auth/google/callback) y entra. */
+  completarGoogle: (code: string) => Promise<Usuario>;
   /** Renueva el access token ahora (el cliente HTTP también lo hace solo). Devuelve si quedó sesión. */
   refrescar: () => Promise<boolean>;
 }

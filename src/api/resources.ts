@@ -47,6 +47,13 @@ export const authApi = {
   /** URL de Google para el redirect (`window.location.href = url`). */
   googleUrl: (redirectTo: string) =>
     request<{ data: { url: string } }>('/auth/google', { query: { redirectTo }, anonimo: true }),
+  /** Canjea el código de vuelta de Google; el backend usa el verifier de su cookie HttpOnly. */
+  googleCallback: (code: string) =>
+    request<{ data: AuthResponse }>('/auth/google/callback', {
+      method: 'POST',
+      body: { code },
+      anonimo: true,
+    }),
   /** One Tap (opcional): canjea el idToken de Google por la sesión del backend. */
   googleIdToken: (idToken: string, nonce?: string) =>
     request<{ data: AuthResponse }>('/auth/google/id-token', {
