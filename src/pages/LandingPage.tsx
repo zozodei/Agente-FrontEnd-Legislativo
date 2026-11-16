@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Hemiciclo } from '@/components/hemiciclo';
 import { ButtonLink } from '@/components/ui/Button';
@@ -7,27 +7,12 @@ import { Kicker } from '@/components/ui/Typography';
 import { useAuth } from '@/features/auth/useAuth';
 import { useResumen } from '@/features/dashboard/queries';
 import { diputadoToBanca, useDiputados } from '@/features/diputados/queries';
+import { PortadaVotacionReal } from '@/features/landing/portadas/PortadaVotacionReal';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { formatNumber } from '@/utils/format';
+import { gsap, ScrollTrigger, useGSAP } from '@/utils/gsap';
 import styles from './LandingPage.module.css';
-
-/**
- * Foto de portada: "Atardecer en el Congreso de la Nación Argentina", de Miguel César,
- * Wikimedia Commons, CC BY-SA 3.0. Si se quiere servir local, bajarla a public/img/
- * y cambiar estas URLs (el crédito tiene que seguir visible).
- */
-const FOTO_BASE =
-  'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Atardecer_en_el_Congreso_de_la_Naci%C3%B3n_Argentina.jpg';
-const FOTO_ARCHIVO = 'Atardecer_en_el_Congreso_de_la_Naci%C3%B3n_Argentina.jpg';
-const FOTO = {
-  src: `${FOTO_BASE}/1920px-${FOTO_ARCHIVO}`,
-  srcSet: `${FOTO_BASE}/1280px-${FOTO_ARCHIVO} 1280w, ${FOTO_BASE}/1920px-${FOTO_ARCHIVO} 1920w, ${FOTO_BASE}/2560px-${FOTO_ARCHIVO} 2560w`,
-  pagina:
-    'https://commons.wikimedia.org/wiki/File:Atardecer_en_el_Congreso_de_la_Naci%C3%B3n_Argentina.jpg',
-  autor: 'Miguel César',
-  licencia: 'CC BY-SA 3.0',
-  licenciaUrl: 'https://creativecommons.org/licenses/by-sa/3.0/deed.es',
-};
 
 const PASOS = [
   {
@@ -101,59 +86,33 @@ export default function LandingPage() {
 
   return (
     <div className={styles.page}>
-      {/* ── Portada ─────────────────────────────────────────────── */}
-      <section className={styles.hero} aria-labelledby="hero-titulo">
-        <Portada />
-        <div className={`${styles.wrap} ${styles.heroInner}`}>
-          <div className={styles.heroText}>
-            <span className={styles.heroKicker}>
-              <span className={styles.dot} aria-hidden /> Congreso de la Nación Argentina · Cámara
-              de Diputados
-            </span>
-            <h1 id="hero-titulo" className={styles.heroTitle}>
-              Sabé si una ley sale <em>antes de que se vote.</em>
-            </h1>
-            <p className={styles.heroLead}>
-              demoIA estima, banca por banca, cómo votaría cada uno de los 257 diputados un proyecto
-              de ley. Hoy, con tu criterio y datos abiertos; muy pronto, con inteligencia artificial
-              entrenada en décadas de votaciones nominales.
-            </p>
-            <div className={styles.heroActions}>
-              <ButtonLink
-                to={logueado ? '/poroteos/nuevo' : '/registro'}
-                variant="inverse"
-                size="lg"
-              >
-                Empezar a porotear
-              </ButtonLink>
-              <ButtonLink to="/camara" variant="outlineInverse" size="lg">
-                Explorar la Cámara
-              </ButtonLink>
+      {/* ── Portada: la IVE de 2018 votada banca por banca (ver features/landing/portadas) ── */}
+      <div>
+        <PortadaVotacionReal
+          principal
+          accionPrincipal={logueado ? '/poroteos/nuevo' : '/registro'}
+        />
+        <div className={styles.fichaBanda}>
+          <dl className={`${styles.wrap} ${styles.ficha}`}>
+            <div>
+              <dt>Bancas</dt>
+              <dd className="num">257</dd>
             </div>
-          </div>
-
-          <EscenarioEjemplo />
+            <div>
+              <dt>Quórum</dt>
+              <dd className="num">129</dd>
+            </div>
+            <div>
+              <dt>Votaciones nominales</dt>
+              <dd className="num">{votaciones ? formatNumber(votaciones) : '—'}</dd>
+            </div>
+            <div>
+              <dt>Datos</dt>
+              <dd>Abiertos</dd>
+            </div>
+          </dl>
         </div>
-
-        <dl className={`${styles.wrap} ${styles.ficha}`}>
-          <div>
-            <dt>Bancas</dt>
-            <dd className="num">257</dd>
-          </div>
-          <div>
-            <dt>Quórum</dt>
-            <dd className="num">129</dd>
-          </div>
-          <div>
-            <dt>Votaciones nominales</dt>
-            <dd className="num">{votaciones ? formatNumber(votaciones) : '—'}</dd>
-          </div>
-          <div>
-            <dt>Datos</dt>
-            <dd>Abiertos</dd>
-          </div>
-        </dl>
-      </section>
+      </div>
 
       {/* ── Qué es ──────────────────────────────────────────────── */}
       <section className={`${styles.wrap} ${styles.definicion}`} aria-labelledby="que-es">
@@ -209,29 +168,7 @@ export default function LandingPage() {
       <CamaraEnVivo />
 
       {/* ── Hoja de ruta / IA ───────────────────────────────────── */}
-      <section className={styles.ia} aria-labelledby="ia-titulo">
-        <div className={styles.wrap}>
-          <header className={styles.seccionHeader}>
-            <span className={styles.iaKicker}>Hoja de ruta</span>
-            <h2 id="ia-titulo" className={styles.seccionTitulo}>
-              Lo humano primero. <em>La IA, para acelerar.</em>
-            </h2>
-            <p className={styles.iaLead}>
-              Cada estimación automática va a mostrar por qué la propone y en qué se basa. Ninguna
-              banca se decide sin que vos puedas revisarla.
-            </p>
-          </header>
-          <ol className={styles.ruta}>
-            {HOJA_DE_RUTA.map((r) => (
-              <li key={r.titulo} className={styles.rutaItem} data-estado={r.estado}>
-                <span className={styles.rutaEtapa}>{r.etapa}</span>
-                <h3 className={styles.rutaTitulo}>{r.titulo}</h3>
-                <p className={styles.rutaTexto}>{r.texto}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
+      <HojaDeRuta />
 
       {/* ── Para quién ──────────────────────────────────────────── */}
       <section className={styles.wrap} aria-labelledby="para-quien">
@@ -260,7 +197,7 @@ export default function LandingPage() {
           <p className={styles.cierreTexto}>
             Creá una cuenta gratuita: tus poroteos quedan guardados y solo los ves vos.
           </p>
-          <div className={styles.heroActions}>
+          <div className={styles.acciones}>
             {logueado ? (
               <ButtonLink to="/poroteos" variant="inverse" size="lg">
                 Ir a mis poroteos
@@ -278,118 +215,107 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      <p className={`${styles.wrap} ${styles.credito}`}>
-        Foto de portada:{' '}
-        <a href={FOTO.pagina} target="_blank" rel="noreferrer">
-          “Atardecer en el Congreso de la Nación Argentina”
-        </a>
-        , {FOTO.autor}, Wikimedia Commons,{' '}
-        <a href={FOTO.licenciaUrl} target="_blank" rel="noreferrer">
-          {FOTO.licencia}
-        </a>
-        .
-      </p>
     </div>
   );
 }
 
-/** Foto del Congreso con duotono, retícula y un zoom muy lento ("plano de cámara"). */
-function Portada() {
-  const [cargada, setCargada] = useState(false);
-  const [fallo, setFallo] = useState(false);
-  return (
-    <div className={styles.portada} aria-hidden>
-      {!fallo && (
-        <img
-          src={FOTO.src}
-          srcSet={FOTO.srcSet}
-          sizes="100vw"
-          alt=""
-          className={styles.foto}
-          data-cargada={cargada || undefined}
-          onLoad={() => setCargada(true)}
-          onError={() => setFallo(true)}
-          fetchPriority="high"
-          decoding="async"
-        />
-      )}
-      <span className={styles.velo} />
-      <span className={styles.reticula} />
-      <span className={styles.sol} />
-    </div>
-  );
-}
+/**
+ * Hoja de ruta: la línea de tiempo se traza con el scroll y cada etapa se enciende cuando
+ * la línea llega a su nodo. Con movimiento reducido queda dibujada desde el inicio.
+ */
+function HojaDeRuta() {
+  const seccion = useRef<HTMLElement>(null);
+  const reducido = useReducedMotion();
 
-/** Tarjeta "en pantalla" con un escenario inventado, rotulada como ejemplo. */
-function EscenarioEjemplo() {
-  const conteo = { afirmativo: 131, negativo: 98, abstencion: 6, pendiente: 22 };
-  const total = 257;
+  useGSAP(
+    () => {
+      if (reducido) return;
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: `.${styles.ruta}`,
+          start: 'top 80%',
+          end: 'bottom 55%',
+          scrub: 0.5,
+        },
+      });
+      // La línea es el ::after de la lista y los nodos el ::before de cada etapa (CSS),
+      // así que se animan variables CSS en vez de elementos extra.
+      tl.fromTo(`.${styles.ruta}`, { '--avance': 0 }, { '--avance': 1, ease: 'none', duration: 1 });
+      gsap.utils.toArray<HTMLElement>(`.${styles.rutaItem}`).forEach((item, i, todos) => {
+        const en = todos.length > 1 ? i / (todos.length - 1) : 0;
+        tl.fromTo(
+          item,
+          { '--encendido': 0 },
+          { '--encendido': 1, ease: 'none', duration: 0.12 },
+          Math.max(0, en - 0.06),
+        );
+      });
+    },
+    { scope: seccion, dependencies: [reducido], revertOnUpdate: true },
+  );
+
   return (
-    <figure className={styles.escenario} aria-label="Escenario de ejemplo de un poroteo">
-      <figcaption className={styles.escenarioHead}>
-        <span>Escenario de ejemplo</span>
-        <span className={styles.escenarioVivo}>
-          <span className={styles.dot} aria-hidden /> en vivo
-        </span>
-      </figcaption>
-      <p className={styles.escenarioTitulo}>Proyecto de ley · mayoría simple</p>
-      <div
-        className={styles.barra}
-        role="img"
-        aria-label="131 a favor, 98 en contra, 6 abstenciones, 22 sin definir"
-      >
-        <span
-          style={{ '--w': `${(conteo.afirmativo / total) * 100}%` } as React.CSSProperties}
-          data-voto="afirmativo"
-        />
-        <span
-          style={{ '--w': `${(conteo.negativo / total) * 100}%` } as React.CSSProperties}
-          data-voto="negativo"
-        />
-        <span
-          style={{ '--w': `${(conteo.abstencion / total) * 100}%` } as React.CSSProperties}
-          data-voto="abstencion"
-        />
-        <i className={styles.quorum} style={{ left: `${(129 / total) * 100}%` }} />
+    <section ref={seccion} className={styles.ia} aria-labelledby="ia-titulo">
+      <div className={styles.wrap}>
+        <header className={styles.seccionHeader}>
+          <span className={styles.iaKicker}>Hoja de ruta</span>
+          <h2 id="ia-titulo" className={styles.seccionTitulo}>
+            Lo humano primero. <em>La IA, para acelerar.</em>
+          </h2>
+          <p className={styles.iaLead}>
+            Cada estimación automática va a mostrar por qué la propone y en qué se basa. Ninguna
+            banca se decide sin que vos puedas revisarla.
+          </p>
+        </header>
+        <ol className={styles.ruta}>
+          {HOJA_DE_RUTA.map((r) => (
+            <li key={r.titulo} className={styles.rutaItem} data-estado={r.estado}>
+              <span className={styles.rutaEtapa}>{r.etapa}</span>
+              <h3 className={styles.rutaTitulo}>{r.titulo}</h3>
+              <p className={styles.rutaTexto}>{r.texto}</p>
+            </li>
+          ))}
+        </ol>
       </div>
-      <dl className={styles.escenarioConteo}>
-        <div data-voto="afirmativo">
-          <dt>A favor</dt>
-          <dd className="num">{conteo.afirmativo}</dd>
-        </div>
-        <div data-voto="negativo">
-          <dt>En contra</dt>
-          <dd className="num">{conteo.negativo}</dd>
-        </div>
-        <div data-voto="abstencion">
-          <dt>Abst.</dt>
-          <dd className="num">{conteo.abstencion}</dd>
-        </div>
-        <div>
-          <dt>En duda</dt>
-          <dd className="num">{conteo.pendiente}</dd>
-        </div>
-      </dl>
-      <p className={styles.escenarioResultado}>
-        <span>Quórum ✓</span>
-        <strong>Se aprueba</strong>
-      </p>
-      <p className={styles.prompt}>
-        <span aria-hidden>&gt;</span> estimar con IA
-        <span className={styles.cursor} aria-hidden />
-        <span className={styles.pronto}>próximamente</span>
-      </p>
-    </figure>
+    </section>
   );
 }
 
 function CamaraEnVivo() {
   const diputados = useDiputados();
   const bancas = useMemo(() => (diputados.data ?? []).map(diputadoToBanca), [diputados.data]);
+  const seccion = useRef<HTMLElement>(null);
+  const reducido = useReducedMotion();
+
+  // Las bancas se ocupan de izquierda a derecha la primera vez que el hemiciclo entra en pantalla.
+  useGSAP(
+    () => {
+      if (reducido || bancas.length === 0) return;
+      const asientos = seccion.current?.querySelectorAll('svg circle');
+      if (!asientos?.length) return;
+      gsap.from(asientos, {
+        attr: { r: 0 },
+        duration: 0.5,
+        ease: 'back.out(2)',
+        stagger: { each: 0.004 },
+        scrollTrigger: { trigger: asientos[0].closest('svg'), start: 'top 75%', once: true },
+      });
+    },
+    { scope: seccion, dependencies: [reducido, bancas.length], revertOnUpdate: true },
+  );
+
+  // Cuando el hemiciclo reemplaza al skeleton (o aparece el error) cambia la altura de la
+  // página: hay que recalcular dónde empiezan y terminan los ScrollTrigger de más abajo.
+  useEffect(() => {
+    ScrollTrigger.refresh();
+  }, [diputados.status]);
 
   return (
-    <section className={`${styles.wrap} ${styles.camara}`} aria-labelledby="camara-hoy">
+    <section
+      ref={seccion}
+      className={`${styles.wrap} ${styles.camara}`}
+      aria-labelledby="camara-hoy"
+    >
       <header className={styles.seccionHeader}>
         <Kicker>Datos reales</Kicker>
         <h2 id="camara-hoy" className={styles.seccionTitulo}>

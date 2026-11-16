@@ -1,0 +1,327 @@
+/*
+ * Portadas candidatas a pantalla completa. Cada una vive en un riel alto: la escena es
+ * sticky (100svh) y el recorrido extra del riel es lo que dura la historia con el scroll.
+ * Fondo noche; el texto va encima del lienzo con un velo para que siempre se lea.
+ */
+
+.riel {
+  --celeste-ink: var(--celeste);
+  position: relative;
+  height: 340svh;
+  background: var(--noche);
+  color: var(--noche-ink);
+}
+
+.riel[data-reducido] {
+  height: auto;
+}
+
+.escenario {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.riel[data-reducido] .escenario {
+  position: relative;
+}
+
+.lienzo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.lienzo > div {
+  position: absolute !important;
+  inset: 0;
+}
+
+.veloIzq {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--noche) 88%, transparent) 0%,
+      color-mix(in srgb, var(--noche) 55%, transparent) 34%,
+      transparent 60%
+    ),
+    linear-gradient(0deg, color-mix(in srgb, var(--noche) 80%, transparent) 0%, transparent 30%);
+}
+
+/* Celular: texto arriba y marcador abajo; la escena se ve en la franja del medio. */
+@media (max-width: 860px) {
+  .veloIzq {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--noche) 92%, transparent) 0%,
+        color-mix(in srgb, var(--noche) 55%, transparent) 38%,
+        transparent 50%
+      ),
+      linear-gradient(0deg, color-mix(in srgb, var(--noche) 92%, transparent) 0%, transparent 28%);
+  }
+}
+
+.capa {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: end;
+  gap: var(--space-6);
+  height: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--space-9) var(--page-gutter) var(--space-7);
+  pointer-events: none;
+}
+
+.capa a,
+.capa button {
+  pointer-events: auto;
+}
+
+@media (max-width: 860px) {
+  .capa {
+    grid-template-columns: 1fr;
+    align-content: space-between;
+    gap: var(--space-4);
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-5);
+  }
+
+  .texto {
+    gap: var(--space-3);
+  }
+
+  .acciones :global(a) {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 34rem;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--celeste);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sol);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sol) 22%, transparent);
+}
+
+.titulo {
+  font-size: var(--text-display);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.titulo em {
+  font-style: italic;
+  color: var(--celeste);
+}
+
+.lead {
+  max-width: 46ch;
+  font-size: var(--text-lg);
+  color: var(--noche-ink-2);
+}
+
+@media (max-width: 860px) {
+  .titulo {
+    font-size: var(--text-3xl);
+  }
+
+  .lead {
+    font-size: var(--text-sm);
+  }
+
+  .marcador .cifra {
+    font-size: var(--text-4xl);
+  }
+
+  .pista {
+    display: none;
+  }
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* ── Marcador de la portada 1 ──────────────────────────────────────── */
+
+.marcador {
+  justify-self: end;
+  margin: 0;
+  min-width: min(100%, 26rem);
+  padding-top: var(--space-3);
+  border-top: 3px solid var(--celeste);
+}
+
+@media (max-width: 860px) {
+  .marcador {
+    justify-self: stretch;
+  }
+}
+
+.marcadorCabeza,
+.marcadorPie {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--noche-ink-2);
+}
+
+.marcadorCifras {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin: var(--space-2) 0;
+}
+
+.marcadorCifras > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.cifra {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 2rem + 6vw, 7.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+[data-voto='afirmativo'] .cifra {
+  color: var(--voto-afirmativo);
+}
+
+[data-voto='negativo'] .cifra {
+  color: var(--voto-negativo);
+}
+
+.cifraEtiqueta {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--noche-ink-2);
+}
+
+.contra {
+  padding-bottom: var(--space-5);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--text-2xl);
+  color: var(--noche-ink-2);
+}
+
+/* ── Lectura chica (portadas 2 y 3) ────────────────────────────────── */
+
+.lectura {
+  justify-self: end;
+  max-width: 24rem;
+  padding-top: var(--space-3);
+  border-top: 3px solid var(--celeste);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--noche-ink-2);
+}
+
+.lectura strong {
+  display: block;
+  margin: var(--space-1) 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  color: var(--noche-ink);
+}
+
+@media (max-width: 860px) {
+  .lectura {
+    justify-self: stretch;
+    max-width: none;
+  }
+}
+
+/* ── Pista de scroll ──────────────────────────────────────────────── */
+
+.pista {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-4);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--noche-ink-2);
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+
+.pista::after {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 18px;
+  margin: var(--space-2) auto 0;
+  background: var(--noche-ink-2);
+  transform-origin: top;
+  animation: baja 1.6s var(--ease-in-out) infinite;
+}
+
+.pista[data-oculta] {
+  opacity: 0;
+}
+
+@keyframes baja {
+  0% {
+    transform: scaleY(0);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pista::after {
+    animation: none;
+  }
+}
+
+/* Etapas de texto que cambian con el scroll (portadas 2 y 3) */
+.etapa {
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+}
+
+.etapa[data-oculta] {
+  opacity: 0;
+  transform: translateY(12px);
+}

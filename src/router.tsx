@@ -24,6 +24,7 @@ const PoroteosPublicosPage = lazy(() => import('@/pages/PoroteosPublicosPage'));
 const PoroteoPublicoPage = lazy(() => import('@/pages/PoroteoPublicoPage'));
 const PoroteoPage = lazy(() => import('@/pages/PoroteoPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const PortadasPage = lazy(() => import('@/pages/PortadasPage'));
 const BackofficePage = lazy(() => import('@/pages/BackofficePage'));
 const BackofficeCuentasPage = lazy(() => import('@/pages/BackofficeCuentasPage'));
 const BackofficePoroteosPage = lazy(() => import('@/pages/BackofficePoroteosPage'));
@@ -41,6 +42,12 @@ export const router = createBrowserRouter([
     errorElement: <RouteError />,
     children: [
       { index: true, element: <LandingPage />, handle: { bleed: true } satisfies RouteHandle },
+      {
+        // Página de trabajo: comparar portadas candidatas (no está en el menú).
+        path: 'portadas',
+        element: <PortadasPage />,
+        handle: { bleed: true } satisfies RouteHandle,
+      },
       { path: 'poroteos-publicos', element: <PoroteosPublicosPage /> },
       { path: 'poroteos-publicos/:id', element: <PoroteoPublicoPage /> },
       { path: 'camara', element: <CamaraPage /> },
