@@ -153,6 +153,8 @@ export function Hemiciclo({
               cy={-seat.y * SCALE}
               r={r}
               style={{ fill: colorDe(banca) }}
+              data-confianza={banca.confianza ?? undefined}
+              data-editado={banca.editado || undefined}
               className={[
                 styles.seat,
                 atenuada && styles.dim,
@@ -165,7 +167,7 @@ export function Hemiciclo({
               onPointerEnter={(e) => handlePointerEnter(banca, e)}
               onPointerLeave={() => setHover((h) => (h?.sticky ? h : null))}
             >
-              <title>{`${banca.nombre} · ${titleCase(banca.bloque)}${banca.voto ? ` · ${VOTO_LABEL[banca.voto]}` : ''}`}</title>
+              <title>{`${banca.nombre} · ${titleCase(banca.bloque)}${banca.voto ? ` · ${VOTO_LABEL[banca.voto]}` : ''}${banca.confianza ? ` · confianza ${banca.confianza}` : ''}${banca.editado ? ' · editado a mano' : ''}`}</title>
             </circle>
           );
         })}

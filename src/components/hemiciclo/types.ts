@@ -14,4 +14,8 @@ export interface Banca {
   href?: string | null;
   /** Para ordenar dentro del bloque (por defecto, nombre). */
   orden?: string;
+  /** Poroteo con IA: qué tan firme es la estimación (las dudosas se ven más tenues). */
+  confianza?: 'alta' | 'media' | 'baja' | null;
+  /** Poroteo con IA: el voto fue corregido a mano (anillo de tinta). */
+  editado?: boolean;
 }

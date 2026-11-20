@@ -48,6 +48,25 @@
   opacity: 0.18;
 }
 
+/* Poroteo con IA: la confianza se ve en la intensidad; lo editado, con anillo de tinta. */
+.seat[data-confianza='media'] {
+  fill-opacity: 0.72;
+}
+
+.seat[data-confianza='baja'] {
+  fill-opacity: 0.4;
+  stroke: var(--ink-3);
+  stroke-width: 0.4;
+  stroke-dasharray: 0.9 0.6;
+}
+
+.seat[data-editado] {
+  fill-opacity: 1;
+  stroke: var(--ink);
+  stroke-width: 0.7;
+  stroke-dasharray: none;
+}
+
 [data-modo='poroteo'] .seat {
   cursor: crosshair;
 }
