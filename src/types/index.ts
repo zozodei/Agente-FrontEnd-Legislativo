@@ -379,6 +379,8 @@ export interface FactoresPrediccion {
   historial: { ultimosDosAnios: Record<VotoPredicho, number> };
   datos: { votacionesUltimosDosAnios: number; pocosDatos: boolean };
   supuestos: { oficialismo: VotoPredicho | null; bloque: VotoPredicho | null };
+  antecedentes?: { sinAntecedentes: boolean };
+  divididasDelTema?: FactoresPrediccion['similares'];
   fuentes: number[];
 }
 
@@ -411,6 +413,8 @@ export interface SupuestosEscenario {
   tema?: string;
   tipo?: 'proyecto' | 'mocion';
   solicitanteDiputadoId?: number | null;
+  /** Se vota como las votaciones divididas del mismo tema (p. ej. la IVE). */
+  comoTemaDividido?: boolean;
 }
 
 export interface ResumenPrediccion {
@@ -428,6 +432,11 @@ export interface ResumenPrediccion {
   nivelConfianza: Record<NivelConfianza, number>;
   similares: VotacionSimilar[];
   similaresRecientes: VotacionSimilar[];
+  antecedentes?: {
+    similitudMaxima: number;
+    sinAntecedentes: boolean;
+    divididasDelTema: VotacionSimilar[];
+  };
   explicaciones: { fuente: 'llm' | 'plantilla'; llm: boolean; errores?: number };
   msPrediccion: number;
 }

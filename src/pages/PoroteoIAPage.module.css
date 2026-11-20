@@ -147,3 +147,14 @@
   font-size: var(--text-2xs);
   color: var(--ink-3);
 }
+
+.avisoAntecedentes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--warning);
+  background: var(--paper-sunken);
+  font-size: var(--text-sm);
+}

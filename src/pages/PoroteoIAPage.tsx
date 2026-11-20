@@ -214,6 +214,40 @@ function Vista({
           <a href={`/poroteos/${poroteo.id}/ia`}>Recargá la página</a> para ver la última versión.
         </p>
       )}
+      {hayPrediccion && prediccion.resumen?.antecedentes?.sinAntecedentes && (
+        <div className={styles.avisoAntecedentes} role="status">
+          <strong>No hay votaciones parecidas a este proyecto en el historial.</strong> La
+          estimación se apoya en cómo votó cada diputado en votaciones divididas del mismo tema
+          {prediccion.resumen.antecedentes.divididasDelTema.length
+            ? ` (por ejemplo, ${prediccion.resumen.antecedentes.divididasDelTema
+                .slice(0, 2)
+                .map((v) => v.nombreLey ?? v.titulo.slice(0, 50))
+                .join(' y ')})`
+            : ''}{' '}
+          y por eso es poco firme. Si sabés cómo se van a posicionar los bloques, indicalo para
+          afinarla.
+          {puedeEditar && prediccion.resumen.antecedentes.divididasDelTema.length > 0 && (
+            <Button
+              size="sm"
+              variant="primary"
+              loading={generar.isPending}
+              disabled={generar.isPending || conflicto}
+              onClick={() => {
+                const nuevos = { ...supuestos, comoTemaDividido: true };
+                setSupuestos(nuevos);
+                generar.mutate({ version: poroteo.version, supuestos: nuevos });
+              }}
+            >
+              Estimar como votación dividida del tema
+            </Button>
+          )}
+          {puedeEditar && (
+            <Button size="sm" onClick={() => setReestimar(true)}>
+              Indicar la postura de los bloques
+            </Button>
+          )}
+        </div>
+      )}
       {ajustar.isError && !conflicto && (
         <p role="alert" className={styles.alerta}>
           No se pudo guardar el cambio: {errorMessage(ajustar.error)}

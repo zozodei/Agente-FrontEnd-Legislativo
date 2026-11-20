@@ -103,6 +103,15 @@ export function SupuestosForm({ diputados, valor, onChange, temaDetectado, disab
           <option value="NEGATIVO">En contra</option>
         </SelectField>
       </div>
+      <label className={styles.check}>
+        <input
+          type="checkbox"
+          checked={Boolean(valor.comoTemaDividido)}
+          onChange={(e) => onChange({ ...valor, comoTemaDividido: e.target.checked })}
+        />
+        Se vota como las votaciones divididas del mismo tema (por ejemplo, la IVE): cada diputado
+        según cómo votó en ellas o, si no estaba, según su bloque
+      </label>
       <details className={styles.bloquesDetalle} open={Object.keys(posturas).length > 0}>
         <summary>Postura anunciada por bloque ({Object.keys(posturas).length})</summary>
         <div className={styles.bloquesGrid}>

@@ -38,7 +38,10 @@ export function FichaDiputado({
 }: Props) {
   const [motivo, setMotivo] = useState('');
   const f = prediccion?.factores;
-  const pasados = f?.similares.filter((s) => s.voto).slice(0, 6) ?? [];
+  // Sin votaciones parecidas, los antecedentes útiles son las votaciones divididas del mismo tema.
+  const sinAntecedentes = Boolean(f?.antecedentes?.sinAntecedentes && f.divididasDelTema?.length);
+  const pasados =
+    (sinAntecedentes ? f?.divididasDelTema : f?.similares)?.filter((s) => s.voto).slice(0, 6) ?? [];
 
   return (
     <section className={styles.ficha} aria-label={`Ficha de ${diputado.nombreCompleto}`}>
@@ -118,7 +121,11 @@ export function FichaDiputado({
 
           {pasados.length > 0 && (
             <div>
-              <span className={styles.toolLabel}>Votos pasados en proyectos parecidos</span>
+              <span className={styles.toolLabel}>
+                {sinAntecedentes
+                  ? 'Votos en votaciones divididas del mismo tema'
+                  : 'Votos pasados en proyectos parecidos'}
+              </span>
               <ul className={styles.pasados}>
                 {pasados.map((s) => (
                   <li key={s.votacionId}>
