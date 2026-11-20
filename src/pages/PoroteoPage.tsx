@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useBlocker, useNavigate, useParams } from 'react-router-dom';
 import { ApiError, errorMessage } from '@/api/client';
 import { Hemiciclo, type Banca } from '@/components/hemiciclo';
-import { Button } from '@/components/ui/Button';
+import { Button, ButtonLink } from '@/components/ui/Button';
 import { Segmented, SelectField, TextField } from '@/components/ui/Fields';
 import { ErrorState, Skeleton } from '@/components/ui/States';
 import { Kicker, SectionHeader } from '@/components/ui/Typography';
@@ -217,7 +217,8 @@ function Editor({
       <header className={styles.header}>
         <div className={styles.headerText}>
           <Kicker tono="accent">
-            Poroteo manual · editado {formatRelative(poroteo.updatedAt)}
+            {poroteo.origen === 'manual' ? 'Poroteo manual' : 'Poroteo con IA'} · editado{' '}
+            {formatRelative(poroteo.updatedAt)}
             {poroteo.archivoNombre ? ` · ${poroteo.archivoNombre}` : ''}
           </Kicker>
           <h1 className={styles.title}>{poroteo.titulo}</h1>
@@ -247,6 +248,9 @@ function Editor({
           {poroteo.visibilidad === 'publico' && (
             <Link to={`/poroteos-publicos/${poroteo.id}`}>Ver publicación</Link>
           )}
+          <ButtonLink to={`/poroteos/${poroteo.id}/ia`} variant="primary">
+            {poroteo.origen === 'manual' ? 'Estimar con IA' : 'Ver estimación de la IA'}
+          </ButtonLink>
           <SelectField
             label="Mayoría"
             disabled={busy || conflicto || !poroteo.permisos.editar}

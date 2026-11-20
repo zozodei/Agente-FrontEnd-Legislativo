@@ -41,6 +41,9 @@ export default function NuevoPoroteoPage() {
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (titulo.trim().length < 3) return;
+    // El botón usado decide a dónde ir: estimar con IA (por defecto) o editor manual.
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const conIA = submitter?.dataset.modo !== 'manual';
     crear.mutate(
       {
         titulo: titulo.trim(),
@@ -49,7 +52,7 @@ export default function NuevoPoroteoPage() {
         tipoMayoria,
         archivo,
       },
-      { onSuccess: (p) => navigate(`/poroteos/${p.id}`, { replace: true }) },
+      { onSuccess: (p) => navigate(`/poroteos/${p.id}${conIA ? '/ia' : ''}`, { replace: true }) },
     );
   };
 
@@ -175,10 +178,18 @@ export default function NuevoPoroteoPage() {
           <Button
             type="submit"
             variant="primary"
+            data-modo="ia"
             loading={crear.isPending}
             disabled={titulo.trim().length < 3}
           >
-            Crear y empezar a porotear
+            Crear y estimar con IA
+          </Button>
+          <Button
+            type="submit"
+            data-modo="manual"
+            disabled={crear.isPending || titulo.trim().length < 3}
+          >
+            Crear poroteo manual
           </Button>
           <ButtonLink to="/poroteos" variant="ghost">
             Cancelar

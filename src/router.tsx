@@ -23,6 +23,7 @@ const NuevoPoroteoPage = lazy(() => import('@/pages/NuevoPoroteoPage'));
 const PoroteosPublicosPage = lazy(() => import('@/pages/PoroteosPublicosPage'));
 const PoroteoPublicoPage = lazy(() => import('@/pages/PoroteoPublicoPage'));
 const PoroteoPage = lazy(() => import('@/pages/PoroteoPage'));
+const PoroteoIAPage = lazy(() => import('@/pages/PoroteoIAPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const PortadasPage = lazy(() => import('@/pages/PortadasPage'));
 const BackofficePage = lazy(() => import('@/pages/BackofficePage'));
@@ -73,6 +74,7 @@ export const router = createBrowserRouter([
           { path: 'poroteos', element: <PoroteosPage /> },
           { path: 'poroteos/nuevo', element: <NuevoPoroteoPage /> },
           { path: 'poroteos/:id', element: <PoroteoPage /> },
+          { path: 'poroteos/:id/ia', element: <PoroteoIAPage /> },
           {
             element: <RutaSuperadmin />,
             children: [

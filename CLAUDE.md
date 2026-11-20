@@ -330,3 +330,17 @@ caché de la cuenta al cerrar sesión o cambiar de identidad, incluidas otras pe
 Contrato backend: docs/poroteos-colaborativos.md en Agente-BackEnd-Legislativo.
 Pruebas nuevas: features/poroteo/colaboracion.test.tsx y privacidad.test.tsx.
 No se modificó Supabase remoto.
+
+## Poroteo con IA (`/poroteos/:id/ia`)
+
+- Página `PoroteoIAPage` + `features/poroteoIA/` (queries, estado, components: `SupuestosForm`,
+  `TablaPredicciones`, `FichaDiputado`, `ResumenIA`, `Piezas` con `AvisoEstimacion`,
+  `ConfianzaBadge`, `BarrasProbabilidad`). API en `prediccionApi` (`api/resources.ts`).
+- Crear un poroteo lleva por defecto a esta vista ("Crear y estimar con IA"); el editor manual
+  tiene el botón "Estimar con IA".
+- Voto final = ajuste pendiente (optimista) > voto guardado (`estado.ts`, testeado). Cada
+  cambio es un `POST /poroteos/:id/ajustes`; `voto: null` vuelve a la predicción.
+- `Banca` acepta `confianza` (`baja` = tenue y punteada, `media` = 72 %) y `editado` (anillo de
+  tinta). Confianza también como texto + forma en `ConfianzaBadge` (no depende del color).
+- El aviso de neutralidad ("Estimación, no resultado") es obligatorio en toda vista con
+  predicciones.

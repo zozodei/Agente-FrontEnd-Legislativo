@@ -23,4 +23,6 @@ export const queryKeys = {
   publico: (id: string) => ['poroteos-publicos', 'detalle', id] as const,
   poroteosAll: ['poroteos'] as const,
   poroteo: (id: string, userId: string) => ['poroteos', userId, 'detalle', id] as const,
+  prediccion: (id: string, userId: string) => ['poroteos', userId, 'prediccion', id] as const,
+  modelo: ['prediccion', 'modelo'] as const,
 };

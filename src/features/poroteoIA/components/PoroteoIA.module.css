@@ -1,0 +1,458 @@
+/* Poroteo con IA. Editorial: reglas horizontales, mono para etiquetas, color solo para datos. */
+
+.toolLabel {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: var(--space-1);
+}
+
+.nota {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.aviso {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--sol);
+  background: var(--paper-sunken);
+}
+
+/* Confianza: forma + texto, no solo color */
+.confianza {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.confianza i {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+}
+
+.confianza[data-nivel='alta'] i {
+  background: var(--ink);
+}
+
+.confianza[data-nivel='media'] i {
+  background: linear-gradient(90deg, var(--ink) 50%, transparent 50%);
+}
+
+.confianza[data-nivel='baja'] i {
+  border-style: dashed;
+  border-color: var(--ink-3);
+}
+
+.editado {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Probabilidades */
+.probs {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.prob {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.prob dd {
+  display: grid;
+  grid-template-columns: 1fr 3.2rem;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: right;
+}
+
+.probTrack {
+  height: 8px;
+  background: var(--paper-sunken);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.probFill {
+  display: block;
+  height: 100%;
+}
+
+/* Ficha */
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface);
+  border-top: var(--rule-strong);
+}
+
+.fichaHeader {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.fichaNombre {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 400;
+  line-height: var(--leading-tight);
+}
+
+.fichaMeta {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.cerrar {
+  border: 0;
+  background: none;
+  font-size: var(--text-2xl);
+  line-height: 1;
+  color: var(--ink-2);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+}
+
+.fichaVoto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.fichaVoto .toolLabel {
+  width: 100%;
+}
+
+.explicacion p + p {
+  margin-top: var(--space-2);
+}
+
+.factores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  border-top: var(--rule-width) solid var(--rule);
+  padding-top: var(--space-3);
+}
+
+.factores dt {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.factores dd {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+}
+
+.pasados {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pasados li {
+  display: grid;
+  gap: 2px;
+  padding-bottom: var(--space-2);
+  border-bottom: var(--rule-width) solid var(--rule);
+}
+
+.pasadoTitulo {
+  font-size: var(--text-sm);
+}
+
+.pasadoMeta {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+}
+
+.pasadoVoto {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.pasadoBloque {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.editar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-top: var(--rule-strong);
+  padding-top: var(--space-3);
+}
+
+.opciones {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.opcion {
+  font: inherit;
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-1);
+  border: 1px solid var(--rule-strong-color);
+  border-left: 4px solid var(--c);
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.opcion[aria-pressed='true'] {
+  background: var(--c);
+  color: var(--paper);
+  font-weight: 600;
+}
+
+.opcion:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.opcion:focus-visible,
+.linkBtn:focus-visible,
+.cerrar:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.motivo {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.motivo input {
+  font: inherit;
+  padding: var(--space-2);
+  border: 1px solid var(--rule-strong-color);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.historial summary {
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+
+.historial ol {
+  margin-top: var(--space-2);
+  padding-left: var(--space-4);
+  list-style: decimal;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+/* Supuestos */
+.supuestos {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.supuestos legend {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  margin-bottom: var(--space-2);
+}
+
+.supuestosGrid,
+.bloquesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: var(--space-3);
+}
+
+.bloquesDetalle summary {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-3);
+}
+
+/* Tabla */
+.tabla {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: var(--space-2);
+  align-items: end;
+}
+
+.check {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: var(--text-sm);
+  min-height: 2.5rem;
+}
+
+.conteoFilas {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.scroll {
+  overflow-x: auto;
+  max-height: 560px;
+  overflow-y: auto;
+  border-top: var(--rule-strong);
+}
+
+.scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.scroll th,
+.scroll td {
+  text-align: left;
+  padding: var(--space-2);
+  border-bottom: var(--rule-width) solid var(--rule);
+  white-space: nowrap;
+}
+
+.scroll thead th {
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
+.scroll tr[data-seleccionado] {
+  background: var(--highlight);
+}
+
+.linkBtn {
+  font: inherit;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.celdaVoto {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* Resumen */
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-5);
+  border-top: var(--rule-strong);
+  padding-top: var(--space-4);
+}
+
+.esperados,
+.niveles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.esperados dt {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.esperados dd {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+}
+
+.niveles li {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.listaSimple {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  padding-left: var(--space-4);
+  list-style: decimal;
+}
+
+ul.listaSimple {
+  list-style: disc;
+}
+
+.similaresBox {
+  grid-column: 1 / -1;
+}
+
+.pie {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+}
+
+@media (max-width: 560px) {
+  .factores {
+    grid-template-columns: 1fr;
+  }
+
+  .opciones {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

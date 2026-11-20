@@ -1,4 +1,8 @@
 import type {
+  AnalisisProyecto,
+  ModeloInfo,
+  PrediccionPoroteo,
+  SupuestosEscenario,
   MiembroPoroteo,
   PoroteoPublico,
   PoroteoPublicoDetalle,
@@ -205,5 +209,38 @@ export const poroteosApi = {
     request<{ data: { id: string; salido: true } }>(`/poroteos/${id}/salir`, {
       method: 'POST',
       body: { version },
+    }),
+};
+
+/* ── Poroteo con IA ────────────────────────────────────────────────────── */
+
+export interface AjusteInput {
+  diputadoId: number;
+  /** null = volver a la predicción de la IA. */
+  voto: VotoPoroteo | null;
+  motivo?: string | null;
+}
+
+export interface RespuestaPrediccion {
+  poroteo: PoroteoDetalle;
+  prediccion: PrediccionPoroteo;
+}
+
+export const prediccionApi = {
+  modelo: (signal?: AbortSignal) =>
+    request<{ data: ModeloInfo }>('/prediccion/modelo', { signal, anonimo: true }),
+  analizar: (input: { titulo: string; resumen?: string | null; texto?: string | null }) =>
+    request<{ data: AnalisisProyecto }>('/prediccion/analizar', { method: 'POST', body: input }),
+  get: (id: string, signal?: AbortSignal) =>
+    request<{ data: PrediccionPoroteo }>(`/poroteos/${id}/prediccion`, { signal }),
+  generar: (id: string, version: VersionPoroteo, supuestos: SupuestosEscenario) =>
+    request<{ data: RespuestaPrediccion }>(`/poroteos/${id}/prediccion`, {
+      method: 'POST',
+      body: { version, supuestos },
+    }),
+  ajustar: (id: string, version: VersionPoroteo, ajustes: AjusteInput[]) =>
+    request<{ data: RespuestaPrediccion }>(`/poroteos/${id}/ajustes`, {
+      method: 'POST',
+      body: { version, ajustes },
     }),
 };

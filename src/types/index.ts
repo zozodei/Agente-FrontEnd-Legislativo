@@ -337,3 +337,124 @@ export interface ResumenAdmin {
   bloques: number;
   votaciones: number;
 }
+
+/* ── Poroteo con IA ────────────────────────────────────────────────────── */
+
+export type VotoPredicho = 'AFIRMATIVO' | 'NEGATIVO' | 'ABSTENCION' | 'AUSENTE';
+export type NivelConfianza = 'alta' | 'media' | 'baja';
+export type Probabilidades = Record<VotoPredicho, number>;
+
+export interface VotacionSimilar {
+  votacionId: number;
+  titulo: string;
+  nombreLey?: string | null;
+  fecha: string;
+  tema?: string;
+  resultado?: string | null;
+  similitud: number;
+  url: string | null;
+  conteo?: Conteo;
+}
+
+/** Datos estructurados que sustentan una predicción (auditables). */
+export interface FactoresPrediccion {
+  prediccion: { voto: VotoPredicho; probabilidades: Probabilidades; confianza: number };
+  similares: Array<
+    VotacionSimilar & {
+      voto: VotoPredicho | null;
+      mayoriaBloque: VotoPredicho | 'ABSTENCION' | null;
+    }
+  >;
+  bloque: {
+    nombre: string;
+    integrantes: number;
+    enSimilares: Probabilidades;
+    enSimilaresRecientes: Probabilidades;
+    cobertura: number;
+    cohesion: number;
+  };
+  disciplina: { porcentaje: number; base: number };
+  oficialismo: { alineacion: number; base: number; esBloqueOficialista: boolean };
+  ausentismo: { ultimas10: number; registradas: number; ultimos6Meses: number };
+  historial: { ultimosDosAnios: Record<VotoPredicho, number> };
+  datos: { votacionesUltimosDosAnios: number; pocosDatos: boolean };
+  supuestos: { oficialismo: VotoPredicho | null; bloque: VotoPredicho | null };
+  fuentes: number[];
+}
+
+export interface PrediccionDiputado {
+  diputadoId: number;
+  voto: VotoPredicho;
+  probabilidades: Probabilidades;
+  confianza: number;
+  nivelConfianza: NivelConfianza;
+  explicacion: string | null;
+  explicacionFuente: 'llm' | 'plantilla' | null;
+  explicacionEstado: 'ok' | 'sin_llm' | 'error';
+  factores: FactoresPrediccion;
+  versionModelo: string;
+}
+
+export interface AjusteManual {
+  id: number;
+  diputadoId: number;
+  /** null = volvió a la predicción de la IA. */
+  voto: VotoPoroteo | null;
+  motivo: string | null;
+  userId: string | null;
+  createdAt: string;
+}
+
+export interface SupuestosEscenario {
+  posturaOficialismo?: 'AFIRMATIVO' | 'NEGATIVO' | null;
+  posturasBloque?: Record<string, 'AFIRMATIVO' | 'NEGATIVO' | 'ABSTENCION'>;
+  tema?: string;
+  tipo?: 'proyecto' | 'mocion';
+  solicitanteDiputadoId?: number | null;
+}
+
+export interface ResumenPrediccion {
+  fecha: string;
+  proyecto: {
+    tema: string;
+    temaNombre: string;
+    tipo: 'proyecto' | 'mocion';
+    dictamen: string | null;
+    origenSenado: boolean;
+  };
+  gobierno: { presidente: string; partido: string } | null;
+  esperados: Probabilidades;
+  porVoto: Record<VotoPredicho, number>;
+  nivelConfianza: Record<NivelConfianza, number>;
+  similares: VotacionSimilar[];
+  similaresRecientes: VotacionSimilar[];
+  explicaciones: { fuente: 'llm' | 'plantilla'; llm: boolean; errores?: number };
+  msPrediccion: number;
+}
+
+export interface PrediccionPoroteo {
+  versionModelo: string | null;
+  generadaAt: string | null;
+  supuestos: SupuestosEscenario;
+  resumen: ResumenPrediccion | null;
+  predicciones: PrediccionDiputado[];
+  ajustesVigentes: AjusteManual[];
+  historialAjustes: AjusteManual[];
+}
+
+export interface AnalisisProyecto {
+  tema: string;
+  tipo: 'proyecto' | 'mocion';
+  dictamen: string | null;
+  origenSenado: boolean;
+  similares: VotacionSimilar[];
+}
+
+export interface ModeloInfo {
+  version: string;
+  tipo: string;
+  entrenamiento: {
+    datosAl: string;
+    calibracion: { accuracy: number; f1Macro: number; ece: number };
+  } | null;
+}
