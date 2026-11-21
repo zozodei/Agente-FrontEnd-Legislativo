@@ -106,6 +106,14 @@ export function SupuestosForm({ diputados, valor, onChange, temaDetectado, disab
       <label className={styles.check}>
         <input
           type="checkbox"
+          checked={valor.usarAnalistaIA !== false}
+          onChange={(e) => onChange({ ...valor, usarAnalistaIA: e.target.checked })}
+        />
+        Que la IA lea el proyecto y estime la postura de cada bloque (recomendado)
+      </label>
+      <label className={styles.check}>
+        <input
+          type="checkbox"
           checked={Boolean(valor.comoTemaDividido)}
           onChange={(e) => onChange({ ...valor, comoTemaDividido: e.target.checked })}
         />

@@ -13,6 +13,7 @@ import { ResultadoPanel } from '@/features/poroteo/components/ResultadoPanel';
 import { calcularResultado, TIPO_MAYORIA_LABEL } from '@/features/poroteo/resultado';
 import { FichaDiputado } from '@/features/poroteoIA/components/FichaDiputado';
 import { AvisoEstimacion } from '@/features/poroteoIA/components/Piezas';
+import { AnalisisBloquesIA } from '@/features/poroteoIA/components/AnalisisBloquesIA';
 import { ResumenIA } from '@/features/poroteoIA/components/ResumenIA';
 import { SupuestosForm } from '@/features/poroteoIA/components/SupuestosForm';
 import { TablaPredicciones } from '@/features/poroteoIA/components/TablaPredicciones';
@@ -360,6 +361,9 @@ function Vista({
               </div>
             </aside>
           </div>
+          {prediccion.resumen?.analisisBloques && (
+            <AnalisisBloquesIA analisis={prediccion.resumen.analisisBloques} />
+          )}
           <ResumenIA prediccion={prediccion} editados={editados.size} />
           <section className={styles.section}>
             {reestimar ? (

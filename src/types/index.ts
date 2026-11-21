@@ -378,7 +378,11 @@ export interface FactoresPrediccion {
   ausentismo: { ultimas10: number; registradas: number; ultimos6Meses: number };
   historial: { ultimosDosAnios: Record<VotoPredicho, number> };
   datos: { votacionesUltimosDosAnios: number; pocosDatos: boolean };
-  supuestos: { oficialismo: VotoPredicho | null; bloque: VotoPredicho | null };
+  supuestos: {
+    oficialismo: VotoPredicho | null;
+    bloque: VotoPredicho | null;
+    bloqueIA?: AnalisisBloque | null;
+  };
   antecedentes?: { sinAntecedentes: boolean };
   divididasDelTema?: FactoresPrediccion['similares'];
   fuentes: number[];
@@ -415,6 +419,22 @@ export interface SupuestosEscenario {
   solicitanteDiputadoId?: number | null;
   /** Se vota como las votaciones divididas del mismo tema (p. ej. la IVE). */
   comoTemaDividido?: boolean;
+  /** Usar el analista de IA que estima la postura de cada bloque (por defecto, sí). */
+  usarAnalistaIA?: boolean;
+}
+
+export interface AnalisisBloque {
+  postura: 'AFIRMATIVO' | 'NEGATIVO' | 'ABSTENCION';
+  probabilidades: { AFIRMATIVO: number; NEGATIVO: number; ABSTENCION: number };
+  razon: string;
+}
+
+export interface AnalisisBloques {
+  bloques: Record<string, AnalisisBloque>;
+  divideALaCamara: number;
+  resumen: string;
+  modelo: string | null;
+  deCache: boolean;
 }
 
 export interface ResumenPrediccion {
@@ -438,6 +458,7 @@ export interface ResumenPrediccion {
     divididasDelTema: VotacionSimilar[];
   };
   explicaciones: { fuente: 'llm' | 'plantilla'; llm: boolean; errores?: number };
+  analisisBloques?: AnalisisBloques | null;
   msPrediccion: number;
 }
 
